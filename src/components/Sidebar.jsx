@@ -68,32 +68,19 @@ const Sidebar = () => {
       </div>
       <NavLink to='/'>
 
-        <div className='flex w-[85%] ml-[20px] mt-[60px] items-center p-1' style={page === '/' ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null} >
-          <FaHome className='text-2xl ml-2  ' style={page === '/' ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-1 text-lg  mt-1' style={page === '/' ? { color: 'white' } : { color: '#35A1CC' }}>Home</h2>
+        <div className='flex w-[85%] ml-[20px] mt-[60px] items-center p-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null} >
+          <FaHome className='text-2xl ml-2  ' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" ? { color: 'white' } : { color: '#35A1CC' }} />
+          <h2 className=' ml-1 text-lg  mt-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" ? { color: 'white' } : { color: '#35A1CC' }}>Home</h2>
         </div>
         {/* <div className='w-[50px] mt-1 bg-[#35A1CC] h-1'></div> */}
 
       </NavLink>
 
-      <NavLink to='/workers'>
-        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/workers' ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
-          <IoIosPerson className='text-2xl ml-2 ' style={page === '/workers' ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-[2px] text-md  mt-1' style={page === '/workers' ? { color: 'white' } : { color: '#35A1CC' }}>Working Inviduals</h2>
-        </div>
-      </NavLink>
-
-      <NavLink to='/tags'>
-        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/tags' ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
-          <IoMdAddCircleOutline className='text-2xl ml-2 ' style={page === '/tags' ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-1 text-lg  ' style={page === '/tags' ? { color: 'white' } : { color: '#35A1CC' }}>Add data</h2>
-        </div>
-      </NavLink>
-
-      <NavLink to='/allworkers'>
-        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/allworkers' ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
-          <BsPeopleFill className='text-2xl ml-2 ' style={page === '/allworkers' ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-1 text-lg  ' style={page === '/allworkers' ? { color: 'white' } : { color: '#35A1CC' }}>All Workers</h2>
+    
+      <NavLink to='/workertype'>
+        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
+          <BsPeopleFill className='text-2xl ml-2 ' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" ? { color: 'white' } : { color: '#35A1CC' }} />
+          <h2 className=' ml-1 text-lg  ' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" ? { color: 'white' } : { color: '#35A1CC' }}>All Workers</h2>
         </div>
       </NavLink>
 
@@ -105,9 +92,9 @@ const Sidebar = () => {
       </NavLink>
 
       <NavLink to='/allproducts'>
-        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/allproducts' ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
-          <FaShoppingCart className='text-2xl ml-2 ' style={page === '/allproducts' ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-2 text-lg  ' style={page === '/allproducts' ? { color: 'white' } : { color: '#35A1CC' }}>Products</h2>
+        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/allproducts' || page === "/addproducts" || page?.includes("/editproduct/") ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
+          <FaShoppingCart className='text-2xl ml-2 ' style={page === '/allproducts' || page === "/addproducts" || page?.includes("/editproduct/") ? { color: 'white' } : { color: '#35A1CC' }} />
+          <h2 className=' ml-2 text-lg  ' style={page === '/allproducts' || page === "/addproducts" || page?.includes("/editproduct/") ? { color: 'white' } : { color: '#35A1CC' }}>Products</h2>
         </div>
       </NavLink>
 

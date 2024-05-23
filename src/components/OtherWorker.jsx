@@ -11,8 +11,9 @@ import { getDatabase, set, ref, update, push, onValue, remove } from 'firebase/d
 import Sidebar from './Sidebar';
 import { ModalContext } from '../context/Modalcontext';
 import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-
-const Allworkers = () => {
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.min.css';
+const OtherWorker = () => {
 
 
     const [mylist, setmylist] = useState([]);
@@ -29,11 +30,18 @@ const Allworkers = () => {
 
 
     // -----------------------------------Delete Worker----------------------------------
-
+    let updateLinks = () => {
+        if (mylist?.length === 1) {
+            setmylist([]);
+            setfiltered([]);
+        }
+      };
 
     const handleDelete = () => {
-        remove(ref(db, `/workers/${delid}`))
+        remove(ref(db, `/otherWorkers/${delid}`))
         setdelid('')
+        updateLinks()
+        toast.success("Worker delete successfuly!")
     }
 
 
@@ -52,7 +60,7 @@ const Allworkers = () => {
     useEffect(() => {
         let getingdata = async () => {
 
-            const starCountRef = ref(db, '/workers');
+            const starCountRef = ref(db, '/otherWorkers');
             onValue(starCountRef, async (snapshot) => {
                 const data = await snapshot.val();
                 //  console.log(data)
@@ -107,11 +115,11 @@ const Allworkers = () => {
     //     }
     // }
     const Editdata = (id) => {
-        navigate(`/updateworker/${id}`)
+        navigate(`/updateotherworker/${id}`)
     }
 
     const view = (id) => {
-        navigate(`/singleWorker/${id}`)
+        navigate(`/singleotherworker/${id}`)
     }
 
 
@@ -132,15 +140,16 @@ const Allworkers = () => {
         { name: 'Password', selector: (row) => { return row.password }, sortable: true, },
         { name: 'CNIC', selector: (row) => { return row.cnic }, sortable: true, },
         { name: 'Phone', selector: (row) => { return row.phone }, sortable: true, },
+        { name: 'Job type', selector: (row) => { return row.jobType }, sortable: true, },
         { name: 'Salary', selector: (row) => { return row.sallary }, sortable: true, },
         { name: 'Address', selector: (row) => { return row.address }, sortable: true, width: '150px' },
         { name: 'Joining Date', selector: (row) => { return row.joiningdate }, sortable: true, width: '120px' },
         // { name: 'InActive Date', selector: (row) => { return row.inactiveDate }, sortable: true, width: '120px' },
         // { name: 'Creation Date', selector: (row) => { return row.creationDate }, sortable: true, width: '130px' },
         // // { name: 'Age', selector: 'age', sortable: true ,},
-        { name: 'Actions', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => Editdata(row.id)}>Edit</button> <button className='h-[40px] w-[70px] border bg-[#f44336] rounded-md text-white' onClick={() => { return modalseter(row.id) }} >Delete</button></div>), width: '175px' },
+        { name: 'Actions', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => Editdata(row.id)}>Edit</button><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => view(row.id)}>View</button> <button className='h-[40px] w-[70px] border bg-[#f44336] rounded-md text-white mr-2' onClick={() => { return modalseter(row.id) }} >Delete</button></div>), width: '175px' },
         // onClick={() => { return modalseter(row.id) }}
-        { name: 'View', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => view(row.id)}>View</button></div>), width: '175px' },
+
 
         // { name: 'Status', cell: (row) => row.status === true ? (<div className='h-[24px] w-[45px] bg-[#35A1CC] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border right-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }} ></div></div>) : (<div className='h-[24px] w-[45px] bg-[#707070] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border left-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }}></div></div>) },
 
@@ -157,7 +166,7 @@ const Allworkers = () => {
                 <div className='relative w-[83%]'>
                     {/* {deletemodal && <Model delfunc={handleDelete} msg={delmsg} />} */}
                     <img src={upper} />
-                    <Link to='/addnewWorker'><div className='h-[45px] border w-[210px] absolute right-6 flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer'>Add new worker +</div></Link>
+                    <Link to='/AddnewOtherworker'><div className='h-[45px] border w-[210px] absolute right-6 flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer'>Add new worker +</div></Link>
                     <div className='w-[95%]  ml-[45px] mt-[60px] relative'>
                         <div className='border' >
                             <DataTable columns={columns} data={filtered} style={{ width: '1200px' }} wrapperStyle={{ backgroundColor: '#DAECF3' }} pagination fixedHeader subHeader subHeaderComponent={<div className=' h-[70px]'><h2 className='text-xl  font-[450]'>Search</h2> <input type='search' placeholder='Search here' className=' h-[25px] w-[310px] border-b-[1px]   p-1 outline-none placeholder:text-sm' value={search} onChange={(e) => { setsearch(e.target.value) }} /> </div>} subHeaderAlign='left' />
@@ -168,8 +177,9 @@ const Allworkers = () => {
                     {/* <img src={lower} /> */}
                 </div>
             </div>
+            <ToastContainer position="top-center" autoClose={2000} />
         </>
     )
 }
 
-export default Allworkers
+export default OtherWorker

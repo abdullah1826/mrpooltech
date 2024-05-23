@@ -5,8 +5,12 @@ import { db } from "../../Firbase";
 import { useState } from "react";
 import Select from "react-select";
 import { useEffect } from "react";
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
+import VolumeCalculateModal from "../../components/VolumeCalculateModal";
 const Newinput = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState({
     site: "",
     status: true,
@@ -25,6 +29,15 @@ const Newinput = () => {
   let [visitingWorkers, setVisitinWorkers] = useState([]);
   let [options, setOptions] = useState([]);
   let [worker, setWorker] = useState(null);
+  const [modalopen, setModalOpen] = useState(false);
+
+  const handleOpen = () => {
+    setModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+  };
 
   // ------------------------geting data from firebase---------------------
 
@@ -86,11 +99,26 @@ const Newinput = () => {
   let year = date.getFullYear();
   let currentDate = `${year}-${month}-${day}`;
   const addData = () => {
-    if (data.site) {
-      let pushKey = push(ref(db, `NewProjects/`), data).key;
-      update(ref(db, `NewProjects/${pushKey}`), {
-        id: pushKey,
-        worker: worker?.label,
+    if (!data.site || !data.area || !worker) {
+      toast.warn("Site, area, and worker fields should not be empty.");
+      return;
+    }
+    if (data.site && data.area) {
+      const pushKeyRef = push(ref(db, 'NewProjects/'));
+        const pushKey = pushKeyRef.key;
+    
+        update(ref(db, `NewProjects/${pushKey}`), {
+          id: pushKey,
+           site: data.site,
+                    area: data.area,
+                    owner: data.owner,
+                    ownerMobile: data.ownerMobile,
+                    poolSize: data.poolSize,
+                    poolShape: data.poolShape,
+                    activeDate: data.activeDate,
+                    inactiveDate: data.inactiveDate,
+                    status: data.status,
+                    worker:worker?.label,
       }).then(() => {
         let isPermanent = workers?.some((elm) => {
           return elm?.id === worker.value;
@@ -130,6 +158,10 @@ const Newinput = () => {
           );
         }
       });
+      toast.success("Record added successfully")
+      setTimeout(() => {
+        navigate(`/newproject`);
+      }, 1500);
       setData({
         site: "",
         status: true,
@@ -146,14 +178,16 @@ const Newinput = () => {
   };
 
   return (
+    <>
+    <VolumeCalculateModal modalopen={modalopen} handleclose={handleClose}/>
     <div className="flex w-[100%] ">
       <Sidebar />
-      <div className="h-[60px] w-[200px] border  absolute right-[35px] top-[4%] rounded-md bg-[#35A1CC] flex justify-center items-center text-white cursor-pointer">
+      <div  className="h-[60px] w-[200px] border  absolute right-[35px] top-[4%] rounded-md bg-[#35A1CC] flex justify-center items-center text-white cursor-pointer z-50" onClick={()=>handleOpen()}>
         Volume Calculator
       </div>
 
-      <div className="relative ">
-        <div className="ml-[170px] mt-[90px] ">
+      <div className="relative w-[100%] ">
+        <div className=" mt-[90px] ">
           <div className="flex  ">
             <div className="flex justify-between flex-wrap ml-[50px] h-[400px] mt-[50px] flex-col">
               <div className="flex flex-col">
@@ -320,16 +354,32 @@ const Newinput = () => {
                 />
               </div>
             </div>
+            
           </div>
+          <div className="w-[70%] flex justify-end">
           <button
-            className="h-[45px] w-[210px] bg-[#35A1CC]  text-white rounded-[4px] absolute left-[50%] mt-[30px]"
+            className="h-[45px] w-[210px] mt-5 bg-[#35A1CC]  text-white rounded-[4px]  "
             onClick={() => addData()}
           >
             Submit
           </button>
+          </div>
         </div>
       </div>
     </div>
+    <ToastContainer
+    position="top-center"
+    autoClose={5000}
+    hideProgressBar={false}
+    newestOnTop={false}
+    closeOnClick
+    rtl={false}
+    pauseOnFocusLoss
+    draggable
+    pauseOnHover
+    theme="colored"
+    />
+    </>
   );
 };
 

@@ -1,9 +1,10 @@
 import { onValue, ref, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../Firbase';
 import Sidebar from './Sidebar';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const Maintenceupdate = () => {
 
 
@@ -52,10 +53,14 @@ const Maintenceupdate = () => {
 
 
 
-
+    const navigate = useNavigate();
     console.log(mydata.sideName)
 
     const updateData = () => {
+        if (!mydata.site || !mydata.area ) {
+            toast.warn("Site and area fields should not be empty.");
+            return;
+          }
         if (mydata.site && mydata.area) {
             update(ref(db, `Maintenance/${uid}`), mydata)
             setData({
@@ -77,13 +82,17 @@ const Maintenceupdate = () => {
         
             })
         }
+        toast.success("Update record successfully")
+        setTimeout(() => {
+            navigate(`/maintenance`);
+          }, 1500);
     }
     return (
         <>
             <div className='flex w-[70%] '>
                 <Sidebar />
                 {/* <h1 className='text-xl font-[500] ml-[80px]  mt-[20px]'>Enter the data</h1> */}
-                <div className=' flex justify-between flex-wrap ml-[50px] h-[340px] mt-[50px] flex-col'>
+                <div className=' flex justify-between flex-wrap ml-[20px] h-[340px] mt-[50px] flex-col'>
 
                     <div className='flex flex-col'>
                         <h2 className='text-xl font-[400]' >Site</h2>
@@ -103,7 +112,7 @@ const Maintenceupdate = () => {
                     </div>
                 </div>
 
-                <div className='  flex justify-between flex-wrap ml-[50px] h-[340px] mt-[50px]  flex-col'>
+                <div className='  flex justify-between flex-wrap ml-[20px] h-[340px] mt-[50px]  flex-col'>
                     <div className='flex flex-col '>
                         <h2 className='text-xl font-[450]'>Owner Name</h2>
                         <input type="text" placeholder='Owner Name' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, owner: e.target.value }) }} value={mydata?.owner} />
@@ -141,8 +150,21 @@ const Maintenceupdate = () => {
     </div>
             </div>
             </div>
-            <button className='h-[45px] w-[210px] bg-[#35A1CC]  text-white rounded-[4px] relative left-[1000px] bottom-[250px]' onClick={updateData}>Update</button>
-
+            <div className="w-[95%] mt-[-250px] flex justify-end">
+            <button className='h-[45px] w-[210px] bg-[#35A1CC]  text-white rounded-[4px] ' onClick={updateData}>Update</button>
+            </div>
+            <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+            />
         </>
 
 

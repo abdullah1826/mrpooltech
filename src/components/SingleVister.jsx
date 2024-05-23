@@ -5,7 +5,7 @@ import { db } from '../Firbase'
 import Sidebar from './Sidebar'
 import { useNavigate } from 'react-router-dom'
 
-const Singleworker = () => {
+const SingleVister = () => {
     const params = useParams()
     const uid = params.userid
     let navigate = useNavigate()
@@ -13,7 +13,7 @@ const Singleworker = () => {
     useEffect(() => {
         let getingdata = async () => {
 
-            const starCountRef = ref(db, `/workers/${uid}`);
+            const starCountRef = ref(db, `/visitingWorkers/${uid}`);
             onValue(starCountRef, async (snapshot) => {
                 const data = await snapshot.val();
                 //  console.log(data)
@@ -31,7 +31,7 @@ const Singleworker = () => {
     }, [])
 
     const Editdata = (id) => {
-        navigate(`/updateworker/${id}`)
+        navigate(`/updateVister/${id}`)
     }
 
     console.log(mydata)
@@ -67,4 +67,4 @@ const Singleworker = () => {
     )
 }
 
-export default Singleworker
+export default SingleVister

@@ -10,6 +10,8 @@ import Widgets from '../../components/Widgets'
 import { ModalContext } from '../../context/Modalcontext';
 import DataTable from 'react-data-table-component';
 import { Button, Modal, Typography, Box } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const Repare = () => {
 
     const [mylist, setmylist] = useState([]);
@@ -34,6 +36,7 @@ const Repare = () => {
       setdelid('')
       updateLinks();
       setModal(false);
+      toast.success("Record delete successfully!")
     }
     const handleclose = () => {
         setModal(false);
@@ -165,7 +168,7 @@ console.log(mylist)
     <div className='flex w-[100%]'>
 <Sidebar/>
 
-<div className='w-[79%]  ml-[45px] mt-[30px] relative'>
+<div className='w-[79%]  ml-[20px] mt-[30px] relative'>
 <div class="w-[100%] flex justify-center mb-5"><h2 class="text-4xl font-[500]  text-[#0b6e99]">Repairing Projects</h2></div>
 
 <div className='w-max h-max'>
@@ -206,6 +209,18 @@ console.log(mylist)
       </Box>
     </Box>
   </Modal>
+  <ToastContainer
+  position="top-center"
+  autoClose={5000}
+  hideProgressBar={false}
+  newestOnTop={false}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+  theme="colored"
+  />
     </>
   )
 }

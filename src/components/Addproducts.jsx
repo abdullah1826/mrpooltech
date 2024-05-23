@@ -8,8 +8,12 @@ import { db, storage } from "../Firbase";
 import { push, ref, update } from "firebase/database";
 import { getDownloadURL, uploadBytes } from "firebase/storage";
 import { ref as sRef } from "firebase/storage";
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { FadeLoader } from "react-spinners";
+import { useNavigate } from "react-router-dom";
 const Addproducts = () => {
+  const navigate = useNavigate();
   let [img, setimg] = useState(null);
 
   const handleImageChange = (e) => {
@@ -27,7 +31,9 @@ const Addproducts = () => {
   console.log(data.description);
 
   const addData = async () => {
+ 
     if (data.productName) {
+      setLoading(true)
       let pushkey = push(ref(db, `products/`), data).key;
       update(ref(db, `products/${pushkey}`), { id: pushkey });
       if (img) {
@@ -39,18 +45,26 @@ const Addproducts = () => {
             getDownloadURL(storageRef)
               .then((URL) => {
                 console.log(URL);
-                update(ref(db, `products/${pushkey}`), { imgUrl: URL });
-                window.location.reload();
+                update(ref(db, `products/${pushkey}`), { imgUrl: URL }).then(()=>{
+                  setLoading(false)
+                  navigate(`/allproducts`);
+                })
+             
+              
               })
+              
               .catch((error) => {
                 console.log(error);
               });
             setimg(null);
           })
+          
           .catch((error) => {
             console.log(error);
           });
       }
+      setLoading(false)
+      navigate(`/allproducts`);
       setData({
         productName: "",
         price: "",
@@ -58,18 +72,21 @@ const Addproducts = () => {
         imgUrl: "",
       });
 
-      if (!img) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
-      }
+      
+      
+    }else{
+      toast.error("Product name is required!")
     }
   };
-
+let [loading,setLoading]=useState(false)
   return (
+    <>
     <div className="flex border">
       <Sidebar />
-      <div className="flex w-[100%] border">
+      <div className="flex w-[100%] border relative">
+      {loading && 
+      <div className="flex absolute justify-center items-center h-[100%] w-[100%]"><FadeLoader  color="#36d7b7" /></div>
+      }
         <div className="relative">
           <div className="h-[120px] w-[120px] border rounded-full absolute left-[50%] top-[2%] ">
             <label
@@ -147,6 +164,19 @@ const Addproducts = () => {
         </div>
       </div>
     </div>
+    <ToastContainer
+    position="top-center"
+    autoClose={5000}
+    hideProgressBar={false}
+    newestOnTop={false}
+    closeOnClick
+    rtl={false}
+    pauseOnFocusLoss
+    draggable
+    pauseOnHover
+    theme="colored"
+    />
+    </>
   );
 };
 

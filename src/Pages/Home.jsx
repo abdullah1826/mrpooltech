@@ -44,7 +44,7 @@ const Home = () => {
                 </div>
                 </Link>
              
-              <Link to="/other">
+              <Link to="/otherproject">
                 <div class="h-[120px] w-[200px]   rounded-lg bg-[#0b6e99]  shadow-md border flex justify-center items-center cursor-pointer transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 duration-300">
                     <FaSwimmingPool className="h-[32px] w-[32px] text-white mr-1"/>
                   

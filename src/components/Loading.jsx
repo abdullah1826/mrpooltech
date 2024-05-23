@@ -4,7 +4,7 @@ import PropagateLoader from "react-spinners/PropagateLoader";
 
 const Loading = () => {
   return (
-    <div className='h-[100vh] w-[1365px]  flex justify-center items-center flex-col'>
+    <div className='h-[100vh] w-[100%]  flex justify-center items-center flex-col'>
       <img src={logo} className='h-[220px] w-[300px]  ' />
       <PropagateLoader
         color='#35A1CC'

@@ -8,10 +8,11 @@ import { db, storage } from '../Firbase';
 import { onValue, push, ref, update } from 'firebase/database';
 import { getDownloadURL, uploadBytes } from 'firebase/storage';
 import { ref as sRef } from 'firebase/storage';
-import { useParams } from 'react-router-dom';
-
+import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const Editproducts = () => {
-
+    const navigate = useNavigate();
     let [img, setimg] = useState(null)
     let [tempimg, settempimg] = useState(null)
     const [data, setData] = useState({
@@ -79,7 +80,7 @@ const Editproducts = () => {
                     getDownloadURL(storageRef).then((URL) => {
                         // console.log(user.uid)
                         update(ref(db, `products/${uid}`), { imgUrl: URL });
-
+                        navigate(`/allproducts`);
                     }).catch((error) => {
                         console.log(error)
                     });
@@ -88,6 +89,7 @@ const Editproducts = () => {
                     console.log(error)
                 })
             }
+            navigate(`/allproducts`);
             setData({
                 productName: '',
                 price: '',
@@ -97,6 +99,8 @@ const Editproducts = () => {
 
 
 
+        }else{
+            toast.error("Porduct name is required!")
         }
     }
 
@@ -182,6 +186,7 @@ const Editproducts = () => {
     // }
 
     return (
+        <>
         <div className='flex border'>
             <Sidebar />
             <div className='flex w-[100%] border'>
@@ -233,6 +238,19 @@ const Editproducts = () => {
                 </div>
             </div>
         </div>
+        <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        />
+        </>
     )
 }
 

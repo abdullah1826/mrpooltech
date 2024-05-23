@@ -11,7 +11,8 @@ import { getDatabase, set, ref, update, push, onValue, remove } from 'firebase/d
 import Sidebar from './Sidebar';
 import { ModalContext } from '../context/Modalcontext';
 import { Descriptionmodal } from './Descriptionmodal';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Productstable = () => {
 
@@ -29,10 +30,17 @@ const Productstable = () => {
     let [mydescription, setmydescription] = useState('')
     // let [showmodal, setshowmodal] = useState(false)
 
-
+    let updateLinks = () => {
+        if (mylist?.length === 1) {
+            setmylist([]);
+            setfiltered([]);
+        }
+      };
 
     const handleDelete = () => {
         remove(ref(db, `/products/${delid}`))
+        updateLinks()
+        toast.success("Product delete successfuly!")
     }
 
     let modalseter = (id) => {
@@ -181,7 +189,7 @@ const Productstable = () => {
         // { name: 'Sr', cell: (row) => { sr += 0.5; return sr }, sortable: true, },
         { name: 'Product name', selector: (row) => { return row.productName }, sortable: true, width: '150px' },
         { name: 'price', selector: (row) => { return row.price }, sortable: true, },
-        { name: 'Image', selector: (row) => (<img src={row.imgUrl} className='h-[50px] w-[50px] object-cover' />), sortable: true, },
+        { name: 'Image', selector: (row) => (<img src={row.imgUrl?row.imgUrl:"https://placehold.co/45"} className='h-[45px] w-[45px] object-cover' />), sortable: true, },
         rows.length > 0 && { name: 'Quantity', selector: (row) => (<div className='h-[50px] w-[70px] flex items-center justify-between'> <div className='h-[20px] w-[20px]  flex justify-center items-center text-xl cursor-pointer bg-[#35A1CC] rounded-[4px] text-white' onClick={() => { parseInt(row.price / localStorage.getItem(`${row.id}`)) >= 2 && calculatingProducts(row.id, 'minus') }}>-</div> <div className='h-[20px] w-[20px] flex justify-center items-center text-lg '>{parseInt(row.price / localStorage.getItem(`${row.id}`))}</div><div className='h-[20px] w-[20px] flex justify-center items-center text-xl cursor-pointer bg-[#35A1CC] rounded-[4px] text-white' onClick={() => { calculatingProducts(row.id, 'plus') }}>+</div></div>), },
         // <input type="number" className='border-none outline-none' placeholder='1' onChange={(e) => calculatingProducts(row.id, e.target.value)} />
         { name: 'Description', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => showdescription(row.description)}>View</button></div>), width: '175px' },
@@ -200,7 +208,7 @@ const Productstable = () => {
                     {showmodal2 && <Descriptionmodal description={mydescription} hidemodal={hisedescription} />}
 
                     <img src={upper} />
-                    <div className='absolute right-6 flex w-[350px] justify-between'>
+                    <div className='absolute right-5 flex w-[100%] justify-end'>
                         {rows.length > 0 && <Link to='/invoice'><div className='h-[45px] border w-[110px]  flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer rounded-lg'>Create Invoice</div></Link>}
                         <Link to='/addproducts'><div className='h-[45px] border w-[210px]  flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer rounded-lg'>Add new Product +</div></Link>
                     </div>
@@ -215,6 +223,18 @@ const Productstable = () => {
                     {/* <img src={lower} /> */}
                 </div>
             </div>
+            <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+            />
         </>
     )
 }

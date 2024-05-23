@@ -11,7 +11,7 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import './components.css'
 import { useNavigate } from 'react-router-dom';
 
-export const Addnewworker = () => {
+export const AddnewOtherworker = () => {
 
     // let storage = getStorage()
 
@@ -24,7 +24,8 @@ export const Addnewworker = () => {
         sallary: '',
         joiningdate: '',
         cnic: '',
-        profileUrl: ''
+        profileUrl: '',
+        jobType:''
     })
 
     // const date = new Date();
@@ -58,7 +59,7 @@ export const Addnewworker = () => {
                     // Signed in 
                     const user = userCredential.user;
                     // console.log(user.uid)
-                    update(ref(db, `workers/${user.uid}`), { ...data, id: user.uid })
+                    update(ref(db, `otherWorkers/${user.uid}`), { ...data, id: user.uid })
 
 
                     if (img) {
@@ -69,7 +70,7 @@ export const Addnewworker = () => {
                             console.log('img testing')
                             getDownloadURL(storageRef).then((URL) => {
                                 console.log(user.uid)
-                                update(ref(db, `workers/${user.uid}`), { profileUrl: URL });
+                                update(ref(db, `otherWorkers/${user.uid}`), { profileUrl: URL });
 
                             }).catch((error) => {
                                 console.log(error)
@@ -81,10 +82,9 @@ export const Addnewworker = () => {
                     }
                     toast.success("Worker added successfuly!")
                     setTimeout(() => {
-                        navigate(`/Permanentworkers`);
+                        navigate(`/otherworker`);
                       }, 1500);
                 })
-                
                 .catch((error) => {
                     const errorCode = error.code;
                     //   const errorMessage = error.message;
@@ -115,7 +115,8 @@ export const Addnewworker = () => {
                 sallary: '',
                 joiningdate: '',
                 cnic: '',
-                profileUrl: ''
+                profileUrl: '',
+                jobType:''
             })
 
         }
@@ -145,7 +146,7 @@ export const Addnewworker = () => {
                         <div className='flex  '>
                             {/* <h1 className='text-xl font-[500] ml-[80px]  mt-[20px]'>Enter the data</h1> */}
 
-                            <div className='flex justify-between flex-wrap ml-[50px] h-[320px] mt-[50px] flex-col'>
+                            <div className='flex justify-between flex-wrap ml-[50px] h-[400px] mt-[50px] flex-col'>
 
                                 <div className='flex flex-col'>
                                     <h2 className='text-xl font-[400]' >Worker Name</h2>
@@ -163,6 +164,10 @@ export const Addnewworker = () => {
                                     <h2 className='text-xl font-[450]'>Address</h2>
                                     <input type="text" placeholder='Address' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, address: e.target.value }) }} value={data.address} />
                                 </div>
+                                <div className='flex flex-col mt-[25px]'>
+                                <h2 className='text-xl font-[450]'>job type</h2>
+                                <input type="text" placeholder='Job type' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, jobType: e.target.value }) }} value={data.jobType} />
+                            </div>
                             </div>
 
                             <div className='flex justify-between flex-wrap ml-[50px] h-[320px] mt-[50px]  flex-col'>

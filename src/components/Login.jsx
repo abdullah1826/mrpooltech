@@ -98,7 +98,7 @@ const Login = () => {
   console.log(errormessage)
   return (
     <div>
-      <div className='h-[100vh] w-[1365px]  flex justify-center items-center'>
+      <div className='h-[100vh] w-[100%]  flex justify-center items-center'>
         <div className='h-[500px] w-[500px] flex justify-center items-center flex-col relative'>
           <img src={Logo} alt="Justtag" className='h-[120px] w-[170px] ' />
           <input type="text" placeholder='Email' className='h-[50px] w-[275px] border-b-[1px] border-black mt-5 p-2 outline-none' onChange={(event) => setemail(event.target.value)} />

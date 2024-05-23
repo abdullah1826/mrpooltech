@@ -11,8 +11,9 @@ import { getDatabase, set, ref, update, push, onValue, remove } from 'firebase/d
 import Sidebar from './Sidebar';
 import { ModalContext } from '../context/Modalcontext';
 import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-
-const Allworkers = () => {
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.min.css';
+const PermentWorker = () => {
 
 
     const [mylist, setmylist] = useState([]);
@@ -29,11 +30,18 @@ const Allworkers = () => {
 
 
     // -----------------------------------Delete Worker----------------------------------
-
+    let updateLinks = () => {
+        if (mylist?.length === 1) {
+            setmylist([]);
+            setfiltered([]);
+        }
+      };
 
     const handleDelete = () => {
         remove(ref(db, `/workers/${delid}`))
         setdelid('')
+        updateLinks()
+        toast.success("Worker delete successfuly!")
     }
 
 
@@ -132,15 +140,16 @@ const Allworkers = () => {
         { name: 'Password', selector: (row) => { return row.password }, sortable: true, },
         { name: 'CNIC', selector: (row) => { return row.cnic }, sortable: true, },
         { name: 'Phone', selector: (row) => { return row.phone }, sortable: true, },
+       
         { name: 'Salary', selector: (row) => { return row.sallary }, sortable: true, },
         { name: 'Address', selector: (row) => { return row.address }, sortable: true, width: '150px' },
         { name: 'Joining Date', selector: (row) => { return row.joiningdate }, sortable: true, width: '120px' },
         // { name: 'InActive Date', selector: (row) => { return row.inactiveDate }, sortable: true, width: '120px' },
         // { name: 'Creation Date', selector: (row) => { return row.creationDate }, sortable: true, width: '130px' },
         // // { name: 'Age', selector: 'age', sortable: true ,},
-        { name: 'Actions', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => Editdata(row.id)}>Edit</button> <button className='h-[40px] w-[70px] border bg-[#f44336] rounded-md text-white' onClick={() => { return modalseter(row.id) }} >Delete</button></div>), width: '175px' },
+        { name: 'Actions', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => Editdata(row.id)}>Edit</button><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => view(row.id)}>View</button> <button className='h-[40px] w-[70px] border bg-[#f44336] rounded-md text-white mr-2' onClick={() => { return modalseter(row.id) }} >Delete</button></div>), width: '175px' },
         // onClick={() => { return modalseter(row.id) }}
-        { name: 'View', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => view(row.id)}>View</button></div>), width: '175px' },
+
 
         // { name: 'Status', cell: (row) => row.status === true ? (<div className='h-[24px] w-[45px] bg-[#35A1CC] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border right-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }} ></div></div>) : (<div className='h-[24px] w-[45px] bg-[#707070] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border left-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }}></div></div>) },
 
@@ -168,8 +177,9 @@ const Allworkers = () => {
                     {/* <img src={lower} /> */}
                 </div>
             </div>
+            <ToastContainer position="top-center" autoClose={2000} />
         </>
     )
 }
 
-export default Allworkers
+export default PermentWorker

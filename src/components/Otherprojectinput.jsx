@@ -5,7 +5,7 @@ import { db } from '../Firbase';
 import Sidebar from './Sidebar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-const Repairingupdate = () => {
+const Otherprojectinput1 = () => {
     const navigate = useNavigate();
 
 
@@ -21,9 +21,10 @@ const Repairingupdate = () => {
         area: "",
         ourCost:"",
         id:"",
-        repairingType:"",
+        projectType:"",
         qoutation:"",
         workerAmount:"",
+
     })
 
     const params = useParams()
@@ -31,7 +32,7 @@ const Repairingupdate = () => {
     useEffect(() => {
         let getingdata = async () => {
 
-            const starCountRef = ref(db, `/Repairing/${uid}`);
+            const starCountRef = ref(db, `/OtherProjects/${uid}`);
             onValue(starCountRef, async (snapshot) => {
                 const data = await snapshot.val();
                 //  console.log(data)
@@ -59,27 +60,28 @@ const Repairingupdate = () => {
             return;
           }
         if (mydata.site && mydata.area) {
-            update(ref(db, `Repairing/${uid}`), mydata)
+            update(ref(db, `OtherProjects/${uid}`), mydata)
             setData({
                 site: "",
-                status: true,
-                activeDate: "",
-                inactiveDate: "",
-                owner: "",
-                ownerMobile: "",
-                worker: "",
-                area: "",
-                ourCost:"",
-                id:"",
-                repairingType:"",
-                qoutation:"",
-                workerAmount:"",
+        status: true,
+        activeDate: "",
+        inactiveDate: "",
+        owner: "",
+        ownerMobile: "",
+        worker: "",
+        area: "",
+        ourCost:"",
+        id:"",
+        projectType:"",
+        qoutation:"",
+        workerAmount:"",
+
         
             })
         }
         toast.success("Update record successfully")
         setTimeout(() => {
-            navigate(`/repairing`);
+            navigate(`/otherproject`);
           }, 1500);
     }
     return (
@@ -98,8 +100,8 @@ const Repairingupdate = () => {
                     <input type="text" placeholder='Area' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, area: e.target.value }) }} value={mydata?.area} />
                 </div>
                     <div className='flex flex-col mt-[25px]'>
-                        <h2 className='text-xl font-[450]'>Repairing type</h2>
-                        <input type="text" placeholder='Pool shape' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, repairingType: e.target.value }) }} value={mydata?.repairingType} />
+                        <h2 className='text-xl font-[450]'>Project type</h2>
+                        <input type="text" placeholder='Pool shape' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, projectType: e.target.value }) }} value={mydata?.projectType} />
                     </div>
                     <div className='flex flex-col mt-[25px]'>
                         <h2 className='text-xl font-[450]'>Worker amount</h2>
@@ -132,8 +134,8 @@ const Repairingupdate = () => {
                     <input type="text" placeholder='Operator' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, ourCost: e.target.value }) }} value={mydata?.ourCost} />
                 </div>
             
-        <div className='flex flex-col '>
-        <h2 className='text-xl font-[450]'>Repairing qoutation</h2>
+        <div className='flex flex-col mt-[39px] '>
+        <h2 className='text-xl font-[450]'>Qoutation amount</h2>
         <input type="text" placeholder='Attendant Phone' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, qoutation: e.target.value }) }} value={mydata?.qoutation} />
     </div>
             </div>
@@ -161,4 +163,4 @@ const Repairingupdate = () => {
     )
 }
 
-export default Repairingupdate
+export default Otherprojectinput1

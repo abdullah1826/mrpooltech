@@ -9,26 +9,24 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import VolumeCalculateModal from "../../components/VolumeCalculateModal";
-const MaintenceInput = () => {
+const Otherprojectinput = () => {
+  const navigate = useNavigate();
     let [worker, setWorker] = useState(null);
-    const navigate = useNavigate();
     const [data, setData] = useState({
         site: "",
         status: true,
         activeDate: "",
         inactiveDate: "",
-        poolSize: "",
-        poolShape: "",
         owner: "",
         ownerMobile: "",
         worker: worker,
         area: "",
-        operater:"",
-        referance:"",
-        attendant:"",
-        attendantPhone:"",
-        amount:"",
+        ourCost:"",
         id:"",
+        projectType:"",
+        qoutation:"",
+        workerAmount:"",
+
 
       });
       let [allWorkers, setAllWorkers] = useState([]);
@@ -106,31 +104,28 @@ const MaintenceInput = () => {
   let year = date.getFullYear();
   let currentDate = `${year}-${month}-${day}`;
   const addData = () => {
-    if (!data.site || !data.area || !worker) {
-      toast.warn("Site, area, and worker fields should not be empty.");
-      return;
-    }
+      if (!data.site || !data.area || !worker) {
+        toast.warn("Site, area, and worker fields should not be empty.");
+        return;
+      }
     if (data.site) {
-        const pushKeyRef = push(ref(db, 'Maintenance/'));
+        const pushKeyRef = push(ref(db, 'OtherProjects/'));
         const pushKey = pushKeyRef.key;
     
-        update(ref(db, `Maintenance/${pushKey}`), {
+        update(ref(db, `OtherProjects/${pushKey}`), {
           id: pushKey,
-          site: data.site,
+          site: data?.site,
           status: true,
-          activeDate: data.activeDate,
-          inactiveDate: data.inactiveDate,
-          poolSize: data.poolSize,
-          poolShape: data.poolShape,
-          owner: data.owner,
-          ownerMobile: data.ownerMobile,
+          activeDate: data?.activeDate,
+          inactiveDate: data?.inactiveDate,
+          owner: data?.owner,
+          ownerMobile: data?.ownerMobile,
           worker:worker?.label,
-          area: data.area,
-          operater: data.operater,
-          referance: data.referance,
-          attendant: data.attendant,
-          attendantPhone: data.attendantPhone,
-          amount: data.amount,
+          area: data?.area,
+          ourCost:data?.ourCost,
+          projectType:data?.projectType,
+          qoutation:data?.qoutation,
+          workerAmount:data?.workerAmount,
       }).then(() => {
         let isPermanent = workers?.some((elm) => {
           return elm?.id === worker.value;
@@ -172,10 +167,9 @@ const MaintenceInput = () => {
       });
       toast.success("Record added successfully")
       setTimeout(() => {
-        navigate(`/maintenance`);
+        navigate(`/otherproject`);
       }, 1500);
       setData({
-        id:"",
         site: "",
         status: true,
         activeDate: "",
@@ -184,13 +178,13 @@ const MaintenceInput = () => {
         poolShape: "",
         owner: "",
         ownerMobile: "",
-         worker: worker,
+        worker: worker?.label,
         area: "",
-        operater:"",
-        referance:"",
-        attendant:"",
-        attendantPhone:"",
-        amount:"",
+        ourCost:"",
+        id:"",
+        projectType:"",
+        qoutation:"",
+        workerAmount:"",
       });
     }
   };
@@ -200,7 +194,7 @@ const MaintenceInput = () => {
     <VolumeCalculateModal modalopen={modalopen} handleclose={handleClose}/>
     <div className="flex w-[100%] ">
       <Sidebar />
-      <div onClick={()=>handleOpen()} className="h-[60px] w-[200px] border  absolute right-[35px] top-[4%] rounded-md bg-[#35A1CC] flex justify-center items-center z-50 text-white cursor-pointer">
+      <div onClick={()=>handleOpen()} className="h-[60px] w-[200px] border  absolute right-[35px] top-[4%] rounded-md bg-[#35A1CC] z-50 flex justify-center items-center text-white cursor-pointer">
         Volume Calculator
       </div>
 
@@ -233,29 +227,29 @@ const MaintenceInput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Pool Shape</h2>
+                <h2 className="text-xl font-[450]">Project Type</h2>
                 <input
                   type="text"
-                  placeholder="Pool shape"
+                  placeholder="Project type"
                   className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
-                    setData({ ...data, poolShape: e.target.value });
+                    setData({ ...data, projectType: e.target.value });
                   }}
-                  value={data.poolShape}
+                  value={data.projectType}
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Pool Size</h2>
-                <input
-                  type="text"
-                  placeholder="Pool size"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                  onChange={(e) => {
-                    setData({ ...data, poolSize: e.target.value });
-                  }}
-                  value={data.poolSize}
-                />
-              </div>
+              <h2 className="text-xl font-[450]">Worker Amount</h2>
+              <input
+                type="text"
+                placeholder="Worker Amount"
+                className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                onChange={(e) => {
+                  setData({ ...data, workerAmount: e.target.value });
+                }}
+                value={data.workerAmount}
+              />
+            </div>
               <div className="flex flex-col mt-[5px]">
                 <h2 className="text-xl font-[450]">Worker</h2>
                 <Select onChange={setWorker} value={worker} options={options} />
@@ -334,7 +328,7 @@ const MaintenceInput = () => {
                   value={data.owner}
                 />
               </div>
-              <div className="flex flex-col mt-[30px]">
+              <div className="flex flex-col mt-[25px]">
                 <h2 className="text-xl font-[450]">Owner Mobile</h2>
                 <input
                   type="number"
@@ -347,7 +341,7 @@ const MaintenceInput = () => {
                   value={data.ownerMobile}
                 />
               </div>
-              <div className="flex flex-col mt-[31px]">
+              <div className="flex flex-col mt-[25px]">
                 <h2 className="text-xl font-[450]">Active Date</h2>
                 <input
                   type="date"
@@ -359,7 +353,7 @@ const MaintenceInput = () => {
                   value={data.activeDate}
                 />
               </div>
-              <div className="flex flex-col mt-[28px]">
+              <div className="flex flex-col mt-[25px]">
                 <h2 className="text-xl font-[450]">Inactive Date</h2>
                 <input
                   type="date"
@@ -372,68 +366,32 @@ const MaintenceInput = () => {
                 />
               </div>
             </div>
-            <div className="flex justify-between flex-wrap ml-[20px] h-[414px] mt-[50px]  flex-col">
+            <div className="flex  flex-wrap ml-[20px] h-[380px] mt-[50px]  flex-col">
             <div className="flex flex-col ">
-              <h2 className="text-xl font-[450]">Operater</h2>
+              <h2 className="text-xl font-[450]">Our cost</h2>
               <input
                 type="text"
-                placeholder="Operater"
+                placeholder="Our cost"
                 className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                 onChange={(e) => {
-                  setData({ ...data, operater: e.target.value });
+                  setData({ ...data, ourCost: e.target.value });
                 }}
-                value={data.operater}
+                value={data.ourCost}
               />
             </div>
-            <div className="flex flex-col mt-[25px]">
-              <h2 className="text-xl font-[450]">Referance</h2>
-              <input
-                type="number"
-                placeholder="Referance"
-                className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                //   style="appearance: none;"
-                onChange={(e) => {
-                  setData({ ...data, referance: e.target.value });
-                }}
-                value={data.referance}
-              />
-            </div>
-            <div className="flex flex-col mt-[25px]">
-              <h2 className="text-xl font-[450]">Attendant</h2>
-              <input
-                type="text"
-                placeholder="Attendant"
-                className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                onChange={(e) => {
-                  setData({ ...data, attendant: e.target.value });
-                }}
-                value={data.attendant}
-              />
-            </div>
-            <div className="flex flex-col mt-[25px]">
-              <h2 className="text-xl font-[450]">Attendant Phone</h2>
-              <input
-                type="text"
-                placeholder="Attendant Phone"
-                className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                onChange={(e) => {
-                  setData({ ...data, attendantPhone: e.target.value });
-                }}
-                value={data.attendantPhone}
-              />
-            </div>
-            <div className="flex flex-col mt-[25px]">
-            <h2 className="text-xl font-[450]">Amount</h2>
+            <div className="flex flex-col mt-[32px]">
+            <h2 className="text-xl font-[450]">Qoutation amount</h2>
             <input
               type="text"
-              placeholder="Amount"
+              placeholder="Repairing qoutation"
               className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
               onChange={(e) => {
-                setData({ ...data, amount: e.target.value });
+                setData({ ...data, qoutation: e.target.value });
               }}
-              value={data.amount}
+              value={data.qoutation}
             />
           </div>
+        
           
           </div>
           </div>
@@ -464,4 +422,4 @@ const MaintenceInput = () => {
   );
 };
 
-export default MaintenceInput;
+export default Otherprojectinput;

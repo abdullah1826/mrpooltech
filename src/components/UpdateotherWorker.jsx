@@ -8,9 +8,8 @@ import { getDownloadURL, uploadBytes } from 'firebase/storage';
 import { ref as sRef } from 'firebase/storage';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.min.css';
-const Updateworkers = () => {
-    const navigate = useNavigate();
-    
+const UpdateotherWorker = () => {
+
     const [data, setData] = useState({
         workerName: '',
         phone: '',
@@ -20,7 +19,9 @@ const Updateworkers = () => {
         sallary: '',
         joiningdate: '',
         cnic: '',
-        profileUrl: ''
+        profileUrl: '',
+        jobType:''
+
     })
 
     let [img, setimg] = useState(null)
@@ -35,13 +36,13 @@ const Updateworkers = () => {
         }
     }
 
-
+    const navigate = useNavigate();
     const params = useParams()
     const uid = params.userid
     useEffect(() => {
         let getingdata = async () => {
 
-            const starCountRef = ref(db, `/workers/${uid}`);
+            const starCountRef = ref(db, `/otherWorkers/${uid}`);
             onValue(starCountRef, async (snapshot) => {
                 const data = await snapshot.val();
                 //  console.log(data)
@@ -56,15 +57,14 @@ const Updateworkers = () => {
                     sallary: data.sallary,
                     joiningdate: data.joiningdate,
                     cnic: data.cnic,
-                    profileUrl: data.profileUrl
+                    profileUrl: data.profileUrl,
+                    jobType:data.jobType
                 })
                 setimg(data.profileUrl)
-               
                 // setfiltered(Object.values(data))
 
                 // updateStarCount(postElement, data);
             });
-            
         }
 
         getingdata();
@@ -74,7 +74,7 @@ const Updateworkers = () => {
 
     const updateData = () => {
         if (data.workerName && data.email && data.password) {
-            update(ref(db, `workers/${uid}`), data)
+            update(ref(db, `otherWorkers/${uid}`), data)
 
 
             if (tempimg) {
@@ -85,7 +85,7 @@ const Updateworkers = () => {
                     console.log('img testing')
                     getDownloadURL(storageRef).then((URL) => {
                         // console.log(user.uid)
-                        update(ref(db, `workers/${uid}`), { profileUrl: URL });
+                        update(ref(db, `otherWorkers/${uid}`), { profileUrl: URL });
 
                     }).catch((error) => {
                         console.log(error)
@@ -95,12 +95,12 @@ const Updateworkers = () => {
                     console.log(error)
                 })
             }
+
+
             toast.success("Record update successfuly!")
             setTimeout(() => {
-                navigate(`/Permanentworkers`);
+                navigate(`/otherworker`);
               }, 1500);
-
-
             setData({
                 workerName: '',
                 phone: '',
@@ -110,7 +110,8 @@ const Updateworkers = () => {
                 sallary: '',
                 joiningdate: '',
                 cnic: '',
-                profileUrl: ''
+                profileUrl: '',
+                jobType:''
             })
 
 
@@ -142,7 +143,7 @@ const Updateworkers = () => {
                     <div className='flex  '>
                         {/* <h1 className='text-xl font-[500] ml-[80px]  mt-[20px]'>Enter the data</h1> */}
 
-                        <div className='flex justify-between flex-wrap ml-[50px] h-[320px] mt-[50px] flex-col'>
+                        <div className='flex justify-between flex-wrap ml-[50px] h-[400px] mt-[50px] flex-col'>
 
                             <div className='flex flex-col'>
                                 <h2 className='text-xl font-[400]' >Worker Name</h2>
@@ -160,8 +161,12 @@ const Updateworkers = () => {
                                 <h2 className='text-xl font-[450]'>Address</h2>
                                 <input type="text" placeholder='Address' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, address: e.target.value }) }} value={data.address} />
                             </div>
+                            <div className='flex flex-col mt-[25px]'>
+                            <h2 className='text-xl font-[450]'>job type</h2>
+                            <input type="text" placeholder='Job type' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, jobType: e.target.value }) }} value={data.jobType} />
                         </div>
-
+                        </div>
+                   
                         <div className='flex justify-between flex-wrap ml-[50px] h-[320px] mt-[50px]  flex-col'>
                             <div className='flex flex-col '>
                                 <h2 className='text-xl font-[450]'>CNIC</h2>
@@ -197,9 +202,9 @@ const Updateworkers = () => {
 
             </div>
         </div>
-        <ToastContainer position="top-center" autoClose={2000} />
+         <ToastContainer position="top-center" autoClose={2000} />
         </>
     )
 }
 
-export default Updateworkers
+export default UpdateotherWorker
