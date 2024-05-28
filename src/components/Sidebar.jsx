@@ -9,7 +9,7 @@ import { IoIosPerson } from 'react-icons/io'
 import { BsPeopleFill } from 'react-icons/bs'
 import { GiArchiveRegister } from 'react-icons/gi'
 import { FaShoppingCart } from 'react-icons/fa';
-
+import { Box, Button, Modal, Typography } from '@mui/material';
 
 const Sidebar = () => {
 
@@ -59,7 +59,13 @@ const Sidebar = () => {
     })
   }
   console.log(window.location.pathname)
+
+  const [deleteaccount, setDeleteaccount] = useState(false);
+  const handledelete=()=>{
+    setDeleteaccount(!deleteaccount)
+  }
   return (
+    <>
     <div className='w-[215px] border h-[125vh]'>
       <div className=' flex flex-col items-center h-[130px] w-[210px]  mt-4 '>
         <img src={logo} alt={logo} className='h-[100px] w-[130px] ' />
@@ -68,9 +74,9 @@ const Sidebar = () => {
       </div>
       <NavLink to='/'>
 
-        <div className='flex w-[85%] ml-[20px] mt-[60px] items-center p-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null} >
-          <FaHome className='text-2xl ml-2  ' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-1 text-lg  mt-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" ? { color: 'white' } : { color: '#35A1CC' }}>Home</h2>
+        <div className='flex w-[85%] ml-[20px] mt-[60px] items-center p-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" || page === "/newinput" || page?.includes("/update/") || page === "/maintenceInput" || page?.includes("/maintenceupdate/") || page === "/repareInput" || page?.includes("/repareupdate/") || page === "/otherprojectinput" || page?.includes("/otherprojectinput1/")   ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null} >
+          <FaHome className='text-2xl ml-2  ' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" || page === "/newinput" || page?.includes("/update/") || page === "/maintenceInput" || page?.includes("/maintenceupdate/") || page === "/repareInput" || page?.includes("/repareupdate/") || page === "/otherprojectinput" || page?.includes("/otherprojectinput1/") ? { color: 'white' } : { color: '#35A1CC' }} />
+          <h2 className=' ml-1 text-lg  mt-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" || page === "/newinput" || page?.includes("/update/") || page === "/maintenceInput" || page?.includes("/maintenceupdate/") || page === "/repareInput" || page?.includes("/repareupdate/") || page === "/otherprojectinput" || page?.includes("/otherprojectinput1/") ? { color: 'white' } : { color: '#35A1CC' }}>Home</h2>
         </div>
         {/* <div className='w-[50px] mt-1 bg-[#35A1CC] h-1'></div> */}
 
@@ -78,9 +84,9 @@ const Sidebar = () => {
 
     
       <NavLink to='/workertype'>
-        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
-          <BsPeopleFill className='text-2xl ml-2 ' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-1 text-lg  ' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" ? { color: 'white' } : { color: '#35A1CC' }}>All Workers</h2>
+        <div className='flex w-[85%] ml-[20px] mt-[24px] items-center p-1' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" || page?.includes("/singleWorker/") || page?.includes("/singleVister/") || page?.includes("/singleotherworker/") || page === "/addnewWorker" || page?.includes("/updateworker/") || page === "/addnewVisterWorker" || page?.includes("/updateVister/") || page === "/AddnewOtherworker" || page?.includes("/updateotherworker/")   ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null}>
+          <BsPeopleFill className='text-2xl ml-2 ' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" || page?.includes("/singleWorker/") || page?.includes("/singleVister/") || page?.includes("/singleotherworker/") || page === "/addnewWorker" || page?.includes("/updateworker/") || page === "/addnewVisterWorker" || page?.includes("/updateVister/") || page === "/AddnewOtherworker" || page?.includes("/updateotherworker/") ? { color: 'white' } : { color: '#35A1CC' }} />
+          <h2 className=' ml-1 text-lg  ' style={page === '/workertype' || page === "/Permanentworkers" || page === "/Visitingworkers" || page === "/otherworker" || page?.includes("/singleWorker/") || page?.includes("/singleVister/") || page?.includes("/singleotherworker/") || page === "/addnewWorker" || page?.includes("/updateworker/") || page === "/addnewVisterWorker" || page?.includes("/updateVister/") || page === "/AddnewOtherworker" || page?.includes("/updateotherworker/") ? { color: 'white' } : { color: '#35A1CC' }}>All Workers</h2>
         </div>
       </NavLink>
 
@@ -102,11 +108,11 @@ const Sidebar = () => {
 
 
 
-      <div className='w-[190px] border-t h-[250px] mt-[80px]'>
+      <div className='w-[190px] border-t  mt-[80px]'>
         <div className='ml-[45px] mt-4'>
           <h2>Admin</h2>
           <p className='text-[#B7B7B7]'>admin@admin.com</p>
-          <button className='h-[40px] w-[90px] bg-[#f44336] rounded-md text-white mt-5' onClick={() => { return logout() }}>Log Out</button>
+          <button className='h-[40px] w-[90px] bg-[#f44336] rounded-md text-white mt-5' onClick={() => { return handledelete() }}>Log Out</button>
           {/* <h2 className='mt-3 cursor-pointer' onClick={logout} >Log Out</h2> */}
 
         </div>
@@ -114,6 +120,35 @@ const Sidebar = () => {
       </div>
 
     </div>
+        <Modal open={deleteaccount} onClose={handledelete}>
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 400,
+        bgcolor: 'background.paper',
+     outline:"none",
+     borderRadius:"10px",
+        boxShadow: 24,
+        p: 4,
+      }}
+    >
+      <Typography variant="h6" component="h2" >
+        Are you sure you want to logout this account?
+      </Typography>
+      <Box mt={2} display="flex" justifyContent="space-between">
+        <Button variant="outlined" color="secondary" onClick={handledelete}>
+          No
+        </Button>
+        <Button variant="contained" color="primary" onClick={() => { return logout() }} >
+        Yes
+      </Button>
+      </Box>
+    </Box>
+  </Modal>
+    </>
   )
 }
 

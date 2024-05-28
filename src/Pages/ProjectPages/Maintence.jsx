@@ -169,7 +169,7 @@ console.log(mylist)
     <div className='flex w-[100%]'>
 <Sidebar/>
 
-<div className='w-[79%]  ml-[20px] mt-[30px] relative'>
+<div className='w-[79%] h-[120vh] overflow-x-auto  ml-[20px] mt-[30px] relative'>
 <div class="w-[100%] flex justify-center mb-5"><h2 class="text-4xl font-[500]  text-[#0b6e99]">Maintenance Projects</h2></div>
 
 <div className='w-max h-max'>
@@ -197,17 +197,16 @@ console.log(mylist)
         transform: 'translate(-50%, -50%)',
       }}
     >
-      <Typography variant="h6" component="h2" gutterBottom>
-        Are you sure you want to delete this member?
-      </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-        <Button onClick={handleclose} color="primary" sx={{ mr: 1 }}>
-          Cancel
-        </Button>
-        <Button onClick={handleDelete} color="error" variant="contained">
-          Delete
-        </Button>
-      </Box>
+    <div className='fixed top-0 bottom-0 right-0 left-0' style={{ backgroundColor: 'rgba(189,189,189,0.9) ', zIndex: '10' }}>
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '25rem', backgroundColor: '#fff', display: 'flex', justifyContent: "center", alignItems: 'center', flexDirection: 'column', height: '100px' }}>
+        <h1>Are you sure you want to delete this member?</h1>
+
+        <div className=' flex w-[185px] justify-between mt-3'>
+            <button className='border flex justify-center items-center w-[75px] h-[30px]  text-white bg-[#35A1CC] rounded-md' onClick={() => handleclose()}>Cancel</button>
+            <button className='border flex justify-center items-center w-[75px] h-[30px]  text-white bg-red-600 rounded-md' onClick={() => handleDelete()}>Yes</button>
+        </div>
+    </div>
+</div>
     </Box>
   </Modal>
   <ToastContainer

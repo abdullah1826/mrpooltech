@@ -8,7 +8,8 @@ import { AuthContext } from '../context/Authcontext';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { AiFillEye } from 'react-icons/ai';
 import { AiFillEyeInvisible } from 'react-icons/ai';
-
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.min.css';
 
 const Login = () => {
   const [mylist, setmylist] = useState({});
@@ -77,18 +78,18 @@ const Login = () => {
           // ...
         })
         .catch((error) => {
-          // const errorCode = error.code;
           const errorMessage = error.message;
-          // alert(errorMessage)
-          setermessage(true)
-          if (error.message === 'Firebase: Error (auth/user-not-found).') {
-            seterrormessage('User not Found !')
+          console.log(error.message);
+          if (error.code === "auth/invalid-email") {
+            toast.error("Invalid  Emial!")
+          } else if (error.code === "auth/invalid-credential") {
+            toast.error("Invalid password!")
+          }else if (error.code === "auth/wrong-password") {
+            toast.error("Wrong password!")
           }
-          else if (error.message === 'Firebase: Error (auth/wrong-password).') {
-            seterrormessage('Wrong Password !')
+           else {
+            toast.error(errorMessage);
           }
-
-
         });
     }
     else {
@@ -97,6 +98,7 @@ const Login = () => {
   }
   console.log(errormessage)
   return (
+    <>
     <div>
       <div className='h-[100vh] w-[100%]  flex justify-center items-center'>
         <div className='h-[500px] w-[500px] flex justify-center items-center flex-col relative'>
@@ -109,6 +111,8 @@ const Login = () => {
         </div>
       </div>
     </div>
+    <ToastContainer position="top-center" autoClose={1000} />
+    </>
   )
 }
 

@@ -50,7 +50,24 @@ const Attandence = () => {
 
     }, [])
 
-   
+    const fetchData = () => {
+        const starCountRef = ref(db, '/attendance');
+        onValue(starCountRef, (snapshot) => {
+            const data = snapshot.val();
+            setmylist(Object.values(data));
+            setfiltered(Object.values(data));
+       
+        });
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+    const refreshData = () => {
+        fetchData();
+        setSelectedDate("")
+        setsearch("")
+    };
 
     let showLocation = (id) => {
         const starCountRef = ref(db, `attendance/${id}`);
@@ -103,6 +120,7 @@ const Attandence = () => {
         // { name: 'Sr', cell: (row) => { sr += 0.5; return sr }, sortable: true, },
         { name: 'Worker name', selector: (row) => { return row.name }, sortable: true, width: '150px' },
         { name: 'Date', selector: (row) => { return row.date }, sortable: true, },
+        { name: 'Image', selector: (row) => (<img src={row.imageUrl?row.imageUrl:"https://placehold.co/45"} className='h-[40px] w-[40px] object-cover' />), sortable: true, },
         { name: 'Time in', selector: (row) => { return row.timein }, sortable: true, },
         { name: 'Time out', selector: (row) => { return row.timeout }, sortable: true, },
         // { name: 'Locations', selector: (row) => { return row.phone }, sortable: true, },
@@ -113,14 +131,14 @@ const Attandence = () => {
 
     ];
 
-    console.log(selectedDate)
+
 
     return (
         <>
             {showmod && <Locationmodel checkinloc={loc.checkinLocation} checkoutloc={loc.checkoutLocation} hidemod={hidemodal} />}
             <div className='flex w-[100%]'>
                 <Sidebar />
-                <div className='relative w-[88%]'>
+                <div className='relative  h-[125vh] overflow-x-auto w-[88%]'>
                     {/* {deletemodal && <Model delfunc={handleDelete} msg={delmsg} />} */}
                     <img src={upper} />
                     <div className='w-[95%]  ml-[45px] mt-[60px] relative'>
@@ -138,6 +156,9 @@ const Attandence = () => {
                                 <h2 className='text-xl  font-[450]'>Filter on date</h2>
                                 <input type="date" className='border-b w-[270px] mt-[2px]' onChange={(e) => setSelectedDate(e.target.value)} value={selectedDate} />
                             </div>
+                           <div className='absolute right-[78px] top-[20px] flex justify-end z-20'>
+                           <button className='h-[35px] w-[100px] flex items-center justify-center rounded-2xl bg-[#35A1CC] text-white' onClick={()=> refreshData()}>Refresh</button>
+                           </div>
                             <DataTable columns={columns} data={filtered} style={{ width: '1200px' }} wrapperStyle={{ backgroundColor: '#DAECF3' }} pagination fixedHeader subHeader subHeaderComponent={<div className=' h-[70px]'><h2 className='text-xl  font-[450]'>Search</h2> <input type='search' placeholder='Search here' className=' h-[25px] w-[310px] border-b-[1px]   p-1 outline-none placeholder:text-sm' value={search} onChange={(e) => { setsearch(e.target.value) }} /> </div>} subHeaderAlign='left' />
                             {/* value={search} onChange={(e) => { setsearch(e.target.value) }} */}
                         </div>

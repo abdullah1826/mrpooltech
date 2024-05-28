@@ -163,7 +163,7 @@ const PermentWorker = () => {
             {deletemodal && <Model delfunc={handleDelete} msg={delmsg} />}
             <div className='flex w-[100%]'>
                 <Sidebar />
-                <div className='relative w-[83%]'>
+                <div className='relative h-[125vh] overflow-x-auto  w-[83%]'>
                     {/* {deletemodal && <Model delfunc={handleDelete} msg={delmsg} />} */}
                     <img src={upper} />
                     <Link to='/addnewWorker'><div className='h-[45px] border w-[210px] absolute right-6 flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer'>Add new worker +</div></Link>

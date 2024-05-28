@@ -6,21 +6,52 @@ import "../App.css";
 import avatar from "../imgs/noimg.jpg";
 import { db, storage } from "../Firbase";
 import { push, ref, update } from "firebase/database";
-import { getDownloadURL, uploadBytes } from "firebase/storage";
+import { getDownloadURL, uploadBytes, uploadString } from "firebase/storage";
 import { ref as sRef } from "firebase/storage";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FadeLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
+import Cropper from "./Cropper";
 const Addproducts = () => {
   const navigate = useNavigate();
   let [img, setimg] = useState(null);
+  let [cropModal, setcropModal] = useState(false);
+  const [profile, setProfile] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  let [myprflimg, setmyprflimg] = useState(null);
+  const [key, setKey] = useState('');
+  let [cropPrfl, setCropPrfl] = useState({
+    unit: "%",
+    x: 50,
+    y: 50,
+    width: 25,
+    height: 25,
+  });
+  const handleclosecropper =()=>{
 
-  const handleImageChange = (e) => {
-    if (e.target.files[0]) {
-      setimg(e.target.files[0]);
-    }
-  };
+      setcropModal(false)
+     }
+     let handleImageChange = (event) => {
+      // profileImage
+      setProfile("");
+      const { files } = event.target;
+    
+      // setKey(key + 1);
+      if (files && files?.length > 0) {
+        const reader = new FileReader();
+        reader.readAsDataURL(files[0]);
+        reader.addEventListener("load", () => {
+          setProfile(reader.result);
+          setKey(key+1)
+          setcropModal(true);
+        });
+      } else {
+        // If no file selected (e.g., user canceled cropping), clear the input field
+        event.target.value = null;
+      }
+    };
+    
 
   const [data, setData] = useState({
     productName: "",
@@ -31,15 +62,27 @@ const Addproducts = () => {
   console.log(data.description);
 
   const addData = async () => {
- 
+    let returnIfHttps = (string) => {
+      if (string != "") {
+        if (string.slice(0, 4) === "http") {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    };
     if (data.productName) {
       setLoading(true)
       let pushkey = push(ref(db, `products/`), data).key;
       update(ref(db, `products/${pushkey}`), { id: pushkey });
-      if (img) {
-        let name = new Date().getTime() + img.name;
+      if (returnIfHttps(img) === false) {
+        let name = pushkey;
         const storageRef = sRef(storage, name);
-        uploadBytes(storageRef, img)
+        uploadString(storageRef, img.slice(23), "base64", {
+          contentType: "image/png",
+        })
           .then(() => {
             console.log("img testing");
             getDownloadURL(storageRef)
@@ -81,6 +124,18 @@ const Addproducts = () => {
 let [loading,setLoading]=useState(false)
   return (
     <>
+    <Cropper
+        cropModal={cropModal}
+        handleclosecropper={handleclosecropper}
+        theimg={profile}
+        myimg={myprflimg}
+        setmyimg={setmyprflimg}
+        setcrop={setCropPrfl}
+        crop={cropPrfl}
+        aspect={1 / 1}
+        setReduxState={setimg}
+        isCircle={true}
+      />
     <div className="flex border">
       <Sidebar />
       <div className="flex w-[100%] border relative">
@@ -102,10 +157,11 @@ let [loading,setLoading]=useState(false)
                 id="img"
                 className="opacity-0 w-[0px] h-[0px]"
                 onChange={handleImageChange}
+                key={key}
               />
             </label>
             <img
-              src={img ? URL.createObjectURL(img) : avatar}
+              src={img ? img : avatar}
               alt="profile "
               className="rounded-full w-[120px] h-[120px] object-cover"
             />

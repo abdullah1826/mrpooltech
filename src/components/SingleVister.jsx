@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom'
 import { db } from '../Firbase'
 import Sidebar from './Sidebar'
 import { useNavigate } from 'react-router-dom'
-
+import avatar from '../imgs/noimg.jpg';
 const SingleVister = () => {
     const params = useParams()
     const uid = params.userid
@@ -43,8 +43,8 @@ const SingleVister = () => {
                     <div className="flex justify-end px-4 pt-4">
                     </div>
                     <div className="flex flex-col items-center pb-10">
-                        <img className="w-[110px] h-[110px] mb-3 rounded-full shadow-lg" src={mydata.profileUrl} alt="Bonnie image" />
-                        <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">{mydata.workerName}</h5>
+                        <img className="w-[110px] h-[110px] mb-3 rounded-full shadow-lg" src={mydata?.profileUrl?mydata?.profileUrl:avatar} alt="Bonnie image" />
+                        <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">{mydata?.workerName}</h5>
 
                         <div className='w-[360px] flex flex-col '>
                             {/* <span className="text-md text-gray-500 dark:text-gray-400">Worker</span>
