@@ -203,42 +203,42 @@ const Updateworkers = () => {
                         <div className='flex justify-between flex-wrap ml-[50px] h-[320px] mt-[50px] flex-col'>
 
                             <div className='flex flex-col'>
-                                <h2 className='text-xl font-[400]' >Worker Name</h2>
-                                <input type="text" placeholder='Worker' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, workerName: e.target.value }) }} value={data.workerName} />
+                                <h2 className='text-[17px]' >Worker Name</h2>
+                                <input type="text" placeholder='Worker' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, workerName: e.target.value }) }} value={data.workerName} />
                             </div>
                             <div className='flex flex-col mt-[25px]'>
-                                <h2 className='text-xl font-[450]'>Email</h2>
-                                <input type="email" placeholder='Email' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, email: e.target.value }) }} value={data.email} />
+                                <h2 className='text-[17px]'>Email</h2>
+                                <input type="email" placeholder='Email' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, email: e.target.value }) }} value={data.email} />
                             </div>
                             <div className='flex flex-col mt-[25px]'>
-                                <h2 className='text-xl font-[450]'>Phone Number</h2>
-                                <input type="text" placeholder='Phone' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, phone: e.target.value }) }} value={data.phone} />
+                                <h2 className='text-[17px]'>Phone Number</h2>
+                                <input type="text" placeholder='Phone' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, phone: e.target.value }) }} value={data.phone} />
                             </div>
                             <div className='flex flex-col mt-[25px]'>
-                                <h2 className='text-xl font-[450]'>Address</h2>
-                                <input type="text" placeholder='Address' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, address: e.target.value }) }} value={data.address} />
+                                <h2 className='text-[17px]'>Address</h2>
+                                <input type="text" placeholder='Address' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, address: e.target.value }) }} value={data.address} />
                             </div>
                         </div>
 
                         <div className='flex justify-between flex-wrap ml-[50px] h-[320px] mt-[50px]  flex-col'>
                             <div className='flex flex-col '>
-                                <h2 className='text-xl font-[450]'>CNIC</h2>
-                                <input type="text" placeholder='Id card number' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, cnic: e.target.value }) }} value={data.cnic} />
+                                <h2 className='text-[17px]'>CNIC</h2>
+                                <input type="text" placeholder='Id card number' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, cnic: e.target.value }) }} value={data.cnic} />
                             </div>
                             <div className='flex flex-col mt-[25px]'>
-                                <h2 className='text-xl font-[450]'>Salary</h2>
-                                <input type="text" placeholder='Salary' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, sallary: e.target.value }) }} value={data.sallary} />
+                                <h2 className='text-[17px]'>Salary</h2>
+                                <input type="text" placeholder='Salary' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, sallary: e.target.value }) }} value={data.sallary} />
                             </div>
 
 
                             <div className='flex flex-col mt-[25px]'>
-                                <h2 className='text-xl font-[450]'>Password</h2>
-                                <input type="text" placeholder='Password' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, password: e.target.value }) }} value={data.password} />
+                                <h2 className='text-[17px]'>Password</h2>
+                                <input type="text" placeholder='Password' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, password: e.target.value }) }} value={data.password} />
                             </div>
 
                             <div className='flex flex-col mt-[25px]'>
-                                <h2 className='text-xl font-[450]'>Joining Date</h2>
-                                <input type="date" placeholder='Joining Date' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, joiningdate: e.target.value }) }} value={data.joiningdate} />
+                                <h2 className='text-[17px]'>Joining Date</h2>
+                                <input type="date" placeholder='Joining Date' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...data, joiningdate: e.target.value }) }} value={data.joiningdate} />
                             </div>
 
 

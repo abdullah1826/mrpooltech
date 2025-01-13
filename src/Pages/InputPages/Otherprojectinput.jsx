@@ -194,20 +194,21 @@ const Otherprojectinput = () => {
     <VolumeCalculateModal modalopen={modalopen} handleclose={handleClose}/>
     <div className="flex w-[100%] ">
       <Sidebar />
-      <div onClick={()=>handleOpen()} className="h-[60px] w-[200px] border  absolute right-[35px] top-[4%] rounded-md bg-[#35A1CC] z-50 flex justify-center items-center text-white cursor-pointer">
-        Volume Calculator
-      </div>
-
+   
       <div className="relative w-[100%] ">
-        <div className=" mt-[90px] ">
+        <div className=" mt-[50px] ">
+        <div className="flex flex-col w-[30%] ml-[20px] mt-[5px]">
+        <h2 className="text-[17px] mb-2">Worker</h2>
+        <Select onChange={setWorker} value={worker} options={options} />
+      </div>
           <div className="flex  ">
-            <div className="  flex justify-between flex-wrap ml-[20px] h-[400px] mt-[50px] flex-col">
+            <div className="  flex justify-between flex-wrap ml-[20px] h-[320px] mt-[50px] flex-col">
               <div className="flex flex-col">
-                <h2 className="text-xl font-[400]">Site</h2>
+                <h2 className="text-[17px]">Site</h2>
                 <input
                   type="text"
-                  placeholder="Site number"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  placeholder="Site"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, site: e.target.value });
                   }}
@@ -215,11 +216,11 @@ const Otherprojectinput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Area</h2>
+                <h2 className="text-[17px]">Area</h2>
                 <input
                   type="email"
                   placeholder="area"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, area: e.target.value });
                   }}
@@ -227,11 +228,11 @@ const Otherprojectinput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Project Type</h2>
+                <h2 className="text-[17px]">Project Type</h2>
                 <input
                   type="text"
                   placeholder="Project type"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, projectType: e.target.value });
                   }}
@@ -239,21 +240,18 @@ const Otherprojectinput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-              <h2 className="text-xl font-[450]">Worker Amount</h2>
+              <h2 className="text-[17px]">Start project</h2>
               <input
-                type="text"
-                placeholder="Worker Amount"
-                className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                type="date"
+                placeholder="Joining Date"
+                className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                 onChange={(e) => {
-                  setData({ ...data, workerAmount: e.target.value });
+                  setData({ ...data, activeDate: e.target.value });
                 }}
-                value={data.workerAmount}
+                value={data.activeDate}
               />
             </div>
-              <div className="flex flex-col mt-[5px]">
-                <h2 className="text-xl font-[450]">Worker</h2>
-                <Select onChange={setWorker} value={worker} options={options} />
-              </div>
+         
               {/* <div className=" css-b62m3t-container">
                   <span
                     id="react-select-2-live-region"
@@ -317,11 +315,11 @@ const Otherprojectinput = () => {
             </div>
             <div className="flex justify-between flex-wrap ml-[20px] h-[320px] mt-[50px]  flex-col">
               <div className="flex flex-col ">
-                <h2 className="text-xl font-[450]">Owner</h2>
+                <h2 className="text-[17px]">Owner</h2>
                 <input
                   type="text"
                   placeholder="Owner name"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, owner: e.target.value });
                   }}
@@ -329,11 +327,11 @@ const Otherprojectinput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Owner Mobile</h2>
+                <h2 className="text-[17px]">Owner Mobile</h2>
                 <input
                   type="number"
                   placeholder="Phone number"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   //   style="appearance: none;"
                   onChange={(e) => {
                     setData({ ...data, ownerMobile: e.target.value });
@@ -342,23 +340,23 @@ const Otherprojectinput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Active Date</h2>
-                <input
-                  type="date"
-                  placeholder="Joining Date"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                  onChange={(e) => {
-                    setData({ ...data, activeDate: e.target.value });
-                  }}
-                  value={data.activeDate}
-                />
-              </div>
+              <h2 className="text-[17px]">Worker Amount</h2>
+              <input
+                type="text"
+                placeholder="Worker Amount"
+                className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                onChange={(e) => {
+                  setData({ ...data, workerAmount: e.target.value });
+                }}
+                value={data.workerAmount}
+              />
+            </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Inactive Date</h2>
+                <h2 className="text-[17px]">Complete project</h2>
                 <input
                   type="date"
                   placeholder="Joining Date"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, inactiveDate: e.target.value });
                   }}
@@ -368,11 +366,11 @@ const Otherprojectinput = () => {
             </div>
             <div className="flex  flex-wrap ml-[20px] h-[380px] mt-[50px]  flex-col">
             <div className="flex flex-col ">
-              <h2 className="text-xl font-[450]">Our cost</h2>
+              <h2 className="text-[17px]">Our cost</h2>
               <input
                 type="text"
                 placeholder="Our cost"
-                className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                 onChange={(e) => {
                   setData({ ...data, ourCost: e.target.value });
                 }}
@@ -380,11 +378,11 @@ const Otherprojectinput = () => {
               />
             </div>
             <div className="flex flex-col mt-[32px]">
-            <h2 className="text-xl font-[450]">Qoutation amount</h2>
+            <h2 className="text-[17px]">Qoutation amount</h2>
             <input
               type="text"
               placeholder="Repairing qoutation"
-              className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+              className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
               onChange={(e) => {
                 setData({ ...data, qoutation: e.target.value });
               }}

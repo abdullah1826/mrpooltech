@@ -9,6 +9,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 import VolumeCalculateModal from "../../components/VolumeCalculateModal";
+import img from "../../imgs/noimg.jpg"
+import { TbRulerMeasure } from "react-icons/tb";
+
+
 const Newinput = () => {
   const navigate = useNavigate();
   const [data, setData] = useState({
@@ -29,6 +33,8 @@ const Newinput = () => {
   let [visitingWorkers, setVisitinWorkers] = useState([]);
   let [options, setOptions] = useState([]);
   let [worker, setWorker] = useState(null);
+  const [totalVolume, setTotalVolume] = useState('');
+  const [poolshape, setPoolshape] = useState('');
   const [modalopen, setModalOpen] = useState(false);
 
   const handleOpen = () => {
@@ -176,26 +182,75 @@ const Newinput = () => {
       });
     }
   };
-
+  const optionsss = [
+    {
+      label: "Select shape",
+      value: "Select shape",
+      imageUrl: img,
+    },
+    {
+      label: "Rectangular",
+      value: "Rectangular",
+      imageUrl: img,
+    },
+    {
+      label: "Circle",
+      value: "Circle",
+      imageUrl: "https://via.placeholder.com/20x20.png?text=C",
+    },
+    {
+      label: "Kidney",
+      value: "Kidney",
+      imageUrl: "https://via.placeholder.com/20x20.png?text=AR",
+    }, {
+      label: "Roman",
+      value: "Roman",
+      imageUrl: "https://via.placeholder.com/20x20.png?text=AR",
+    }, {
+      label: "Grecian",
+      value: "Grecian",
+      imageUrl: "https://via.placeholder.com/20x20.png?text=AR",
+    }, {
+      label: "Free form",
+      value: "Free form",
+      imageUrl: "https://via.placeholder.com/20x20.png?text=AR",
+    }
+  ];
+  
+  const CustomSelect = () => {
+    const [data, setData] = useState({ poolShape: '' });
+  
+    const handleSelectChange = (e) => {
+      setData({ ...data, poolShape: e.target.value });
+    };
+  }
+  let handleAdd=()=>{
+    setData({ ...data, poolSize: totalVolume });
+    handleClose()
+  }
   return (
     <>
-    <VolumeCalculateModal modalopen={modalopen} handleclose={handleClose}/>
+    <VolumeCalculateModal handleAdd={handleAdd} modalopen={modalopen} totalVolume={totalVolume} setTotalVolume={setTotalVolume} handleclose={handleClose}/>
     <div className="flex w-[100%] ">
       <Sidebar />
-      <div  className="h-[60px] w-[200px] border  absolute right-[35px] top-[4%] rounded-md bg-[#35A1CC] flex justify-center items-center text-white cursor-pointer z-50" onClick={()=>handleOpen()}>
-        Volume Calculator
-      </div>
+ 
 
       <div className="relative w-[100%] ">
-        <div className=" mt-[90px] ">
+        <div className=" mt-[50px] ">
+        <div className="flex flex-col w-[30%] ml-[50px] mt-[5px]">
+        <h2 className="text-[17px] mb-2">Worker</h2>
+        <Select onChange={setWorker} value={worker} options={options} />
+      </div>
           <div className="flex  ">
-            <div className="flex justify-between flex-wrap ml-[50px] h-[400px] mt-[50px] flex-col">
+          
+            <div className="flex justify-between flex-wrap ml-[50px] h-[350px] mt-[50px] flex-col">
+
               <div className="flex flex-col">
-                <h2 className="text-xl font-[400]">Site</h2>
+                <h2 className="text-[17px]">Site</h2>
                 <input
                   type="text"
-                  placeholder="Site number"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  placeholder="Site"
+                  className="h-[28px]  w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, site: e.target.value });
                   }}
@@ -203,45 +258,47 @@ const Newinput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Area</h2>
+                <h2 className="text-[17px]">Area</h2>
                 <input
                   type="email"
                   placeholder="area"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, area: e.target.value });
                   }}
                   value={data.area}
                 />
               </div>
-              <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Pool Shape</h2>
-                <input
-                  type="text"
-                  placeholder="Pool shape"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                  onChange={(e) => {
-                    setData({ ...data, poolShape: e.target.value });
-                  }}
-                  value={data.poolShape}
-                />
-              </div>
-              <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Pool Size</h2>
-                <input
-                  type="text"
-                  placeholder="Pool size"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                  onChange={(e) => {
-                    setData({ ...data, poolSize: e.target.value });
-                  }}
-                  value={data.poolSize}
-                />
-              </div>
-              <div className="flex flex-col mt-[5px]">
-                <h2 className="text-xl font-[450]">Worker</h2>
-                <Select onChange={setWorker} value={worker} options={options} />
-              </div>
+              <div className="flex flex-col mt-5  items-center w-[100%]">
+              <h2 className="text-[17px] w-[100%] mb-2">Pool shape</h2>
+              <select
+                className="p-2 border w-[100%] border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                onChange={(e) => {
+                  setData({ ...data, poolShape: e.target.value });
+                }}
+                value={data.poolShape}
+              >
+                {optionsss.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                    <img src={option.imageUrl}/>
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col mt-[25px]">
+            <h2 className="text-[17px]">Start project</h2>
+            <input
+              type="date"
+              placeholder="Joining Date"
+              className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+              onChange={(e) => {
+                setData({ ...data, activeDate: e.target.value });
+              }}
+              value={data.activeDate}
+            />
+          </div>
+       
               {/* <div className=" css-b62m3t-container">
                   <span
                     id="react-select-2-live-region"
@@ -303,13 +360,13 @@ const Newinput = () => {
                 </div>
               </div> */}
             </div>
-            <div className="flex justify-between flex-wrap ml-[50px] h-[320px] mt-[50px]  flex-col">
+            <div className="flex justify-between flex-wrap ml-[50px] h-[350px] mt-[50px]  flex-col">
               <div className="flex flex-col ">
-                <h2 className="text-xl font-[450]">Owner</h2>
+                <h2 className="text-[17px]">Owner</h2>
                 <input
                   type="text"
                   placeholder="Owner name"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, owner: e.target.value });
                   }}
@@ -317,11 +374,11 @@ const Newinput = () => {
                 />
               </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Owner Mobile</h2>
+                <h2 className="text-[17px]">Owner Mobile</h2>
                 <input
                   type="number"
                   placeholder="Phone number"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   //   style="appearance: none;"
                   onChange={(e) => {
                     setData({ ...data, ownerMobile: e.target.value });
@@ -329,24 +386,26 @@ const Newinput = () => {
                   value={data.ownerMobile}
                 />
               </div>
+              <div className="flex flex-col mt-[25px] relative">
+              <h2 className="text-[17px]">Pool Size</h2>
+              <input
+                type="text"
+                placeholder="Pool size"
+                className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                onChange={(e) => {
+                  setData({ ...data, poolSize: e.target.value });
+                }}
+                value={data.poolSize}
+               
+              />
+              <TbRulerMeasure onClick={()=>handleOpen()} className="absolute text-[30px] cursor-pointer right-0 top-5" />
+            </div>
               <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Active Date</h2>
+                <h2 className="text-[17px]">Complete project</h2>
                 <input
                   type="date"
                   placeholder="Joining Date"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
-                  onChange={(e) => {
-                    setData({ ...data, activeDate: e.target.value });
-                  }}
-                  value={data.activeDate}
-                />
-              </div>
-              <div className="flex flex-col mt-[25px]">
-                <h2 className="text-xl font-[450]">Inactive Date</h2>
-                <input
-                  type="date"
-                  placeholder="Joining Date"
-                  className="h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
+                  className="h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm"
                   onChange={(e) => {
                     setData({ ...data, inactiveDate: e.target.value });
                   }}
@@ -356,9 +415,9 @@ const Newinput = () => {
             </div>
             
           </div>
-          <div className="w-[70%] flex justify-end">
+          <div className="w-[68%] flex justify-end">
           <button
-            className="h-[45px] w-[210px] mt-5 bg-[#35A1CC]  text-white rounded-[4px]  "
+            className="h-[45px] w-[210px] mt-8 bg-[#35A1CC]  text-white rounded-[4px]  "
             onClick={() => addData()}
           >
             Submit

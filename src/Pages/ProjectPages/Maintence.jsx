@@ -9,9 +9,11 @@ import { useContext } from 'react';
 import Widgets from '../../components/Widgets'
 import { ModalContext } from '../../context/Modalcontext';
 import DataTable from 'react-data-table-component';
-import { Button, Modal, Typography, Box } from '@mui/material';
+import { Button, Modal, Typography, Box, IconButton } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CloseIcon from '@mui/icons-material/Close';
+
 const Maintence = () => {
 
     const [mylist, setmylist] = useState([]);
@@ -20,10 +22,24 @@ const Maintence = () => {
     const navigate = useNavigate();
     // const [showmodal, setshowmodal] = useState(false);
     const [delid, setdelid] = useState('');
-  
+    
     let { showmodal, deletemodal } = useContext(ModalContext)
     const [modal, setModal] = useState(false);
     console.log(mylist)
+
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [modal1, setModal1] = useState(false);
+    const viewUserData = (row) => {
+      setSelectedUser(row);
+      setModal1(true);
+  };
+    const handleCloseModal = () => {
+      setSelectedUser(null);
+      setModal1(false);
+  };
+
+
+
     let updateLinks = () => {
         if (mylist?.length === 1) {
             setmylist([]);
@@ -139,29 +155,18 @@ console.log(mylist)
         width: "60px"
       },
       // { name: 'Sr', cell: (row) => { sr += 0.5; return sr }, sortable: true, width: '60px', },
-      { name: 'Site Number', selector: (row) => { return row.site }, sortable: true, width: '120px' },
-      { name: 'Area', selector: (row) => { return row.area }, sortable: true, },
+      { name: 'Site', selector: (row) => { return row.site }, sortable: true, width: '100px' },
+      { name: 'Area', selector: (row) => { return row.area }, sortable: true,width:"190px" },
       { name: 'Attendant', selector: (row) => { return row.attendant}, sortable: true, width: '120px' },
-      { name: 'Pool size', selector: (row) => { return row.poolSize}, sortable: true,width: '100px' },
-      { name: 'Attendant phone', selector: (row) => { return row.attendantPhone}, sortable: true,width: '130px' },
-      { name: 'Owner', selector: (row) => { return row.owner }, sortable: true, width: '120px' },
-      { name: 'Owner Mobile', selector: (row) => { return row.ownerMobile }, sortable: true, width: '150px' },
+      { name: 'Owner', selector: (row) => { return row.owner }, sortable: true, width: '100px' },
       { name: 'Operator', selector: (row) => { return row.operater}, sortable: true,width: '100px' },
-      { name: 'referance', selector: (row) => { return row.referance}, sortable: true,width: '100px' },
-      { name: 'Amount', selector: (row) => { return row.poolSize }, sortable: true, width: '150px' },
-    //   { name: 'Amount', selector: (row) => { return row.amount }, sortable: true, },
-      // { name: 'Status', selector: (row) => { return row.email }, sortable: true, width: '80px' },
-      { name: 'Active Date', selector: (row) => { return row.activeDate }, sortable: true, width: '120px' },
-      { name: 'InActive Date', selector: (row) => { return row.inactiveDate }, sortable: true, width: '120px' },
-    //   { name: 'Creation Date', selector: (row) => { return row.creationDate }, sortable: true, width: '130px' },
       // { name: 'Age', selector: 'age', sortable: true ,},
-      { name: 'Actions', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => Editdata(row.id)}>Edit</button> <button className='h-[40px] w-[70px] border bg-[#f44336] rounded-md text-white' onClick={() => { return modalseter(row.id) }}>Delete</button></div>), width: '175px' },
+      { name: 'Actions', cell: (row) => (<div className='flex '><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => viewUserData(row)}>View</button><button className='h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2' onClick={() => Editdata(row.id)}>Edit</button> <button className='h-[40px] w-[70px] border bg-[#f44336] rounded-md text-white' onClick={() => { return modalseter(row.id) }}>Delete</button></div>), width: '240px' },
       { name: 'Status', cell: (row) => row.status === true ? (<div className='h-[24px] w-[45px] bg-[#35A1CC] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border right-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }} ></div></div>) : (<div className='h-[24px] w-[45px] bg-[#707070] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border left-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }}></div></div>) },
   
     ];
   
     let delmsg = 'Are you sure to delete this field ??';
-
 
 
   return (
@@ -177,9 +182,9 @@ console.log(mylist)
 <Widgets mylist={mylist}/>
 </div>
 
-<div class="flex absolute z-10 right-6 mt-3"><Link to="/maintenceInput"><div class="h-[45px] border w-[180px]  rounded-xl  flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer">Add new data +</div></Link></div>
+<div class="flex absolute z-10 right-6 mt-3"><Link to="/maintenceInput"><div class="h-[45px] border w-[180px]  rounded-xl  flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer">Add new site +</div></Link></div>
 <div className='border' >
-          <DataTable columns={columns} data={filtered} style={{ width: '1200px' }} wrapperStyle={{ backgroundColor: '#DAECF3' }} pagination fixedHeader subHeader subHeaderComponent={<div className=' h-[70px]'><h2 className='text-xl  font-[450]'>Search</h2> <input type='search' placeholder='Search here' className=' h-[25px] w-[310px] border-b-[1px]   p-1 outline-none placeholder:text-sm' value={search} onChange={(e) => { setsearch(e.target.value) }} /> </div>} subHeaderAlign='left' />
+          <DataTable columns={columns} data={filtered} style={{ width: '1200px' }} wrapperStyle={{ backgroundColor: '#DAECF3' }} pagination fixedHeader subHeader subHeaderComponent={<div className=' h-[70px]'><h2 className='text-[17px]'>Search</h2> <input type='search' placeholder='Search here' className=' h-[25px] w-[310px] border-b-[1px]   p-1 outline-none placeholder:text-sm' value={search} onChange={(e) => { setsearch(e.target.value) }} /> </div>} subHeaderAlign='left' />
         </div>
 </div>
     </div>
@@ -221,6 +226,70 @@ console.log(mylist)
   pauseOnHover
   theme="colored"
   />
+  <Modal open={modal1} onClose={handleCloseModal}>
+<Box
+sx={{
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 700,
+  bgcolor: 'white',
+  borderRadius: '5px',
+  background: '#FFF',
+  outline: 'none',
+  boxShadow: 24,
+  maxHeight: "90vh",
+  overflowY: "auto",
+  
+  '&::-webkit-scrollbar': {
+    display: 'none',
+  },
+}}>
+<IconButton
+aria-label="close"
+onClick={handleCloseModal}
+sx={{
+  position: 'absolute',
+  top: 22,
+  right: 18,
+  width: '24px',
+ height: '24px',
+background: '#ECECEC',
+}}
+>
+<CloseIcon />
+</IconButton>
+    {selectedUser && (
+        <>
+        <div className='flex justify-start items-center flex-col w-[100%]'>
+        <div className=' flex justify-start items-center w-[90%] '>
+            <Typography variant='h5' className='mt-5 mb-5' gutterBottom>
+              Project details
+            </Typography>
+            </div>
+     <div className=' flex justify-start items-center gap-4 flex-wrap w-[90%] '>
+  <div className='flex  items-center w-[46%]'>  <p className='font-[450] text-[14px] mr-2 flex  items-center '>Worker Name:</p><span className='text-[13px]'>{selectedUser.worker}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Site:</p><span className='text-[13px]'>{selectedUser.site}</span></div>
+  <div className='flex  items-center  w-[46%]'>  <p className='font-[450] text-[14px] mr-2 flex  items-center '>Area :</p><span className='text-[13px]'>{selectedUser.area}</span></div>
+  <div className='flex  items-center  w-[46%]'>  <p className='font-[450] text-[14px] mr-2 flex  items-center '>Owner :</p><span className='text-[13px]'>{selectedUser.owner}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Owner Mobile:</p><span className='text-[13px]'>{selectedUser.ownerMobile}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Attendant:</p><span className='text-[13px]'>{selectedUser.attendant}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Attendant Phone:</p><span className='text-[13px]'>{selectedUser.attendantPhone}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Operater:</p><span className='text-[13px]'>{selectedUser.operater}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Referance:</p><span className='text-[13px]'>{selectedUser.referance}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Amount:</p><span className='text-[13px]'>{selectedUser.amount}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Pool Shape:</p><span className='text-[13px]'>{selectedUser.poolShape}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Pool Size:</p><span className='text-[13px]'>{selectedUser.poolSize}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Start Project:</p><span className='text-[13px]'>{selectedUser.activeDate}</span></div>
+  <div className='flex  items-center  w-[46%]'> <p className='font-[450] text-[14px] mr-2 flex  items-center  '>Complete Project:</p><span className='text-[13px]'>{selectedUser.inactiveDate}</span></div>
+     </div>
+     </div>
+     <br></br>
+        </>
+    )}
+</Box>
+</Modal>
     </>
   )
 }

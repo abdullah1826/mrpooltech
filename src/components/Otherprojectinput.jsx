@@ -5,10 +5,188 @@ import { db } from '../Firbase';
 import Sidebar from './Sidebar';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Select from "react-select";
 const Otherprojectinput1 = () => {
     const navigate = useNavigate();
 
+   
+    let [worker, setWorker] = useState(null);
+    const [data, setData1] = useState({
+        site: "",
+        status: true,
+        activeDate: "",
+        inactiveDate: "",
+        owner: "",
+        ownerMobile: "",
+        worker: worker,
+        area: "",
+        ourCost:"",
+        id:"",
+        projectType:"",
+        qoutation:"",
+        workerAmount:"",
 
+
+      });
+      let [allWorkers, setAllWorkers] = useState([]);
+      let [otherWorkers, setotherWorkers] = useState([]);
+      let [workers, setWorkers] = useState([]);
+      let [visitingWorkers, setVisitinWorkers] = useState([]);
+      let [options, setOptions] = useState([]);
+      const [modalopen, setModalOpen] = useState(false);
+
+  const handleOpen = () => {
+    setModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+  };
+    
+      // ------------------------geting data from firebase---------------------
+    
+      useEffect(() => {
+        let getingdata = async () => {
+          const starCountRef = ref(db, "/workers");
+          onValue(starCountRef, async (snapshot) => {
+            const data = await snapshot.val();
+            //  console.log(data)
+            // MediaKeyStatusMap
+            setWorkers(Object.values(data));
+            // updateStarCount(postElement, data);
+          });
+    
+          const starCountRef2 = ref(db, "/visitingWorkers");
+          onValue(starCountRef2, async (snapshot2) => {
+            const data2 = await snapshot2.val();
+            //  console.log(data)
+            // MediaKeyStatusMap
+            setVisitinWorkers(Object.values(data2));
+            // updateStarCount(postElement, data);
+          });
+    
+          const starCountRef3 = ref(db, "/otherWorkers");
+          onValue(starCountRef3, async (snapshot3) => {
+            const data3 = await snapshot3.val();
+            //  console.log(data)
+            // MediaKeyStatusMap
+            setotherWorkers(Object.values(data3));
+            // updateStarCount(postElement, data);
+          });
+        };
+    
+        getingdata();
+      }, []);
+    
+      useEffect(() => {
+        var newArray = workers?.concat(otherWorkers, visitingWorkers);
+        setAllWorkers(newArray);
+      }, [workers, otherWorkers, visitingWorkers]);
+    
+      useEffect(() => {
+        setOptions([]);
+        allWorkers?.map((elm) => {
+          // return setOptions([...options, { value: elm.id, label: elm.workerName }]);
+          return setOptions((prev) => [
+            ...prev,
+            { value: elm.id, label: elm.workerName },
+          ]);
+        });
+      }, [allWorkers]);
+    
+  console.log(options);
+
+  const date = new Date();
+
+  let day = date.getDate();
+  let month = date.getMonth() + 1;
+  let year = date.getFullYear();
+  let currentDate = `${year}-${month}-${day}`;
+  const addData = () => {
+      if (!data.site || !data.area || !worker) {
+        toast.warn("Site, area, and worker fields should not be empty.");
+        return;
+      }
+    if (data.site) {
+        const pushKeyRef = push(ref(db, 'OtherProjects/'));
+        const pushKey = pushKeyRef.key;
+    
+        update(ref(db, `OtherProjects/${pushKey}`), {
+          id: pushKey,
+          site: data?.site,
+          status: true,
+          activeDate: data?.activeDate,
+          inactiveDate: data?.inactiveDate,
+          owner: data?.owner,
+          ownerMobile: data?.ownerMobile,
+          worker:worker?.label,
+          area: data?.area,
+          ourCost:data?.ourCost,
+          projectType:data?.projectType,
+          qoutation:data?.qoutation,
+          workerAmount:data?.workerAmount,
+      }).then(() => {
+        let isPermanent = workers?.some((elm) => {
+          return elm?.id === worker.value;
+        });
+
+        let isVisiting = visitingWorkers?.some((elm) => {
+          return elm?.id === worker.value;
+        });
+
+        let isOther = otherWorkers?.some((elm) => {
+          return elm?.id === worker.value;
+        });
+
+        if (isPermanent) {
+          update(ref(db, `workers/${worker.value}/assignedSites/${pushKey}`), {
+            id: pushKey,
+            siteName: data.site,
+            siteUid: pushKey,
+          });
+        } else if (isVisiting) {
+          update(
+            ref(db, `visitingWorkers/${worker.value}/assignedSites/${pushKey}`),
+            {
+              id: pushKey,
+              siteName: data.site,
+              siteUid: pushKey,
+            }
+          );
+        } else if (isOther) {
+          update(
+            ref(db, `otherWorkers/${worker.value}/assignedSites/${pushKey}`),
+            {
+              id: pushKey,
+              siteName: data.site,
+              siteUid: pushKey,
+            }
+          );
+        }
+      });
+      toast.success("Record added successfully")
+      setTimeout(() => {
+        navigate(`/otherproject`);
+      }, 1500);
+      setData1({
+        site: "",
+        status: true,
+        activeDate: "",
+        inactiveDate: "",
+        poolSize: "",
+        poolShape: "",
+        owner: "",
+        ownerMobile: "",
+        worker: worker?.label,
+        area: "",
+        ourCost:"",
+        id:"",
+        projectType:"",
+        qoutation:"",
+        workerAmount:"",
+      });
+    }
+  };
 
     const [mydata, setData] = useState({
         site: "",
@@ -84,63 +262,83 @@ const Otherprojectinput1 = () => {
             navigate(`/otherproject`);
           }, 1500);
     }
+    const handleWorkerChange = selectedOption => {
+    
+        setData({
+          ...mydata,
+          worker: selectedOption?.label,
+        });
+      };
     return (
         <>
             <div className='flex w-[100%] '>
                 <Sidebar />
-                {/* <h1 className='text-xl font-[500] ml-[80px]  mt-[20px]'>Enter the data</h1> */}
+                <div className='flex  flex-col mt-10   w-[100%]'>
+                <div className='flex flex-col  w-[100%]'>
+                <div className="flex flex-col w-[30%] ml-[20px] mt-[5px]">
+                  <h2 className="text-[17px] mb-2">Worker</h2>
+                  <Select 
+                    onChange={handleWorkerChange} 
+                    value={options.find(option => option.label === mydata.worker)} 
+                    options={options} 
+                  />
+                </div>
+              </div>
+                <div className='flex justify-between w-[90%]'>
                 <div className=' flex justify-between flex-wrap ml-[20px] h-[340px] mt-[50px] flex-col'>
 
                     <div className='flex flex-col'>
-                        <h2 className='text-xl font-[400]' >Site</h2>
-                        <input type="text" placeholder='Side number' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, site: e.target.value }) }} value={mydata?.site} />
+                        <h2 className='text-[17px]' >Site</h2>
+                        <input type="text" placeholder='Site' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, site: e.target.value }) }} value={mydata?.site} />
                     </div>
                     <div className='flex flex-col mt-[25px]'>
-                    <h2 className='text-xl font-[450]'>Area</h2>
-                    <input type="text" placeholder='Area' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, area: e.target.value }) }} value={mydata?.area} />
+                    <h2 className='text-[17px]'>Area</h2>
+                    <input type="text" placeholder='Area' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, area: e.target.value }) }} value={mydata?.area} />
                 </div>
                     <div className='flex flex-col mt-[25px]'>
-                        <h2 className='text-xl font-[450]'>Project type</h2>
-                        <input type="text" placeholder='Pool shape' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, projectType: e.target.value }) }} value={mydata?.projectType} />
+                        <h2 className='text-[17px]'>Project type</h2>
+                        <input type="text" placeholder='Pool shape' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, projectType: e.target.value }) }} value={mydata?.projectType} />
                     </div>
                     <div className='flex flex-col mt-[25px]'>
-                        <h2 className='text-xl font-[450]'>Worker amount</h2>
-                        <input type="text" placeholder='Pool size' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, workerAmount: e.target.value }) }} value={mydata?.workerAmount} />
-                    </div>
+                    <h2 className='text-[17px]'>Start project</h2>
+                    <input type="date" placeholder='Active Date' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, activeDate: e.target.value }) }} value={mydata?.activeDate} />
+                </div>
                 </div>
 
                 <div className='  flex justify-between flex-wrap ml-[20px] h-[340px] mt-[50px]  flex-col'>
                     <div className='flex flex-col '>
-                        <h2 className='text-xl font-[450]'>Owner Name</h2>
-                        <input type="text" placeholder='Owner Name' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, owner: e.target.value }) }} value={mydata?.owner} />
+                        <h2 className='text-[17px]'>Owner Name</h2>
+                        <input type="text" placeholder='Owner Name' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, owner: e.target.value }) }} value={mydata?.owner} />
                     </div>
                     <div className='flex flex-col mt-[25px]'>
-                        <h2 className='text-xl font-[450]'>Owner Mobile</h2>
-                        <input type="text" placeholder='Owner Mobile' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, ownerMobile: e.target.value }) }} value={mydata?.ownerMobile} />
+                        <h2 className='text-[17px]'>Owner Mobile</h2>
+                        <input type="text" placeholder='Owner Mobile' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, ownerMobile: e.target.value }) }} value={mydata?.ownerMobile} />
                     </div>
-                    <div className='flex flex-col mt-[25px]'>
-                    <h2 className='text-xl font-[450]'>Active Date</h2>
-                    <input type="date" placeholder='Active Date' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, activeDate: e.target.value }) }} value={mydata?.activeDate} />
-                </div>
+                   <div className='flex flex-col mt-[25px]'>
+                   <h2 className='text-[17px]'>Worker amount</h2>
+                   <input type="text" placeholder='Pool size' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, workerAmount: e.target.value }) }} value={mydata?.workerAmount} />
+               </div>
                 <div className='flex flex-col mt-[25px]'>
-                    <h2 className='text-xl font-[450]'>InActive Date</h2>
-                    <input type="date" placeholder='InActive Date' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, inactiveDate: e.target.value }) }} value={mydata?.inactiveDate} />
+                    <h2 className='text-[17px]'>Complete project</h2>
+                    <input type="date" placeholder='InActive Date' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, inactiveDate: e.target.value }) }} value={mydata?.inactiveDate} />
                 </div>
                 </div>
 
                 <div className='flex  flex-wrap ml-[20px] h-[340px] mt-[50px]  flex-col'>
                 <div className='flex flex-col '>
                     <h2 className='text-lg font-[450]'>Our cost</h2>
-                    <input type="text" placeholder='Operator' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, ourCost: e.target.value }) }} value={mydata?.ourCost} />
+                    <input type="text" placeholder='Operator' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, ourCost: e.target.value }) }} value={mydata?.ourCost} />
                 </div>
             
         <div className='flex flex-col mt-[39px] '>
-        <h2 className='text-xl font-[450]'>Qoutation amount</h2>
-        <input type="text" placeholder='Attendant Phone' className='h-[28px] w-[310px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, qoutation: e.target.value }) }} value={mydata?.qoutation} />
+        <h2 className='text-[17px]'>Qoutation amount</h2>
+        <input type="text" placeholder='Attendant Phone' className='h-[28px] w-[310px] text-[13px] border-b-[1px] border-[#464141]  p-1 outline-none placeholder:text-sm' onChange={(e) => { setData({ ...mydata, qoutation: e.target.value }) }} value={mydata?.qoutation} />
     </div>
             </div>
             </div>
-            <div className="w-[95%] mt-[-250px] flex justify-end">
+            </div>
+            </div>
+            <div className="w-[95%] mt-[-100px] flex justify-end">
             <button className='h-[45px] w-[210px] bg-[#35A1CC]  text-white rounded-[4px]' onClick={updateData}>Update</button>
             </div>
             <ToastContainer

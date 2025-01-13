@@ -39,7 +39,7 @@ const SingleOtherworker = () => {
         <div className='flex'>
             <Sidebar />
             <div className='w-[100%] flex justify-center'>
-                <div className=" w-[400px] h-[460px] bg-white  rounded-lg shadow-lg mt-[100px]">
+                <div className=" w-[400px] h-[540px] bg-white  rounded-lg shadow-lg mt-[100px]">
                     <div className="flex justify-end px-4 pt-4">
                     </div>
                     <div className="flex flex-col items-center pb-10">
@@ -53,6 +53,8 @@ const SingleOtherworker = () => {
                             <h5 className=" text-md font-medium text-gray-900 dark:text-white flex items-center mt-2">Email : <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{mydata.email}</span></h5>
                             <h5 className=" text-md font-medium text-gray-900 dark:text-white flex items-center mt-4">Phone : <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{mydata.phone}</span></h5>
                             <h5 className=" text-md font-medium text-gray-900 dark:text-white flex items-center mt-4">CNIC : <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{mydata.cnic}</span></h5>
+                            <h5 className=" text-md font-medium text-gray-900 dark:text-white flex items-center mt-4">Address : <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{mydata.address}</span></h5>
+                            <h5 className=" text-md font-medium text-gray-900 dark:text-white flex items-center mt-4">Password : <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{mydata.password}</span></h5>
                             <h5 className=" text-md font-medium text-gray-900 dark:text-white flex items-center mt-4">Salary : <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{mydata.sallary}</span></h5>
                             <h5 className=" text-md font-medium text-gray-900 dark:text-white flex items-center mt-4">Joining Date : <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{mydata.joiningdate}</span></h5>
                         </div>

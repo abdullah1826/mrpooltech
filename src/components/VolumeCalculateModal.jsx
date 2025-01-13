@@ -1,8 +1,8 @@
 import { Box, Modal } from '@mui/material';
 import React, { useState } from 'react';
 import { IoMdClose } from "react-icons/io";
-
-export default function VolumeCalculateModal({ handleclose, modalopen }) {
+import Select from "react-select";
+export default function VolumeCalculateModal({ handleclose, modalopen,totalVolume,setTotalVolume,handleAdd }) {
   const [rectangular, setRectangular] = useState(true);
   const [circle, setCircle] = useState(false);
   const [triangle, setTriangle] = useState(false);
@@ -12,7 +12,7 @@ export default function VolumeCalculateModal({ handleclose, modalopen }) {
   const [diameter, setDiameter] = useState('');
   const [base, setBase] = useState('');
   const [height, setHeight] = useState('');
-  const [totalVolume, setTotalVolume] = useState('');
+
 
   const handlerectangular = () => {
     setRectangular(true);
@@ -65,7 +65,23 @@ export default function VolumeCalculateModal({ handleclose, modalopen }) {
       const volume = 0.5 * base * height * depth * 7.48;
       setTotalVolume(volume.toFixed(2));
     }
+
   };
+  const add = () => {
+    if (rectangular) {
+      const volume = length * width * depth * 7.48;
+      setTotalVolume(volume.toFixed(2));
+    } else if (circle) {
+      const radius = diameter / 2;
+      const volume = Math.PI * Math.pow(radius, 2) * depth * 7.48;
+      setTotalVolume(volume.toFixed(2));
+    } else if (triangle) {
+      const volume = 0.5 * base * height * depth * 7.48;
+      setTotalVolume(volume.toFixed(2));
+    }
+    handleclose()
+  };
+
 
   return (
     <>
@@ -129,8 +145,8 @@ export default function VolumeCalculateModal({ handleclose, modalopen }) {
                       />
                     </div>
                   </div>
-                  <div className='flex justify-start flex-col'>
-                    <label>Total Volume (in gallons)</label>
+                  <div className='flex ml-5 justify-start flex-col'>
+                    <label>Total Volume of water (in gallons)</label>
                     <input
                       type='text'
                       value={totalVolume}
@@ -166,8 +182,8 @@ export default function VolumeCalculateModal({ handleclose, modalopen }) {
                       />
                     </div>
                   </div>
-                  <div className='flex justify-start flex-col'>
-                    <label>Total Volume (in gallons)</label>
+                  <div className='flex  ml-5 justify-start flex-col'>
+                    <label>Total Volume of water (in gallons)</label>
                     <input
                       type='text'
                       value={totalVolume}
@@ -213,8 +229,8 @@ export default function VolumeCalculateModal({ handleclose, modalopen }) {
                       />
                     </div>
                   </div>
-                  <div className='flex justify-start flex-col'>
-                    <label>Total Volume (in gallons)</label>
+                  <div className='flex ml-5 justify-start flex-col'>
+                    <label>Total Volume of water (in gallons)</label>
                     <input
                       type='text'
                       value={totalVolume}
@@ -227,6 +243,7 @@ export default function VolumeCalculateModal({ handleclose, modalopen }) {
             )}
             <div className='flex justify-start w-[100%] mt-5'>
               <button onClick={calculateVolume} className='flex justify-center items-center w-[130px] h-[40px] rounded-3xl text-[white] bg-[#0B6E99]'>Calculate</button>
+              <button onClick={handleAdd} className='flex justify-center items-center ml-5 w-[130px] h-[40px] rounded-3xl text-[white] bg-[#0B6E99]'>Add</button>
             </div>
           </div>
         </Box>

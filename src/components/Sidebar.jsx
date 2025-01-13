@@ -10,7 +10,7 @@ import { BsPeopleFill } from 'react-icons/bs'
 import { GiArchiveRegister } from 'react-icons/gi'
 import { FaShoppingCart } from 'react-icons/fa';
 import { Box, Button, Modal, Typography } from '@mui/material';
-
+import { FaFileInvoiceDollar } from "react-icons/fa";
 const Sidebar = () => {
 
 
@@ -64,6 +64,9 @@ const Sidebar = () => {
   const handledelete=()=>{
     setDeleteaccount(!deleteaccount)
   }
+  let handleinvoice = () =>{ 
+    window.open("https://tangerine-stardust-d0de91.netlify.app/", "_blank");
+  }
   return (
     <>
     <div className='w-[215px] border h-[125vh]'>
@@ -76,7 +79,7 @@ const Sidebar = () => {
 
         <div className='flex w-[85%] ml-[20px] mt-[60px] items-center p-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" || page === "/newinput" || page?.includes("/update/") || page === "/maintenceInput" || page?.includes("/maintenceupdate/") || page === "/repareInput" || page?.includes("/repareupdate/") || page === "/otherprojectinput" || page?.includes("/otherprojectinput1/")   ? { backgroundColor: '#0b6e99', borderRadius: '20px', color: 'white' } : null} >
           <FaHome className='text-2xl ml-2  ' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" || page === "/newinput" || page?.includes("/update/") || page === "/maintenceInput" || page?.includes("/maintenceupdate/") || page === "/repareInput" || page?.includes("/repareupdate/") || page === "/otherprojectinput" || page?.includes("/otherprojectinput1/") ? { color: 'white' } : { color: '#35A1CC' }} />
-          <h2 className=' ml-1 text-lg  mt-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" || page === "/newinput" || page?.includes("/update/") || page === "/maintenceInput" || page?.includes("/maintenceupdate/") || page === "/repareInput" || page?.includes("/repareupdate/") || page === "/otherprojectinput" || page?.includes("/otherprojectinput1/") ? { color: 'white' } : { color: '#35A1CC' }}>Home</h2>
+          <h2 className=' ml-1 text-lg  mt-1' style={page === '/' || page === "/newproject" || page === "/maintenance" || page === "/repairing" || page === "/otherproject" || page === "/newinput" || page?.includes("/update/") || page === "/maintenceInput" || page?.includes("/maintenceupdate/") || page === "/repareInput" || page?.includes("/repareupdate/") || page === "/otherprojectinput" || page?.includes("/otherprojectinput1/") ? { color: 'white' } : { color: '#35A1CC' }}>All Projects</h2>
         </div>
         {/* <div className='w-[50px] mt-1 bg-[#35A1CC] h-1'></div> */}
 
@@ -103,6 +106,12 @@ const Sidebar = () => {
           <h2 className=' ml-2 text-lg  ' style={page === '/allproducts' || page === "/addproducts" || page?.includes("/editproduct/") ? { color: 'white' } : { color: '#35A1CC' }}>Products</h2>
         </div>
       </NavLink>
+     
+      <div onClick={()=>handleinvoice()} className='flex cursor-pointer w-[85%] ml-[20px] mt-[24px] items-center p-1' >
+        <FaFileInvoiceDollar className='text-2xl ml-2  text-[#35A1CC] '  />
+        <h2 className=' ml-2 text-lg  text-[#35A1CC] ' >Invoice</h2>
+      </div>
+
 
 
 
@@ -110,8 +119,7 @@ const Sidebar = () => {
 
       <div className='w-[190px] border-t  mt-[80px]'>
         <div className='ml-[45px] mt-4'>
-          <h2>Admin</h2>
-          <p className='text-[#B7B7B7]'>admin@admin.com</p>
+        
           <button className='h-[40px] w-[90px] bg-[#f44336] rounded-md text-white mt-5' onClick={() => { return handledelete() }}>Log Out</button>
           {/* <h2 className='mt-3 cursor-pointer' onClick={logout} >Log Out</h2> */}
 
@@ -138,11 +146,11 @@ const Sidebar = () => {
       <Typography variant="h6" component="h2" >
         Are you sure you want to logout this account?
       </Typography>
-      <Box mt={2} display="flex" justifyContent="space-between">
-        <Button variant="outlined" color="secondary" onClick={handledelete}>
+      <Box mt={2} display="flex" justifyContent="flex-end">
+        <Button variant="outlined" className='bg-[#0B6E99] text-white mr-5' onClick={handledelete}>
           No
         </Button>
-        <Button variant="contained" color="primary" onClick={() => { return logout() }} >
+        <Button variant="contained" className='bg-[#0B6E99]' onClick={() => { return logout() }} >
         Yes
       </Button>
       </Box>

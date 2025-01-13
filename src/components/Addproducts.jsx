@@ -76,44 +76,47 @@ const Addproducts = () => {
     if (data.productName) {
       setLoading(true)
       let pushkey = push(ref(db, `products/`), data).key;
-      update(ref(db, `products/${pushkey}`), { id: pushkey });
-      if (returnIfHttps(img) === false) {
-        let name = pushkey;
-        const storageRef = sRef(storage, name);
-        uploadString(storageRef, img.slice(23), "base64", {
-          contentType: "image/png",
-        })
-          .then(() => {
-            console.log("img testing");
-            getDownloadURL(storageRef)
-              .then((URL) => {
-                console.log(URL);
-                update(ref(db, `products/${pushkey}`), { imgUrl: URL }).then(()=>{
-                  setLoading(false)
-                  navigate(`/allproducts`);
-                })
-             
-              
-              })
-              
-              .catch((error) => {
-                console.log(error);
-              });
-            setimg(null);
+      update(ref(db, `products/${pushkey}`), { id: pushkey }).then(()=>{
+        if (img && returnIfHttps(img) === false) {
+          let name = pushkey;
+          const storageRef = sRef(storage, name);
+          uploadString(storageRef, img.slice(23), "base64", {
+            contentType: "image/png",
           })
-          
-          .catch((error) => {
-            console.log(error);
-          });
-      }
-      setLoading(false)
-      navigate(`/allproducts`);
-      setData({
-        productName: "",
-        price: "",
-        description: "",
-        imgUrl: "",
+            .then(() => {
+              console.log("img testing");
+              getDownloadURL(storageRef)
+                .then((URL) => {
+                  console.log(URL);
+                  update(ref(db, `products/${pushkey}`), { imgUrl: URL }).then(()=>{
+                    setLoading(false)
+                    navigate(`/allproducts`);
+                  })
+               
+                
+                })
+                
+                .catch((error) => {
+                  console.log(error);
+                });
+              setimg(null);
+            })
+            
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+        setLoading(false)
+        navigate(`/allproducts`);
+        setData({
+          productName: "",
+          price: "",
+          description: "",
+          imgUrl: "",
+        }); 
       });
+     
+    
 
       
       
@@ -204,6 +207,7 @@ let [loading,setLoading]=useState(false)
               Add Description
             </div>
             <ReactQuill
+            style={{height:"250px",width:"680px"}}
               placeholder="Write description..."
               onChange={(e) => {
                 setData({ ...data, description: e });
@@ -211,7 +215,7 @@ let [loading,setLoading]=useState(false)
               value={data.description}
             />
             <button
-              className="h-[45px] w-[210px] bg-[#35A1CC]  text-white rounded-[4px] absolute left-[50%] mt-[30px]"
+              className="h-[45px] w-[210px] bg-[#35A1CC]  text-white rounded-[4px] absolute left-[50%] mt-[70px]"
               onClick={addData}
             >
               Submit
