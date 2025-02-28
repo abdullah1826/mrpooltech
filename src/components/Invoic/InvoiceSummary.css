@@ -1,0 +1,167 @@
+
+
+.invoice-container {
+    width: 194.7mm; /* A4 width */
+    
+    min-height: 250mm; /* A4 height */
+   
+    padding: 20px;
+    background-color: #ffffff;
+   box-sizing: border-box;
+    position: relative;
+  }
+  @media print {
+    .download-container {
+      display: none;
+    }
+  }
+  #dwn{
+    position: absolute;
+    top: 25px;
+    /* background-color: black; */
+    color: #ffffff;
+    padding: 10px 10px;
+    z-index: 1;
+    background: black;
+    color: white;
+  }
+  #payments-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .payment-row {
+    display: flex;
+    width:90%;
+    justify-content:space-between;
+    margin-bottom: 10px;
+  
+ 
+  }
+  .payment-row p{
+    margin: 0px;
+    margin-bottom: 16px;
+  }
+  
+  #total-advance {
+    margin-top: 20px;
+    font-weight: bold;
+    border-top:2px solid black ;
+    border-bottom: 2px solid black;
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin: 0px;
+
+  }
+  #total-advance p{
+    margin: 5px;
+  }
+  #hed{
+    font-size: 14px;
+    font-weight: 600;
+    
+  }
+  .main{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    width:100%;
+   margin-top: -10px;
+  }
+  .main1{
+width: 63%;
+
+  }
+  .main1 p{
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .main2{
+    
+width: 37%;
+height: 240px;
+  }
+  .main2 p{
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  #seller-data{
+    margin-top: 5px;
+  }
+  #ee{
+    font-size: 14px;
+    /* font-weight: 600; */
+  
+  }
+  #hed1{
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+  }
+  #currentdate{
+    border: none;
+    font-size: 16px;
+    width: 120px ;
+  }
+ 
+  @media screen and (max-width: 450px) {
+    
+    .invoice-containe{
+      position: relative;
+    
+    }
+   
+    #hed{
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .main{
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      width:100%;
+    
+    }
+    .main1 h2{
+      font-size: 30px;
+    }
+    .main1 p{
+      font-size: 20px;
+    }
+    .main1{
+  width: 63%;
+  
+    }
+    .main2{
+  width: 37%;
+    }
+    .main2 h2{
+      font-size: 30px;
+    }
+    .main2 p{
+      font-size: 20px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .invoice-containe h2{
+    font-size: 30px;
+    }
+    #pp{
+      font-size: 20px;
+      text-align: center;
+      }
+      
+      #ee{
+        font-size: 14px;
+       
+      }
+      .invoice-container{
+        margin-top: 105px;
+      }
+  }
