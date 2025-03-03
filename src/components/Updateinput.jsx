@@ -1,4 +1,4 @@
-import { onValue, ref, update } from "firebase/database";
+import { onValue, ref, push ,update } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../Firbase";
@@ -74,6 +74,7 @@ const Updateinput = () => {
         //  console.log(data)
         // MediaKeyStatusMap
         setWorkers(Object.values(data));
+        console.log(data)
         // updateStarCount(postElement, data);
       });
 
@@ -83,6 +84,8 @@ const Updateinput = () => {
         //  console.log(data)
         // MediaKeyStatusMap
         setVisitinWorkers(Object.values(data2));
+        console.log(data2)
+
         // updateStarCount(postElement, data);
       });
 
@@ -93,6 +96,8 @@ const Updateinput = () => {
         // MediaKeyStatusMap
         setotherWorkers(Object.values(data3));
         // updateStarCount(postElement, data);
+        console.log(data3)
+
       });
     };
 
@@ -330,7 +335,7 @@ const Updateinput = () => {
           area: data.area || "",
           owner: data.owner || "",
           ownerMobile: data.ownerMobile || "",
-          reference :data.reference || "",
+          reference: data.reference || "",
           referenceMobile: data.referenceMobile || "",
           poolSize: data.poolSize || "",
           poolShape: data.poolShape || "",
@@ -348,7 +353,7 @@ const Updateinput = () => {
         setQuotationTotal(data.quotationAmount || "");
         setWorkerType(data.workerType || "");
         setWorker(data.worker || "");
-        
+
         setProducts(data.products || []);
         setItems(data.items || []);
         // setfiltered(Object.values(data))
@@ -365,17 +370,22 @@ const Updateinput = () => {
       toast.warn("Site and area fields should not be empty.");
       return;
     }
-  
+
     if (data.site && data.area) {
       console.log(products);
-  
+
+   
+
       update(ref(db, `NewProjects/${uid}`), data)
         .then(() => {
           // Check worker category
           let isPermanent = workers?.some((elm) => elm?.id === worker.value);
-          let isVisiting = visitingWorkers?.some((elm) => elm?.id === worker.value);
+          let isVisiting = visitingWorkers?.some(
+            (elm) => elm?.id === worker.value
+          );
           let isOther = otherWorkers?.some((elm) => elm?.id === worker.value);
-  
+          const pushKey = data.pushKey || push(ref(db, `NewProjects/${uid}/assignedSites`)).key;
+
           const workerPath = isPermanent
             ? `workers/${worker.value}/assignedSites/${pushKey}`
             : isVisiting
@@ -383,7 +393,7 @@ const Updateinput = () => {
             : isOther
             ? `otherWorkers/${worker.value}/assignedSites/${pushKey}`
             : null;
-  
+
           if (workerPath) {
             return update(ref(db, workerPath), {
               id: pushKey,
@@ -404,14 +414,12 @@ const Updateinput = () => {
         });
     }
   };
-  
-
-
   const handleWorkerChange = (selectedOption) => {
-    setData({
-      ...prevdata,
-      worker: selectedOption?.label,
-    });
+    setWorker(selectedOption); // Store full object
+    setData((prevData) => ({
+      ...prevData,
+      worker: selectedOption, // Store full worker object (optional)
+    }));
   };
 
   const [activeTab, setActiveTab] = useState("projectDetails");
@@ -420,7 +428,8 @@ const Updateinput = () => {
 
   // const [worker, setWorker] = useState(null);
   // Options for worker types
-// console.log(workerType)  // value here is "visitor"
+  // console.log(workerType)  // value here is "visitor"
+console.log(worker)
   const workerTypeOptions = [
     { value: "permanent", label: "Permanent" },
     { value: "visitor", label: "Visitor" },
@@ -428,13 +437,16 @@ const Updateinput = () => {
   ];
 
   const transformWorkers = (workers, type) => {
-    return workers.map((worker) => ({
+    console.log(workers, type);
+    let dd =  workers.map((worker) => ({
       value: worker.id, // Use a unique identifier (e.g., `id`)
       type: type,
-      label: worker.workerName, // Use the worker name as the label
+      label: worker.workerName,
     }));
+    console.log(dd);
+    return dd;
   };
- 
+
   // Options for workers based on type
   const workersByType = {
     permanent: transformWorkers(workers, "Permanent"),
@@ -444,16 +456,18 @@ const Updateinput = () => {
 
   // Dynamically set options for the second dropdown
   const workerOptions = workerType ? workersByType[workerType] : [];
+  // const workerOptions = workerType ? workersByType[workerType.value] : [];
   console.log(workerOptions);
-  // console.log(items);
+  // console.log(workerType)
+  // console.log(workersByType['visitor'])
 
-useEffect(() => {
+  useEffect(() => {
     // console.log(quotationTotal);
     setData((prevData) => ({
       ...prevData,
       quotationAmount: quotationTotal, // Store final total in quotationTotal
     }));
-  }, [quotationTotal]); 
+  }, [quotationTotal]);
 
   return (
     <>
@@ -485,13 +499,14 @@ useEffect(() => {
                   <Select
                     onChange={(selectedOption) => {
                       setWorkerType(selectedOption);
-                      setWorker(null); // Reset worker selection
+                      // setWorker(null); // Reset worker selection
                     }}
-                    value={workerTypeOptions.find(option => option.value === workerType) || null} 
+                    value={workerTypeOptions.find((item) => item.value === workerType)}
+
                     options={workerTypeOptions}
                     placeholder="Select Type First"
                     className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    isDisabled={true}
+                    // isDisabled={true}
                   />
                 </div>
 
@@ -501,15 +516,21 @@ useEffect(() => {
                     Employee Name
                   </label>
                   <Select
-                    onChange={setWorker}
-                    value={workerOptions?.find(option => option.label === worker) || null}
+                    // onChange={setWorker}
+                    onChange={handleWorkerChange}
+                    //  value={worker}
+                    value={
+                      workerOptions?.find(
+                        (option) => option.label === worker
+                                           )
+                    }
                     options={workerOptions}
                     placeholder={
                       workerType
                         ? "Select Worker"
                         : "Select Employee Type First"
                     }
-                    isDisabled={true}
+                    // isDisabled={true}
                     className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>

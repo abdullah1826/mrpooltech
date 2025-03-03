@@ -140,7 +140,7 @@ const Maintenceupdate = () => {
   let year = date.getFullYear();
   let currentDate = `${year}-${month}-${day}`;
   const addData = () => {
-    console.log(mydata);
+    // console.log(mydata);
     if (!data.site || !data.area || !data.worker) {
       toast.warn("Site, area, and worker fields should not be empty.");
       return;
@@ -342,7 +342,7 @@ const Maintenceupdate = () => {
         const data = await snapshot.val();
         //  console.log(data)
         MediaKeyStatusMap;
-        console.log(data);
+        // console.log(data);
         setData(data);
         setProducts(data?.products || []);
         setWorkerType(data.workerType || "");
@@ -361,7 +361,7 @@ const Maintenceupdate = () => {
   // console.log(mydata.sideName);
 
   const updateData = () => {
-    console.log(mydata);
+    // console.log(mydata);
 
     if (!mydata.site || !mydata.area) {
       toast.warn("Site and area fields should not be empty.");
@@ -474,7 +474,7 @@ const Maintenceupdate = () => {
   ];
 
   const transformWorkers = (workers, type) => {
-    console.log(workers);
+    // console.log(workers);
     return workers.map((worker) => ({
       value: worker.id, // Use a unique identifier (e.g., `id`)
       type: type,
@@ -491,8 +491,8 @@ const Maintenceupdate = () => {
 
   // Dynamically set options for the second dropdown
   const workerOptions = workerType ? workersByType[workerType] : [];
-  console.log(workerOptions);
-  console.log(worker);
+  // console.log(workerOptions);
+  // console.log(worker);
 
   // Define the checkbox labels
   const checkboxLabels = [
@@ -578,18 +578,41 @@ const Maintenceupdate = () => {
   ];
 
   // Update billName and mydata when bill status changes
-  const handleBillChange = (selectedBill) => {
-    // Update billName for the first item in the items array (since you only have one item)
-    const updatedItems = [...items];
-    updatedItems[0].billName = selectedBill.value; // Update billName for the first item
-    setItems(updatedItems); // Update items state
+  // const handleBillChange = (selectedBill ,index) => {
+  //   // Update billName for the first item in the items array (since you only have one item)
+  //   const updatedItems = [...items];
+  //   updatedItems[index].billName = selectedBill.value; // Update billName for the first item
+  //   setItems(updatedItems); // Update items state
+  //    console.log(selectedBill , "selected bill")
+  //   // Update mydata with the selected bill status
+  //   setData((prev) => ({
+  //     ...prev,
+  //     billStatus: selectedBill.value, // Update billStatus in mydata state
+  //   }));
+  // };
 
-    // Update mydata with the selected bill status
-    setData((prev) => ({
-      ...prev,
-      billStatus: selectedBill.value, // Update billStatus in mydata state
+
+  const handleBillChange = (selectedBill, index) => {
+    setItems((prevItems) => {
+      if (!prevItems || !prevItems[index]) {
+        console.error("Error: items is undefined or index out of range", prevItems, index);
+        return prevItems; // Prevents breaking the app
+      }
+  
+      const updatedItems = [...prevItems];
+      updatedItems[index] = {
+        ...updatedItems[index], // Ensure the item exists before modifying it
+        billName: selectedBill.value,
+      };
+      return updatedItems;
+    });
+  
+    setData((prevData) => ({
+      ...prevData,
+      billStatus: selectedBill.value,
     }));
   };
+  
 
   const [billMonth, setBillMonth] = useState([]);
 
@@ -1051,16 +1074,11 @@ ${
                 <div className="w-full md:w-[45%]">
                   <h2 className="text-sm font-semibold mb-2">Bill Status</h2>
                   <div>
-                    <Select
-                      key={0} // Since there's only one Select, using 0 as the key
-                      onChange={(selectedOption) =>
-                        handleBillChange(selectedOption)
-                      } // Pass only the selected option
-                      value={
-                        billOptions.find(
-                          (option) => option.value === items[0].billName
-                        ) || null
-                      } // Match billName with billOptions, and show the recent value
+                  <Select
+                      onChange={handleBillChange} // Update `billStatus` in mydata state
+                      value={billOptions.find(
+                        (option) => option.value === mydata.billStatus // Match value with `billStatus` from mydata
+                      )}
                       options={billOptions}
                       placeholder="Select"
                       className="text-sm rounded-md shadow-sm border-gray-300 focus:ring-2 focus:ring-blue-500 mb-2"
@@ -1237,16 +1255,11 @@ ${
                 <div className="w-full md:w-[45%]">
                   <h2 className="text-sm font-semibold mb-2">Bill Status</h2>
                   <div>
-                    <Select
-                      key={0} // Since there's only one Select, using 0 as the key
-                      onChange={(selectedOption) =>
-                        handleBillChange(selectedOption)
-                      } // Pass only the selected option
-                      value={
-                        billOptions.find(
-                          (option) => option.value === items[0].billName
-                        ) || null
-                      } // Match billName with billOptions, and show the recent value
+                  <Select
+                      onChange={handleBillChange} // Update `billStatus` in mydata state
+                      value={billOptions.find(
+                        (option) => option.value === mydata.billStatus // Match value with `billStatus` from mydata
+                      )}
                       options={billOptions}
                       placeholder="Select"
                       className="text-sm rounded-md shadow-sm border-gray-300 focus:ring-2 focus:ring-blue-500 mb-2"
