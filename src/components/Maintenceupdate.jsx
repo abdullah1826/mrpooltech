@@ -450,10 +450,19 @@ const Maintenceupdate = () => {
   // };
 
   const handleWorkerChange = (selectedOption) => {
-    setData({
-      ...mydata,
-      worker: selectedOption?.label,
-    });
+    setWorker(selectedOption.label); // Store only label (worker name)
+
+    setData((prevData) => ({
+      ...prevData,
+      worker: selectedOption.label, // Store only label in DB
+      workerType: workerType, // ✅ Ensure type is also stored
+    }));
+
+    // ✅ Store selected worker label per type correctly
+    setSelectedWorkers((prev) => ({
+      ...prev,
+      [workerType]: selectedOption.label, // Store worker name, NOT type
+    }));
   };
 
   const [activeTab, setActiveTab] = useState("projectDetails");
@@ -709,19 +718,28 @@ const Maintenceupdate = () => {
                       Employee Type
                     </label>
                     <Select
-                      onChange={(selectedOption) => {
-                        setWorkerType(selectedOption);
-                        setWorker(null); // Reset worker selection
-                      }}
-                      value={
-                        workerTypeOptions.find(
-                          (option) => option.value === workerType
-                        ) || null
-                      }
-                      options={workerTypeOptions}
-                      placeholder="Select Type"
-                      className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    />
+                    onChange={(selectedOption) => {
+                      console.log("New Worker Type Selected:", selectedOption);
+
+                      // ✅ Update workerType correctly
+                      setWorkerType(selectedOption.value);
+
+                      // ✅ Restore previously selected worker for this type (if available)
+                      setWorker(selectedWorkers[selectedOption.value] || null);
+
+                      // ✅ Store the workerType in form data (if needed)
+                      setData((prevData) => ({
+                        ...prevData,
+                        workerType: selectedOption.value, // Save new type
+                      }));
+                    }}
+                    value={workerTypeOptions.find(
+                      (item) => item.value === workerType
+                    )}
+                    options={workerTypeOptions}
+                    placeholder="Select Type First"
+                    className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
+                  />
                   </div>
 
                   {/* Worker Selector */}
@@ -730,20 +748,20 @@ const Maintenceupdate = () => {
                       Employee Name
                     </label>
                     <Select
-                      onChange={setWorker}
-                      value={
-                        workerOptions?.find(
-                          (option) => option.label === worker
-                        ) || null
-                      }
-                      options={workerOptions}
-                      placeholder={
-                        workerType ? "Select Worker" : "Select Type First"
-                      }
-                      isDisabled={!workerType}
-                      className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    />
+                    onChange={handleWorkerChange}
+                    value={workerOptions.find(
+                      (option) => option.label === worker
+                    )} // Match by label
+                    options={workerOptions}
+                    placeholder={
+                      workerType
+                        ? "Select Worker"
+                        : "Select Employee Type First"
+                    }
+                    className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
+                  />
                   </div>
+
                 </div>
 
                 {/* --------togglebuttons-------- */}

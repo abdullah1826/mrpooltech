@@ -1,4 +1,4 @@
-import { onValue, ref, push ,update } from "firebase/database";
+import { onValue, ref, push, update } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../Firbase";
@@ -74,7 +74,7 @@ const Updateinput = () => {
         //  console.log(data)
         // MediaKeyStatusMap
         setWorkers(Object.values(data));
-        console.log(data)
+        console.log(data);
         // updateStarCount(postElement, data);
       });
 
@@ -84,7 +84,7 @@ const Updateinput = () => {
         //  console.log(data)
         // MediaKeyStatusMap
         setVisitinWorkers(Object.values(data2));
-        console.log(data2)
+        console.log(data2);
 
         // updateStarCount(postElement, data);
       });
@@ -96,8 +96,7 @@ const Updateinput = () => {
         // MediaKeyStatusMap
         setotherWorkers(Object.values(data3));
         // updateStarCount(postElement, data);
-        console.log(data3)
-
+        console.log(data3);
       });
     };
 
@@ -374,8 +373,6 @@ const Updateinput = () => {
     if (data.site && data.area) {
       console.log(products);
 
-   
-
       update(ref(db, `NewProjects/${uid}`), data)
         .then(() => {
           // Check worker category
@@ -384,7 +381,9 @@ const Updateinput = () => {
             (elm) => elm?.id === worker.value
           );
           let isOther = otherWorkers?.some((elm) => elm?.id === worker.value);
-          const pushKey = data.pushKey || push(ref(db, `NewProjects/${uid}/assignedSites`)).key;
+          const pushKey =
+            data.pushKey ||
+            push(ref(db, `NewProjects/${uid}/assignedSites`)).key;
 
           const workerPath = isPermanent
             ? `workers/${worker.value}/assignedSites/${pushKey}`
@@ -414,22 +413,30 @@ const Updateinput = () => {
         });
     }
   };
+  
   const handleWorkerChange = (selectedOption) => {
-    setWorker(selectedOption); // Store full object
+    setWorker(selectedOption.label); // Store only label (worker name)
+
     setData((prevData) => ({
       ...prevData,
-      worker: selectedOption, // Store full worker object (optional)
+      worker: selectedOption.label, // Store only label in DB
+      workerType: workerType, // ✅ Ensure type is also stored
+    }));
+
+    // ✅ Store selected worker label per type correctly
+    setSelectedWorkers((prev) => ({
+      ...prev,
+      [workerType]: selectedOption.label, // Store worker name, NOT type
     }));
   };
 
   const [activeTab, setActiveTab] = useState("projectDetails");
 
   const [workerType, setWorkerType] = useState(null);
-
   // const [worker, setWorker] = useState(null);
   // Options for worker types
   // console.log(workerType)  // value here is "visitor"
-console.log(worker)
+  console.log(worker);
   const workerTypeOptions = [
     { value: "permanent", label: "Permanent" },
     { value: "visitor", label: "Visitor" },
@@ -438,7 +445,7 @@ console.log(worker)
 
   const transformWorkers = (workers, type) => {
     console.log(workers, type);
-    let dd =  workers.map((worker) => ({
+    let dd = workers.map((worker) => ({
       value: worker.id, // Use a unique identifier (e.g., `id`)
       type: type,
       label: worker.workerName,
@@ -458,7 +465,7 @@ console.log(worker)
   const workerOptions = workerType ? workersByType[workerType] : [];
   // const workerOptions = workerType ? workersByType[workerType.value] : [];
   console.log(workerOptions);
-  // console.log(workerType)
+  console.log(workerType);
   // console.log(workersByType['visitor'])
 
   useEffect(() => {
@@ -498,15 +505,26 @@ console.log(worker)
                   </label>
                   <Select
                     onChange={(selectedOption) => {
-                      setWorkerType(selectedOption);
-                      // setWorker(null); // Reset worker selection
-                    }}
-                    value={workerTypeOptions.find((item) => item.value === workerType)}
+                      console.log("New Worker Type Selected:", selectedOption);
 
+                      // ✅ Update workerType correctly
+                      setWorkerType(selectedOption.value);
+
+                      // ✅ Restore previously selected worker for this type (if available)
+                      setWorker(selectedWorkers[selectedOption.value] || null);
+
+                      // ✅ Store the workerType in form data (if needed)
+                      setData((prevData) => ({
+                        ...prevData,
+                        workerType: selectedOption.value, // Save new type
+                      }));
+                    }}
+                    value={workerTypeOptions.find(
+                      (item) => item.value === workerType
+                    )}
                     options={workerTypeOptions}
                     placeholder="Select Type First"
                     className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    // isDisabled={true}
                   />
                 </div>
 
@@ -516,25 +534,21 @@ console.log(worker)
                     Employee Name
                   </label>
                   <Select
-                    // onChange={setWorker}
                     onChange={handleWorkerChange}
-                    //  value={worker}
-                    value={
-                      workerOptions?.find(
-                        (option) => option.label === worker
-                                           )
-                    }
+                    value={workerOptions.find(
+                      (option) => option.label === worker
+                    )} // Match by label
                     options={workerOptions}
                     placeholder={
                       workerType
                         ? "Select Worker"
                         : "Select Employee Type First"
                     }
-                    // isDisabled={true}
                     className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
+
             </div>
 
             {/* --------togglebuttons-------- */}

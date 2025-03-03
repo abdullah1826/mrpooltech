@@ -1031,7 +1031,7 @@ const Maintence = () => {
                       Payment Due Date:
                     </p>
                     <span className="text-[13px]">
-                      {selectedUser.inactiveDate}
+                      {selectedUser.activeDate}
                     </span>
                   </div>
 
