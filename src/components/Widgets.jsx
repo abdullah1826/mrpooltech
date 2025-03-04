@@ -26,7 +26,7 @@ const Widgets = ({ mylist }) => {
 
   const allusers = mylist.length;
 
-  console.log(allusers);
+  // console.log(allusers);
 
   const activeusersarray = mylist.filter((elm) => {
     return elm.status === true;

@@ -1,6 +1,15 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, ref, remove, update } from "firebase/database";
+import {
+  onValue,
+  ref,
+  remove,
+  get,
+  query,
+  orderByChild,
+  equalTo,
+  update,
+} from "firebase/database";
 import { db } from "../../Firbase";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -24,6 +33,8 @@ const Maintence = () => {
   const navigate = useNavigate();
   // const [showmodal, setshowmodal] = useState(false);
   const [delid, setdelid] = useState("");
+  const [id, setId] = useState("");
+  const [projectId, setProjectId] = useState("");
   let { showmodal, deletemodal } = useContext(ModalContext);
   const [modal, setModal] = useState(false);
   // console.log(mylist);
@@ -36,7 +47,6 @@ const Maintence = () => {
   const [filtered, setFiltered] = useState(mylist);
   const [status, setStatus] = useState("all"); // 'all', 'active', 'inactive'
 
-  
   const viewUserData = (row) => {
     setSelectedUser(row);
     setModal1(true);
@@ -47,7 +57,7 @@ const Maintence = () => {
     setStatusModalOpen(true);
   };
 
-  console.log(selectedProjectId, "selectedProjectId");
+  // console.log(selectedProjectId, "selectedProjectId");
 
   const handleModalClose = () => {
     setStatusModalOpen(false);
@@ -64,16 +74,97 @@ const Maintence = () => {
       setFiltered([]);
     }
   };
-  const handleDelete = () => {
-    remove(ref(db, `/Maintenance/${delid}`));
-    setdelid("");
-    updateLinks();
-    setModal(false);
-    toast.success("Record delete successfully!");
-  };
+
+  // const handleDelete = () => {
+  //   remove(ref(db, `/Maintenance/${delid}`));
+  //   setdelid("");
+  //   updateLinks();
+  //   setModal(false);
+  //   toast.success("Record delete successfully!");
+  // };
+
   const handleclose = () => {
     setModal(false);
   };
+
+  const handleDelete = async () => {
+    try {
+      console.log("Deleting record with ID:", delid);
+  
+      // ✅ Get the projectId from the Maintenance record
+      const maintenanceSnapshot = await get(ref(db, `Maintenance/${delid}`));
+      if (!maintenanceSnapshot.exists()) {
+        toast.error("Maintenance record not found!");
+        return;
+      }
+  
+      const maintenanceData = maintenanceSnapshot.val();
+      console.log("Maintenance Record:", maintenanceData);
+  
+      let projectId = maintenanceData.projectId; // Default projectId from Maintenance
+      let deletePromises = []; // Array to hold delete operations
+  
+      // ✅ Fetch all visiting workers
+      const workersSnapshot = await get(ref(db, "visitingWorkers"));
+      if (workersSnapshot.exists()) {
+        const workersData = workersSnapshot.val();
+        console.log("Visiting Workers Data:", workersData);
+  
+        // ✅ Search for assignedSites in each worker's data
+        for (const workerId in workersData) {
+          const worker = workersData[workerId];
+  
+          if (worker.assignedSites) {
+            console.log(`Worker ${workerId} Assigned Sites:`, worker.assignedSites);
+  
+            for (const siteId in worker.assignedSites) {
+              const site = worker.assignedSites[siteId];
+  
+              console.log(`Checking site:`, site);
+  
+              // ✅ Check if this site matches the deleted maintenance record
+              if (site.siteUid === delid) {
+                console.log(`Deleting assigned site: ${siteId} from worker: ${workerId}`);
+  
+                // ✅ Add delete operation to promise array (fixing the path)
+                deletePromises.push(remove(ref(db, `visitingWorkers/${workerId}/assignedSites/${siteId}`)));
+  
+                projectId = site.projectId;
+                console.log("Found and Deleted Assigned Site. Project ID:", projectId);
+              }
+            }
+          }
+        }
+      } else {
+        console.log("No visiting workers data found!");
+      }
+  
+      // ✅ Execute all delete operations for assigned sites before proceeding
+      await Promise.all(deletePromises);
+  
+      // ✅ Ensure projectId is valid before proceeding
+      if (!projectId) {
+        toast.error("Project ID not found!");
+        return;
+      }
+  
+      // ✅ Delete the Maintenance Record
+      await remove(ref(db, `Maintenance/${delid}`));
+      console.log(`Deleted Maintenance record with ID: ${delid}`);
+  
+      // ✅ Reset state and show success message
+      setdelid("");
+      updateLinks();
+      setModal(false);
+      toast.success("Record deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      toast.error("Failed to delete record.");
+    }
+  };
+  
+  
+
 
   let modalseter = (id) => {
     setModal(true);

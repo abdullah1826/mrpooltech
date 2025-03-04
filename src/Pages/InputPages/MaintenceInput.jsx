@@ -282,6 +282,7 @@ const Newinput = () => {
           update(ref(db, `workers/${worker.value}/assignedSites/${pushKey}`), {
             id: pushKey,
             siteName: data.site,
+            projectId: projectId,
             siteUid: pushKey,
           });
         } else if (isVisiting) {
@@ -290,6 +291,7 @@ const Newinput = () => {
             {
               id: pushKey,
               siteName: data.site,
+              projectId: projectId,
               siteUid: pushKey,
             }
           );
@@ -299,6 +301,7 @@ const Newinput = () => {
             {
               id: pushKey,
               siteName: data.site,
+              projectId: projectId,
               siteUid: pushKey,
             }
           );
