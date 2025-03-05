@@ -267,6 +267,7 @@ const Repareinput = () => {
           update(ref(db, `workers/${worker.value}/assignedSites/${pushKey}`), {
             id: pushKey,
             siteName: data.site,
+            projectId: projectId,
             siteUid: pushKey,
           });
         } else if (isVisiting) {
@@ -275,6 +276,7 @@ const Repareinput = () => {
             {
               id: pushKey,
               siteName: data.site,
+              projectId: projectId,
               siteUid: pushKey,
             }
           );
@@ -284,6 +286,7 @@ const Repareinput = () => {
             {
               id: pushKey,
               siteName: data.site,
+              projectId: projectId,
               siteUid: pushKey,
             }
           );
