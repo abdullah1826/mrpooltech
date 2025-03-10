@@ -57,7 +57,7 @@ const Repare = () => {
   let updateLinks = () => {
     if (mylist?.length === 1) {
       setmylist([]);
-      setiltered([]);
+      setFiltered([]);
     }
   };
 
@@ -149,7 +149,7 @@ const Repare = () => {
                   );
     
                   projectId = site?.projectId;
-                  // console.log("Found and Deleted Assigned Site. Project ID:", projectId);
+                  console.log("Found and Deleted Assigned Site. Project ID:", projectId);
                 }
               }
             }
@@ -168,7 +168,7 @@ const Repare = () => {
         }
     
         // ✅ Delete the Maintenance Record
-        await remove(ref(db, `Repairing/${delid}`));
+        // await remove(ref(db, `Repairing/${delid}`));
         // console.log(`Deleted Maintenance record with ID: ${delid}`);
     
         // ✅ Reset state and show success message
@@ -288,7 +288,7 @@ const Repare = () => {
   //     return;
   //   }
 
-  //   // Define CSV header columns
+  //   // Define header columns
   //   const csvHeaders = [
   //     "Project Id",
   //     "Employee Name",
@@ -313,8 +313,8 @@ const Repare = () => {
   //     "Costing Items",
   //   ];
 
-  //   // Build CSV rows for each record in mylist
-  //   const csvRows = mylist.map((record) => {
+  //   // Prepare data rows
+  //   const data = mylist.map((record) => {
   //     // Concatenate the products array into a single string (if any)
   //     const productsString =
   //       record.products && record.products.length > 0
@@ -362,56 +362,83 @@ const Repare = () => {
   //       record.activeDate || "N/A",
   //       record.inactiveDate || "N/A",
   //       record.reason || "N/A",
-  //       productsString,
+  //       productsString, // Products column
   //       record.quotationAmount || "N/A",
   //       record.AcceptedAmount || "N/A",
   //       record.AdvanceAmount || "N/A",
   //       record.OtherAmount || "N/A",
   //       record.BalanceAmount || "N/A",
-  //       costingItemsString,
+  //       costingItemsString, // Costing items column
   //     ];
   //   });
 
-  //   // Create CSV content with headers and rows
-  //   //   const csvContent = [
-  //   //     csvHeaders.join(","),
-  //   //     ...csvRows.map((row) => row.map((field) => `"${field}"`).join(",")),
-  //   //   ].join("\n");
+  //   // Create worksheet and workbook
+  //   const worksheet = XLSX.utils.aoa_to_sheet([csvHeaders, ...data]);
+  //   const workbook = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
 
-  //   //   // Create a Blob and download the CSV file
-  //   //   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  //   //   const url = URL.createObjectURL(blob);
-  //   //   const a = document.createElement("a");
-  //   //   a.href = url;
-  //   //   a.download = "project_report.csv";
-  //   //   a.click();
-  //   //   URL.revokeObjectURL(url);
-  //   // };
+  //   // Set column width for better readability
+  //   worksheet["!cols"] = csvHeaders.map(() => ({ wch: 25 }));
 
-  //   // const saveCSV = (projectName, csvHeaders, csvRows) => {
-  //   const currentDate = new Date().toISOString().split("T")[0]; // Get YYYY-MM-DD format
-  //   const fileName = `${"Repairing"}_${currentDate}.csv`; // Format filename
+  //   // Apply bold styling to headers (Only works in pro version)
+  //   csvHeaders.forEach((_, index) => {
+  //     const cellAddress = XLSX.utils.encode_cell({ r: 0, c: index }); // Header row
+  //     if (!worksheet[cellAddress]) return;
 
-  //   const csvContent = [
-  //     csvHeaders.join(","),
-  //     ...csvRows.map((row) => row.map((field) => `"${field}"`).join(",")),
-  //   ].join("\n");
+  //     worksheet[cellAddress].s = {
+  //       font: { bold: true },
+  //       alignment: { horizontal: "center" },
+  //     };
+  //   });
 
-  //   // Create a Blob and download the CSV file
-  //   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement("a");
-  //   a.href = url;
-  //   a.download = fileName;
-  //   a.click();
-  //   URL.revokeObjectURL(url);
+  //   // Save file as Excel (.xlsx)
+  //   const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+  //   const fileName = `Repairing_${currentDate}.xlsx`;
+
+  //   XLSX.writeFile(workbook, fileName);
   // };
+
+
+
+  
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  
+
+  const toggleOption = (option) => {
+    setSelectedOptions((prev) =>
+      prev.includes(option)
+        ? prev.filter((item) => item !== option)
+        : [...prev, option]
+    );
+  };
+
+  const options = [
+    "Active",
+    "Inactive",
+    "Project Details",
+    "Products",
+    "Quotation",
+    "Costing",
+  ];
+  // // Generate last 10 years dynamically
+  // const years = Array.from(
+  //   { length: 20 },
+  //   (_, i) => new Date().getFullYear() - i
+  // );
+  const currentYear = new Date().getFullYear();
+  const years = Array.from(
+    { length: currentYear - 2020 + 1 },
+    (_, i) => 2020 + i
+  );
 
   const exportToCSV = () => {
     if (!mylist || mylist.length === 0) {
       alert("No data to export");
       return;
     }
+
 
     // Define header columns
     const csvHeaders = [
@@ -518,10 +545,13 @@ const Repare = () => {
 
     // Save file as Excel (.xlsx)
     const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-    const fileName = `Repairing_${currentDate}.xlsx`;
+    const fileName = `NewPool_${currentDate}.xlsx`;
 
     XLSX.writeFile(workbook, fileName);
   };
+
+
+
 
   let sr = 0;
 
@@ -706,13 +736,75 @@ const Repare = () => {
               </select>
             </div>
 
-            <button
-              onClick={exportToCSV}
-              className="h-[45px] w-[160px] text-md font-[12px] rounded-xl flex justify-center items-center bg-[#35A1CC] hover:bg-[#0b6e99] focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-150 ease-in-out text-white  shadow-md hover:shadow-xl"
-            >
-              Export CSV
-              <FaDownload className="ml-2 text-sm" />
-            </button>
+           <div className="relative inline-block">
+                        {/* Export Button */}
+                        <div>
+                     
+                        <button
+                          onClick={() => setDropdownOpen(!dropdownOpen)}
+                          className="h-[45px] w-[180px] text-md font-semibold rounded-xl flex justify-between items-center px-4 bg-[#35A1CC] hover:bg-[#0b6e99] focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-150 ease-in-out text-white shadow-md hover:shadow-lg"
+                        >
+                          <span>Export CSV</span>
+                          <FaDownload className="text-lg" />
+                        </button>
+          
+                        </div>
+          
+                        {/* Dropdown Menu */}
+                         {dropdownOpen && (
+                          <div className="absolute">
+                            {/* Download Button */}
+          
+                            <div className="relative inline-block">                  
+                              {/* Dropdown Menu */}
+                              {dropdownOpen && (
+                                <div className="absolute w-[250px] bg-white shadow-lg rounded-xl p-4 z-20">
+                                  {/* Year Selection */}
+                                  <label className="block text-gray-700 font-semibold mb-1">
+                                    Select Year
+                                  </label>
+                                  <select
+                                    className="w-full p-2 border rounded-md outline-none cursor-pointer"
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                  >
+                                    {Array.from(
+                                      { length: new Date().getFullYear() - 2020 + 1 },
+                                      (_, i) => 2020 + i
+                                    ).map((year) => (
+                                      <option key={year} value={year}>
+                                        {year}
+                                      </option>
+                                    ))}
+                                  </select>
+          
+                                  {/* Checkboxes for Details */}
+                                  <div className="mt-3">
+                                    <span className="block text-gray-700 font-semibold mb-1">
+                                      Include Details:
+                                    </span>
+                                    {options.map((option, index) => (
+                                      <label
+                                        key={index}
+                                        className="flex items-center space-x-2 py-1"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
+                                          checked={selectedOptions.includes(option)}
+                                          onChange={() => toggleOption(option)}
+                                        />
+                                        <span className="text-gray-700">{option}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                 
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
             <Link to="/repareInput">
               <div className="h-[45px] border w-[150px] text-md rounded-xl  flex justify-center items-center bg-[#35A1CC]  hover:bg-[#0b6e99]  text-white cursor-pointer shadow-md hover:shadow-xl ">

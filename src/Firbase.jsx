@@ -3,6 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getDatabase, set, ref, update, push, onValue, } from 'firebase/database';
 
+// beginer
 // const firebaseConfig = {
 //   apiKey: "AIzaSyCAe5KyAVXQBH_gJavj_Wj29jZ9pxXnlm8",
 //   authDomain: "beginer-135fc.firebaseapp.com",
@@ -15,16 +16,37 @@ import { getDatabase, set, ref, update, push, onValue, } from 'firebase/database
 // };
 
 
+// Misam pooltech-test
+
+// const firebaseConfig = {
+//   apiKey: "AIzaSyDxt6QU3tCZqgoqkusVT4Xac3uywspp--g",
+//   authDomain: "pooltech-4c18f.firebaseapp.com",
+//   projectId: "pooltech-4c18f",
+//   storageBucket: "pooltech-4c18f.firebasestorage.app",
+//   messagingSenderId: "499379735809",
+//   appId: "1:499379735809:web:e0a1726166b7e681fa5f00",
+//   measurementId: "G-R8PLHFY5SL"
+// };
+
+
+
+// mrpooltech-avicenna
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDxt6QU3tCZqgoqkusVT4Xac3uywspp--g",
-  authDomain: "pooltech-4c18f.firebaseapp.com",
-  projectId: "pooltech-4c18f",
-  storageBucket: "pooltech-4c18f.firebasestorage.app",
-  messagingSenderId: "499379735809",
-  appId: "1:499379735809:web:e0a1726166b7e681fa5f00",
-  measurementId: "G-R8PLHFY5SL"
+  apiKey: "AIzaSyCzGyB57d3onLEi034RSnqzB0tqoEwyZo0",
+  authDomain: "mrpooltech-avicenna.firebaseapp.com",
+  databaseURL: "https://mrpooltech-avicenna-default-rtdb.firebaseio.com",
+  projectId: "mrpooltech-avicenna",
+  storageBucket: "mrpooltech-avicenna.firebasestorage.app",
+  messagingSenderId: "740249331898",
+  appId: "1:740249331898:web:5861142c72f2f898dbba83",
+  measurementId: "G-L0PP24WSDL"
 };
+
+
+
+
+
 
 
 

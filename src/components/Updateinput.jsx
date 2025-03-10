@@ -10,6 +10,9 @@ import VolumeCalculateModal from "./VolumeCalculateModal";
 import { TbRulerMeasure } from "react-icons/tb";
 import NewProducts from "../components/NewProducts";
 import CostItems from "../components/CostItems";
+import { Eye, EyeOff } from "lucide-react";
+
+
 
 const Updateinput = () => {
   const navigate = useNavigate();
@@ -33,6 +36,8 @@ const Updateinput = () => {
   let [worker, setWorker] = useState(null);
   const [totalVolume, setTotalVolume] = useState("");
   const [quotationTotal, setQuotationTotal] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const [poolshape, setPoolshape] = useState("");
   const [modalopen, setModalOpen] = useState(false);
@@ -84,7 +89,7 @@ const Updateinput = () => {
         //  console.log(data)
         // MediaKeyStatusMap
         setVisitinWorkers(Object.values(data2));
-        console.log(data2);
+        // console.log(data2);
 
         // updateStarCount(postElement, data);
       });
@@ -283,6 +288,8 @@ const Updateinput = () => {
     area: " ",
     owner: " ",
     ownerMobile: " ",
+    ownerEmail: "",
+    ownerPassword: "",
     poolSize: " ",
     poolShape: " ",
     activeDate: " ",
@@ -337,6 +344,8 @@ const Updateinput = () => {
           reference: data.reference || "",
           referenceMobile: data.referenceMobile || "",
           poolSize: data.poolSize || "",
+          ownerEmail: data.ownerEmail || "",
+          ownerPassword: data.ownerPassword || "",
           poolShape: data.poolShape || "",
           activeDate: data.activeDate || "",
           inactiveDate: data.inactiveDate || "",
@@ -413,7 +422,7 @@ const Updateinput = () => {
         });
     }
   };
-  
+
   const handleWorkerChange = (selectedOption) => {
     setWorker(selectedOption.label); // Store only label (worker name)
 
@@ -548,7 +557,6 @@ const Updateinput = () => {
                   />
                 </div>
               </div>
-
             </div>
 
             {/* --------togglebuttons-------- */}
@@ -600,160 +608,200 @@ const Updateinput = () => {
 
               {/*------ sitedata ----- */}
 
-              <div className="flex items-start space-x-12  bg-gray-30 w-[80%] ">
-                <div className="flex flex-col space-y-6 w-1/2">
-                  {/* Site Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Site</h2>
-                    <input
-                      type="text"
-                      placeholder="Site"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, site: e.target.value });
-                      }}
-                      value={data.site}
-                    />
-                  </div>
+              <div className="grid grid-cols-1 gap-12 bg-gray-30 w-[90%] p-6 rounded-lg shadow-md">
+                {/* Site Details Section */}
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                    Site Details
+                  </h1>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Site</h2>
+                      <input
+                        type="text"
+                        placeholder="Site"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, site: e.target.value })
+                        }
+                        value={data.site}
+                      />
+                    </div>
 
-                  {/* Owner Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Owner</h2>
-                    <input
-                      type="text"
-                      placeholder="Owner name"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, owner: e.target.value });
-                      }}
-                      value={data.owner}
-                    />
-                  </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Address</h2>
+                      <input
+                        type="text"
+                        placeholder="Address"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, area: e.target.value });
+                        }}
+                        value={data.area}
+                      />
+                    </div>
 
-                  {/* Reference Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Reference</h2>
-                    <input
-                      type="text"
-                      placeholder="Reference"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, reference: e.target.value });
-                      }}
-                      value={data.reference}
-                    />
-                  </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Reference</h2>
+                      <input
+                        type="text"
+                        placeholder="Reference"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, reference: e.target.value })
+                        }
+                        value={data.reference}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Reference Mobile
+                      </h2>
+                      <input
+                        type="number"
+                        placeholder="Phone number"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, referenceMobile: e.target.value });
+                        }}
+                        value={data.referenceMobile}
+                      />
+                    </div>
 
-                  {/* Pool Shape Select */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Pool shape</h2>
-                    <select
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, poolShape: e.target.value });
-                      }}
-                      value={data.poolShape}
-                    >
-                      {optionsss.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Start Project Date */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">
-                      Start project
-                    </h2>
-                    <input
-                      type="date"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, activeDate: e.target.value });
-                      }}
-                      value={data.activeDate}
-                    />
+                    <div className="flex flex-col relative">
+                      <h2 className="text-lg font-semibold mb-2">Pool Size</h2>
+                      <input
+                        type="text"
+                        placeholder="Pool size"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, poolSize: e.target.value })
+                        }
+                        value={data.poolSize}
+                      />
+                      <TbRulerMeasure
+                        onClick={handleOpen}
+                        className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Pool Shape</h2>
+                      <select
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, poolShape: e.target.value })
+                        }
+                        value={data.poolShape}
+                      >
+                        {optionsss.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Start Project
+                      </h2>
+                      <input
+                        type="date"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, activeDate: e.target.value })
+                        }
+                        value={data.activeDate}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Complete Project
+                      </h2>
+                      <input
+                        type="date"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, inactiveDate: e.target.value })
+                        }
+                        value={data.inactiveDate}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col space-y-6 w-1/2">
-                  {/* Address Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Address</h2>
-                    <input
-                      type="text"
-                      placeholder="Address"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, area: e.target.value });
-                      }}
-                      value={data.area}
-                    />
-                  </div>
-
-                  {/* Owner Mobile Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Owner Mobile</h2>
-                    <input
-                      type="number"
-                      placeholder="Phone number"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, ownerMobile: e.target.value });
-                      }}
-                      value={data.ownerMobile}
-                    />
-                  </div>
-
-                  {/* Reference Mobile Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">
-                      Reference Mobile
-                    </h2>
-                    <input
-                      type="number"
-                      placeholder="Phone number"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, referenceMobile: e.target.value });
-                      }}
-                      value={data.referenceMobile}
-                    />
-                  </div>
-
-                  {/* Pool Size Input */}
-                  <div className="flex flex-col relative">
-                    <h2 className="text-lg font-semibold mb-2">Pool Size</h2>
-                    <input
-                      type="text"
-                      placeholder="Pool size"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, poolSize: e.target.value });
-                      }}
-                      value={data.poolSize}
-                    />
-                    <TbRulerMeasure
-                      onClick={() => handleOpen()}
-                      className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
-                    />
-                  </div>
-
-                  {/* Complete Project Date */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">
-                      Complete project
-                    </h2>
-                    <input
-                      type="date"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, inactiveDate: e.target.value });
-                      }}
-                      value={data.inactiveDate}
-                    />
+                {/* Owner Details Section */}
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                    Client Details
+                  </h1>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Client</h2>
+                      <input
+                        type="text"
+                        placeholder="Owner name"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, owner: e.target.value })
+                        }
+                        value={data.owner}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Client Mobile
+                      </h2>
+                      <input
+                        type="number"
+                        placeholder="Phone number"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, ownerMobile: e.target.value })
+                        }
+                        value={data.ownerMobile}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Client Email
+                      </h2>
+                      <input
+                        type="email"
+                        placeholder="Owner Email"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, ownerEmail: e.target.value })
+                        }
+                        value={data.ownerEmail}
+                      />
+                    </div>
+                    <div className="flex flex-col relative">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Client Password
+                      </h2>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Owner Password"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerPassword: e.target.value })
+                          }
+                          value={data.ownerPassword}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -858,9 +906,9 @@ const Updateinput = () => {
             </div>
           )}
 
-          <div className="w-[50%]  flex justify-end">
+          <div className="w-[65%]  flex justify-end">
             <button
-              className="h-[40px] w-[132px] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
+              className="h-[40px] w-[350px] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
               onClick={updateData}
             >
               Update

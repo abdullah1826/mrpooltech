@@ -43,9 +43,9 @@ const Attandence = () => {
   const [selectedColumns, setSelectedColumns] = useState([]);
 
   const columns = [
-    { name: "Worker name", selector: "name", sortable: true, width: "150px" },
+    { name: "Worker name", selector: "name", sortable: true, width: "140px" },
     { name: "Site", selector: "site", sortable: true },
-    { name: "Project Id", selector: "projectId", sortable: true },
+    { name: "Project Id", selector: "projectId", sortable: true  , width: "150px"},
 
     { name: "Date", selector: "date", sortable: true, width: "150px" },
     { name: "Checkin", selector: "timein", sortable: true },
@@ -692,6 +692,7 @@ const Attandence = () => {
           </Button>
         </Box>
       </Modal>
+
     </>
   );
 };

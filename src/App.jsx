@@ -42,6 +42,7 @@ import UpdateotherWorker from './components/UpdateotherWorker'
 import { AddnewOtherworker } from './components/AddnewOtherworker'
 import Invoice2 from './components/Invoic/Invoice'
 import InvoiceSummary from './components/Invoic/InvoiceSummary';
+import Allowners from './components/Allowners'
 
 
 
@@ -129,6 +130,9 @@ function App() {
           <Route path='/otherprojectinput1/:userid' element={<RequireAuth><Otherprojectinput1 /></RequireAuth>} />
           <Route path='/attendance' element={<RequireAuth><Attandence /></RequireAuth>} />
         
+          <Route path='/Allowners' element={<RequireAuth><Allowners /></RequireAuth>} />
+        
+
           <Route path='/updateotherworker/:userid' element={<RequireAuth><UpdateotherWorker /></RequireAuth>} />
           <Route path='/singleotherworker/:userid' element={<RequireAuth><SingleOtherworker /></RequireAuth>} />
       

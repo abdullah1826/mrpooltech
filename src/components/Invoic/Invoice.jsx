@@ -824,6 +824,7 @@ export default function Invoice() {
                 <TextField
                   id="salePerson1"
                   label="Sales Person"
+                  type="text"
                   variant="outlined"
                   name="salePerson1"
                   value={editedOurInfo.salePerson1 || ""}
@@ -838,12 +839,14 @@ export default function Invoice() {
               >
                 <TextField
                   id="ourMobile"
+                  type="number"
                   label="Mobile No"
                   variant="outlined"
                   name="ourMobile"
                   value={editedOurInfo.ourMobile || ""}
                   onChange={handleModalInputChange}
                   fullWidth
+                  className="w-[100%]"
                 />
               </div>
               <div
@@ -852,6 +855,7 @@ export default function Invoice() {
               >
                 <TextField
                   id="ourEmail"
+                  type="email"
                   label="Email"
                   variant="outlined"
                   name="ourEmail"
@@ -868,6 +872,7 @@ export default function Invoice() {
                 <TextField
                   id="paymentMethod0"
                   label="Payment Method"
+                  type="text"
                   variant="outlined"
                   name="paymentMethod0"
                   value={editedOurInfo.paymentMethod0 || ""}
@@ -881,6 +886,7 @@ export default function Invoice() {
               >
                 <TextField
                   id="ourWeb"
+                  type="text"
                   label="Website"
                   variant="outlined"
                   name="ourWeb"
@@ -896,6 +902,7 @@ export default function Invoice() {
               >
                 <TextField
                   id="address"
+                  type="text"
                   label="Address1"
                   variant="outlined"
                   name="address"
@@ -910,6 +917,7 @@ export default function Invoice() {
               >
                 <TextField
                   id="address1"
+                  type="text"
                   label="Address2"
                   variant="outlined"
                   name="address1"
@@ -928,11 +936,13 @@ export default function Invoice() {
                 <TextField
                   label="Note"
                   id="note"
+                  type="text"
                   variant="outlined"
                   name="note"
                   value={editedOurInfo.note || ""}
                   onChange={handleModalInputChange}
-                  fullWidth
+                  // fullWidth
+                  className="w-[100%]"
                   multiline
                 />
               </div>{" "}

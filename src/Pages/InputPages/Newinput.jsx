@@ -1,6 +1,6 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, push, ref, update , get } from "firebase/database";
+import { onValue, push, ref, update, get } from "firebase/database";
 import { db } from "../../Firbase";
 import { useState } from "react";
 import Select from "react-select";
@@ -13,12 +13,13 @@ import img from "../../imgs/noimg.jpg";
 import { TbRulerMeasure } from "react-icons/tb";
 import NewProducts from "../../components/NewProducts";
 import CostItems from "../../components/CostItems";
+import { Eye, EyeOff } from "lucide-react";
 
 const Newinput = () => {
   const navigate = useNavigate();
   const [data, setData] = useState({
     site: "",
-    projectId:"",
+    projectId: "",
     status: true,
     activeDate: "",
     inactiveDate: "",
@@ -26,6 +27,8 @@ const Newinput = () => {
     poolShape: "",
     owner: "",
     ownerMobile: "",
+    ownerEmail: "",
+    ownerPassword: "",
     // worker: "",
     area: "",
   });
@@ -40,6 +43,8 @@ const Newinput = () => {
   const [projectId, setProjectId] = useState("");
   const [poolshape, setPoolshape] = useState("");
   const [modalopen, setModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const [products, setProducts] = useState([
     {
       productName: "",
@@ -109,8 +114,6 @@ const Newinput = () => {
   //   getingdata();
   // }, []);
 
-
-
   useEffect(() => {
     const getingdata = () => {
       const starCountRef = ref(db, "/workers");
@@ -118,31 +121,22 @@ const Newinput = () => {
         const data = snapshot.val();
         setWorkers(data ? Object.values(data) : []); // Ensure empty array if null
       });
-  
+
       const starCountRef2 = ref(db, "/visitingWorkers");
       onValue(starCountRef2, (snapshot2) => {
         const data2 = snapshot2.val();
         setVisitinWorkers(data2 ? Object.values(data2) : []); // Fix missing check
       });
-  
+
       const starCountRef3 = ref(db, "/otherWorkers");
       onValue(starCountRef3, (snapshot3) => {
         const data3 = snapshot3.val();
         setotherWorkers(data3 ? Object.values(data3) : []); // Fix missing check
       });
     };
-  
+
     getingdata();
   }, []);
-  
-
-
-
-
-
-
-
-
 
   useEffect(() => {
     var newArray = workers?.concat(otherWorkers, visitingWorkers);
@@ -164,20 +158,18 @@ const Newinput = () => {
 
   useEffect(() => {
     // if (quotationTotal !== undefined) { // Ensure it's not undefined before updating
-      // console.log("Updated Quotation Total:", quotationTotal);
-      setData((prevData) => ({
-        ...prevData,
-        quotationAmount: quotationTotal, // Store final total in quotationAmount
-      }));
+    // console.log("Updated Quotation Total:", quotationTotal);
+    setData((prevData) => ({
+      ...prevData,
+      quotationAmount: quotationTotal, // Store final total in quotationAmount
+    }));
     // }
   }, [quotationTotal]); // Runs when quotationTotal updates
-  
-
-
+  // console.log(" Quotation Total:", quotationTotal);
 
   useEffect(() => {
     let isMounted = true; // Prevent state updates if component unmounts
-  
+
     const fetchProjectId = async () => {
       try {
         const id = await generateProjectId();
@@ -188,16 +180,15 @@ const Newinput = () => {
         console.error("Error generating project ID:", error);
       }
     };
-  
+
     fetchProjectId();
-  
+
     return () => {
       isMounted = false; // Cleanup to avoid memory leaks
     };
   }, []);
 
-
-// console.log(quotationTotal)
+  // console.log(quotationTotal)
 
   const date = new Date();
   let day = date.getDate();
@@ -229,6 +220,8 @@ const Newinput = () => {
           prevProducts.filter((_, i) => i !== index)
         );
       };
+
+      // console.log(quotationTotal)
 
       update(ref(db, `NewProjects/${pushKey}`), {
         id: pushKey,
@@ -267,7 +260,9 @@ const Newinput = () => {
         worker: worker?.label || "Nill",
         workerType: worker?.type || "Nill",
         // quotationTotal: data.quotationTotal || "Nill",
-        quotationAmount: data.quotationAmount || "Nill",
+        ownerEmail: data.ownerEmail || "Nill",
+        ownerPassword: data.ownerPassword || "Nill",
+        quotationAmount: quotationTotal || "Nill",
         AcceptedAmount: data.AcceptedAmount || "Nill",
         AdvanceAmount: data.AdvanceAmount || "Nill",
         OtherAmount: data.OtherAmount || "Nill",
@@ -292,8 +287,7 @@ const Newinput = () => {
             projectId: projectId,
             siteUid: pushKey,
           });
-// console.log(projectId , "projectid new ");
-
+          // console.log(projectId , "projectid new ");
         } else if (isVisiting) {
           update(
             ref(db, `visitingWorkers/${worker.value}/assignedSites/${pushKey}`),
@@ -322,7 +316,7 @@ const Newinput = () => {
       }, 1500);
       setData({
         site: "",
-        projectId:"",
+        projectId: "",
         status: true,
         activeDate: "",
         inactiveDate: "",
@@ -330,11 +324,13 @@ const Newinput = () => {
         poolShape: "",
         owner: "",
         ownerMobile: "",
+        ownerEmail: "",
+        ownerPassword: "",
         reference: "",
         referenceMobile: "",
         // QuotationAmount: "",
         // quotationTotal:"",
-        quotationAmount:"",
+        quotationAmount: "",
         AcceptedAmount: "",
         AdvanceAmount: "",
         OtherAmount: "",
@@ -352,7 +348,6 @@ const Newinput = () => {
     }
   };
 
-
   // function generateKeyFromTime(name) {
   //   const currentYear = new Date().getFullYear();
   //   // const initials = name
@@ -363,19 +358,18 @@ const Newinput = () => {
   //   // Get current timestamp in milliseconds
   //   return `"PT-NP-${randomId}_${currentYear}`;
   // }
-  
 
   async function generateProjectId() {
     const currentYear = new Date().getFullYear();
-        const projectRef = ref(db, "/NewProjects");
-  
-  // console.log(projectRef)
+    const projectRef = ref(db, "/NewProjects");
+
+    // console.log(projectRef)
     try {
       const snapshot = await get(projectRef);
-  
+
       if (snapshot.exists()) {
         const projects = Object.values(snapshot.val()); // Get all existing project IDs
-        console.log(projects)
+        console.log(projects);
         // Extract numeric parts of existing IDs for the current year
         const numbers = projects
           .map((p) => {
@@ -385,10 +379,10 @@ const Newinput = () => {
               : null;
           })
           .filter((num) => num !== null);
-  
+
         // Find the highest project number
         const maxNumber = numbers.length ? Math.max(...numbers) : 0;
-  
+
         // Generate the next project number
         const nextId = String(maxNumber + 1).padStart(3, "0"); // Ensures 3-digit format (001, 002, etc.)
         return `NP-${currentYear}-${nextId}`;
@@ -401,7 +395,6 @@ const Newinput = () => {
       return null;
     }
   }
-  
 
   const optionsss = [
     {
@@ -480,8 +473,6 @@ const Newinput = () => {
     other: transformWorkers(otherWorkers, "other"),
   };
 
- 
-
   // Dynamically set options for the second dropdown
   const workerOptions = workerType ? workersByType[workerType.value] : [];
   // console.log(workerOptions);
@@ -535,9 +526,7 @@ const Newinput = () => {
                     value={worker}
                     options={workerOptions}
                     placeholder={
-                      workerType
-                        ? "Select Worker"
-                        : "Select  Type First"
+                      workerType ? "Select Worker" : "Select  Type First"
                     }
                     isDisabled={!workerType}
                     className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
@@ -595,164 +584,205 @@ const Newinput = () => {
               </h1>
 
               {/*------ sitedata ----- */}
+              <div className="grid grid-cols-1 gap-12 bg-gray-30 w-[90%] p-6 rounded-lg shadow-md">
+                {/* Site Details Section */}
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                    Site Details
+                  </h1>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Site</h2>
+                      <input
+                        type="text"
+                        placeholder="Site"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, site: e.target.value })
+                        }
+                        value={data.site}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Address</h2>
+                      <input
+                        type="text"
+                        placeholder="Address"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, area: e.target.value });
+                        }}
+                        value={data.area}
+                      />
+                    </div>
 
-              <div className="flex items-start space-x-12  bg-gray-30 w-[80%] ">
-                <div className="flex flex-col space-y-6 w-1/2">
-                  {/* Site Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Site</h2>
-                    <input
-                      type="text"
-                      placeholder="Site"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, site: e.target.value });
-                      }}
-                      value={data.site}
-                    />
-                  </div>
-
-                  {/* Owner Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Owner</h2>
-                    <input
-                      type="text"
-                      placeholder="Owner name"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, owner: e.target.value });
-                      }}
-                      value={data.owner}
-                    />
-                  </div>
-
-                  {/* Reference Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Reference</h2>
-                    <input
-                      type="text"
-                      placeholder="Reference"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, reference: e.target.value });
-                      }}
-                      value={data.reference}
-                    />
-                  </div>
-
-                  {/* Pool Shape Select */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Pool shape</h2>
-                    <select
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, poolShape: e.target.value });
-                      }}
-                      value={data.poolShape}
-                    >
-                      {optionsss.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Start Project Date */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">
-                      Start project
-                    </h2>
-                    <input
-                      type="date"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, activeDate: e.target.value });
-                      }}
-                      value={data.activeDate}
-                    />
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Reference</h2>
+                      <input
+                        type="text"
+                        placeholder="Reference"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, reference: e.target.value })
+                        }
+                        value={data.reference}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Reference Mobile
+                      </h2>
+                      <input
+                        type="number"
+                        placeholder="Phone number"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, referenceMobile: e.target.value });
+                        }}
+                        value={data.referenceMobile}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Start Project
+                      </h2>
+                      <input
+                        type="date"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, activeDate: e.target.value })
+                        }
+                        value={data.activeDate}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Complete Project
+                      </h2>
+                      <input
+                        type="date"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, inactiveDate: e.target.value })
+                        }
+                        value={data.inactiveDate}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Pool Shape</h2>
+                      <select
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, poolShape: e.target.value })
+                        }
+                        value={data.poolShape}
+                      >
+                        {optionsss.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col relative">
+                      <h2 className="text-lg font-semibold mb-2">Pool Size</h2>
+                      <input
+                        type="text"
+                        placeholder="Pool size"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, poolSize: e.target.value })
+                        }
+                        value={data.poolSize}
+                      />
+                      <TbRulerMeasure
+                        onClick={handleOpen}
+                        className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col space-y-6 w-1/2">
-                  {/* Address Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Address</h2>
-                    <input
-                      type="text"
-                      placeholder="Address"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, area: e.target.value });
-                      }}
-                      value={data.area}
-                    />
-                  </div>
+                {/* Owner Details Section */}
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                    Client Details
+                  </h1>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Owner Name</h2>
+                      <input
+                        type="text"
+                        placeholder="Owner Name"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, owner: e.target.value })
+                        }
+                        value={data.owner}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Client Mobile
+                      </h2>
+                      <input
+                        type="number"
+                        placeholder="Owner Mobile"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, ownerMobile: e.target.value })
+                        }
+                        value={data.ownerMobile}
+                      />
+                    </div>
 
-                  {/* Owner Mobile Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">Owner Mobile</h2>
-                    <input
-                      type="number"
-                      placeholder="Phone number"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, ownerMobile: e.target.value });
-                      }}
-                      value={data.ownerMobile}
-                    />
-                  </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Client Email
+                      </h2>
+                      <input
+                        type="email"
+                        placeholder="Owner Email"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, ownerEmail: e.target.value })
+                        }
+                        value={data.ownerEmail}
+                      />
+                    </div>
 
-                  {/* Reference Mobile Input */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">
-                      Reference Mobile
-                    </h2>
-                    <input
-                      type="number"
-                      placeholder="Phone number"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, referenceMobile: e.target.value });
-                      }}
-                      value={data.referenceMobile}
-                    />
-                  </div>
-
-                  {/* Pool Size Input */}
-                  <div className="flex flex-col relative">
-                    <h2 className="text-lg font-semibold mb-2">Pool Size</h2>
-                    <input
-                      type="text"
-                      placeholder="Pool size"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, poolSize: e.target.value });
-                      }}
-                      value={data.poolSize}
-                    />
-                    <TbRulerMeasure
-                      onClick={() => handleOpen()}
-                      className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
-                    />
-                  </div>
-
-                  {/* Complete Project Date */}
-                  <div className="flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2">
-                      Complete project
-                    </h2>
-                    <input
-                      type="date"
-                      className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        setData({ ...data, inactiveDate: e.target.value });
-                      }}
-                      value={data.inactiveDate}
-                    />
+                    <div className="flex flex-col relative">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Client Password
+                      </h2>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Owner Password"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerPassword: e.target.value })
+                          }
+                          value={data.ownerPassword}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+
+
             </div>
           )}
 
@@ -762,7 +792,10 @@ const Newinput = () => {
             <div className=" Quotations flex items-start justify-center flex-col gap-2  w-[100%]  mt-[50px] h-auto">
               {/* <NewProducts products={products} setProducts={setProducts} /> */}
               <NewProducts
-                products={products} setProducts={setProducts} quotationTotal={quotationTotal} setQuotationTotal={setQuotationTotal}
+                products={products}
+                setProducts={setProducts}
+                quotationTotal={quotationTotal}
+                setQuotationTotal={setQuotationTotal}
               />
 
               <h1 className=" mt-[40px] text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4">
@@ -958,9 +991,9 @@ const Newinput = () => {
             </div>
           )}
 
-          <div className="w-[50%] flex justify-end">
+          <div className="w-[65%] flex justify-end">
             <button
-              className="h-[40px] w-[150px] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
+              className="h-[40px] w-[350px] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
               onClick={() => addData()}
             >
               Submit

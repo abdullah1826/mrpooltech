@@ -117,6 +117,20 @@ const Sidebar = () => {
             </div>
           </NavLink>
 
+          <NavLink to="/Allowners">
+            <div
+              className={`flex w-[85%] ml-[20px] mt-[20px] items-center p-1 rounded-lg ${
+                page === "/Allowners"
+                  ? "bg-[#0b6e99] text-white"
+                  : "text-[#35A1CC]"
+              }`}
+            >
+              <BsPeopleFill className="text-2xl ml-2" />
+              <h2 className="ml-1 text-lg">All Clients</h2>
+            </div>
+          </NavLink>
+
+
           <NavLink to="/attendance">
             <div
               className={`flex w-[85%] ml-[20px] mt-[20px] items-center p-1 rounded-lg ${

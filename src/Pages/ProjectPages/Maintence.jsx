@@ -90,25 +90,25 @@ const Maintence = () => {
   const handleDelete = async () => {
     try {
       // console.log("Deleting record with ID:", delid);
-  
+
       // ✅ Get the projectId from the Maintenance record
       const maintenanceSnapshot = await get(ref(db, `Maintenance/${delid}`));
       if (!maintenanceSnapshot.exists()) {
         toast.error("Maintenance record not found!");
         return;
       }
-  
+
       const maintenanceData = maintenanceSnapshot.val();
       // console.log("Maintenance Record:", maintenanceData);
-  
+
       let projectId = maintenanceData.projectId; // Default projectId from Maintenance
       let deletePromises = []; // Array to hold delete operations
-  
+
       let workerType = maintenanceData.workerType;
       // console.log("Worker Type:", workerType);
-  
+
       let workertable = "";
-  
+
       if (workerType === "permanent") {
         workertable = "workers";
       } else if (workerType === "other") {
@@ -120,9 +120,9 @@ const Maintence = () => {
         toast.error("Invalid worker type!");
         return; // Stop execution if workerType is invalid
       }
-  
+
       // console.log("Worker Table:", workertable);
-  
+
       // ✅ Fetch all workers based on workerType
       let workersSnapshot;
       try {
@@ -133,32 +133,37 @@ const Maintence = () => {
         toast.error("Failed to fetch workers.");
         return;
       }
-  
+
       if (workersSnapshot.exists()) {
         const workersData = workersSnapshot.val();
         // console.log("Workers Data:", workersData);
-  
+
         // 🔄 Loop through each worker
         for (const workerId in workersData) {
           const worker = workersData[workerId];
-  
+
           if (worker.assignedSites) {
             // console.log(`Worker ${workerId} Assigned Sites:`, worker.assignedSites);
-  
+
             for (const siteId in worker.assignedSites) {
               const site = worker.assignedSites[siteId];
-  
+
               // console.log(`Checking site:`, site);
-  
+
               // 🔎 Check if this site matches the deleted maintenance record
               if (site?.siteUid === delid) {
                 // console.log(`Deleting assigned site: ${siteId} from worker: ${workerId}`);
-  
+
                 // ✅ Correct database path usage
                 deletePromises?.push(
-                  remove(ref(db, `${workertable}/${workerId}/assignedSites/${siteId}`))
+                  remove(
+                    ref(
+                      db,
+                      `${workertable}/${workerId}/assignedSites/${siteId}`
+                    )
+                  )
                 );
-  
+
                 projectId = site?.projectId;
                 // console.log("Found and Deleted Assigned Site. Project ID:", projectId);
               }
@@ -168,20 +173,20 @@ const Maintence = () => {
       } else {
         console.log("No workers data found!");
       }
-  
+
       // ✅ Execute all delete operations before proceeding
       await Promise.all(deletePromises);
-  
+
       // ✅ Ensure projectId is valid before proceeding
       if (!projectId) {
         toast.error("Project ID not found!");
         return;
       }
-  
+
       // ✅ Delete the Maintenance Record
       await remove(ref(db, `Maintenance/${delid}`));
       // console.log(`Deleted Maintenance record with ID: ${delid}`);
-  
+
       // ✅ Reset state and show success message
       setdelid("");
       updateLinks();
@@ -192,8 +197,7 @@ const Maintence = () => {
       toast.error("Failed to delete record.");
     }
   };
-  
-     
+
   let modalseter = (id) => {
     setModal(true);
     setdelid(id);
@@ -285,130 +289,36 @@ const Maintence = () => {
 
   // console.log(mylist);
 
-  // const exportToCSV = () => {
-  //   if (!mylist || mylist.length === 0) {
-  //     alert("No data to export");
-  //     return;
-  //   }
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedOptions, setSelectedOptions] = useState([]);
 
-  //   // Define CSV header columns
-  //   const csvHeaders = [
-  //     "Project Id",
-  //     "Employee Name",
-  //     "Employee Type",
-  //     "Site",
-  //     "Address",
-  //     "Owner",
-  //     "Owner Mobile",
-  //     "Reference",
-  //     "Reference Mobile",
-  //     "Pool Shape",
-  //     "Pool Size",
-  //     "Start Project",
-  //     "Complete Project",
-  //     "Status",
-  //     "Products",
-  //     "Quotation Amount",
-  //     "Accepted Amount",
-  //     "Advance Amount",
-  //     "Other Amount",
-  //     "Balance Amount",
-  //     "Costing Items",
-  //   ];
+  const toggleOption = (option) => {
+    setSelectedOptions((prev) =>
+      prev.includes(option)
+        ? prev.filter((item) => item !== option)
+        : [...prev, option]
+    );
+  };
 
-  //   // Build CSV rows for each record in mylist
-  //   const csvRows = mylist.map((record) => {
-  //     // Concatenate the products array into a single string (if any)
-  //     const productsString =
-  //       record.products && record.products.length > 0
-  //         ? record.products
-  //             .map(
-  //               (p) =>
-  //                 `Product: ${p.productName || "N/A"}, Unit: ${
-  //                   p.unit || "N/A"
-  //                 }, Qty: ${p.quantity || 0}, Price: ${p.price || 0}, Total: ${
-  //                   p.total || 0
-  //                 }`
-  //             )
-  //             .join(" | ")
-  //         : "No Products";
-
-  //     // Concatenate the costing items array into a single string (if any)
-  //     const costingItemsString =
-  //       record.items && record.items.length > 0
-  //         ? record.items
-  //             .map(
-  //               (item) =>
-  //                 `Category: ${item.category || "N/A"}, Item: ${
-  //                   item.itemsName || "N/A"
-  //                 }, Unit: ${item.unit || "N/A"}, Qty: ${
-  //                   item.quantity || 0
-  //                 }, Price: ${item.price || 0}, Total: ${
-  //                   item.total || 0
-  //                 }, Desc: ${item.itemDescription || "N/A"}`
-  //             )
-  //             .join(" | ")
-  //         : "No Items";
-
-  //     return [
-  //       record.projectId || "N/A",
-  //       record.worker || "N/A",
-  //       record.workerType || "N/A",
-  //       record.site || "N/A",
-  //       record.area || "N/A",
-  //       record.owner || "N/A",
-  //       record.ownerMobile || "N/A",
-  //       record.reference || "N/A",
-  //       record.referenceMobile || "N/A",
-  //       record.poolShape || "N/A",
-  //       record.poolSize || "N/A",
-  //       record.activeDate || "N/A",
-  //       record.inactiveDate || "N/A",
-  //       record.reason || "N/A",
-  //       productsString,
-  //       record.quotationAmount || "N/A",
-  //       record.AcceptedAmount || "N/A",
-  //       record.AdvanceAmount || "N/A",
-  //       record.OtherAmount || "N/A",
-  //       record.BalanceAmount || "N/A",
-  //       costingItemsString,
-  //     ];
-  //   });
-
-  //   // Create CSV content with headers and rows
-  // //   const csvContent = [
-  // //     csvHeaders.join(","),
-  // //     ...csvRows.map((row) => row.map((field) => `"${field}"`).join(",")),
-  // //   ].join("\n");
-
-  // //   // Create a Blob and download the CSV file
-  // //   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  // //   const url = URL.createObjectURL(blob);
-  // //   const a = document.createElement("a");
-  // //   a.href = url;
-  // //   a.download = "project_report.csv";
-  // //   a.click();
-  // //   URL.revokeObjectURL(url);
-  // // };
-
-  // // const saveCSV = (projectName, csvHeaders, csvRows) => {
-  //   const currentDate = new Date().toISOString().split("T")[0]; // Get YYYY-MM-DD format
-  //   const fileName = `${"Maintenance"}_${currentDate}.csv`; // Format filename
-
-  //   const csvContent = [
-  //     csvHeaders.join(","),
-  //     ...csvRows.map((row) => row.map((field) => `"${field}"`).join(",")),
-  //   ].join("\n");
-
-  //   // Create a Blob and download the CSV file
-  //   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement("a");
-  //   a.href = url;
-  //   a.download = fileName;
-  //   a.click();
-  //   URL.revokeObjectURL(url);
-  // };
+  const options = [
+    "Active",
+    "Inactive",
+    "Project Details",
+    "Products",
+    "Quotation",
+    "Costing",
+  ];
+  // // Generate last 10 years dynamically
+  // const years = Array.from(
+  //   { length: 20 },
+  //   (_, i) => new Date().getFullYear() - i
+  // );
+  const currentYear = new Date().getFullYear();
+  const years = Array.from(
+    { length: currentYear - 2020 + 1 },
+    (_, i) => 2020 + i
+  );
 
   const exportToCSV = () => {
     if (!mylist || mylist.length === 0) {
@@ -521,10 +431,126 @@ const Maintence = () => {
 
     // Save file as Excel (.xlsx)
     const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-    const fileName = `Maintenance_${currentDate}.xlsx`;
+    const fileName = `NewPool_${currentDate}.xlsx`;
 
     XLSX.writeFile(workbook, fileName);
   };
+
+  // const exportToCSV = () => {
+  //   if (!mylist || mylist.length === 0) {
+  //     alert("No data to export");
+  //     return;
+  //   }
+
+  //   // Define header columns
+  //   const csvHeaders = [
+  //     "Project Id",
+  //     "Employee Name",
+  //     "Employee Type",
+  //     "Site",
+  //     "Address",
+  //     "Owner",
+  //     "Owner Mobile",
+  //     "Reference",
+  //     "Reference Mobile",
+  //     "Pool Shape",
+  //     "Pool Size",
+  //     "Start Project",
+  //     "Complete Project",
+  //     "Status",
+  //     "Products",
+  //     "Quotation Amount",
+  //     "Accepted Amount",
+  //     "Advance Amount",
+  //     "Other Amount",
+  //     "Balance Amount",
+  //     "Costing Items",
+  //   ];
+
+  //   // Prepare data rows
+  //   const data = mylist.map((record) => {
+  //     // Concatenate the products array into a single string (if any)
+  //     const productsString =
+  //       record.products && record.products.length > 0
+  //         ? record.products
+  //             .map(
+  //               (p) =>
+  //                 `Product: ${p.productName || "N/A"}, Unit: ${
+  //                   p.unit || "N/A"
+  //                 }, Qty: ${p.quantity || 0}, Price: ${p.price || 0}, Total: ${
+  //                   p.total || 0
+  //                 }`
+  //             )
+  //             .join(" | ")
+  //         : "No Products";
+
+  //     // Concatenate the costing items array into a single string (if any)
+  //     const costingItemsString =
+  //       record.items && record.items.length > 0
+  //         ? record.items
+  //             .map(
+  //               (item) =>
+  //                 `Category: ${item.category || "N/A"}, Item: ${
+  //                   item.itemsName || "N/A"
+  //                 }, Unit: ${item.unit || "N/A"}, Qty: ${
+  //                   item.quantity || 0
+  //                 }, Price: ${item.price || 0}, Total: ${
+  //                   item.total || 0
+  //                 }, Desc: ${item.itemDescription || "N/A"}`
+  //             )
+  //             .join(" | ")
+  //         : "No Items";
+
+  //     return [
+  //       record.projectId || "N/A",
+  //       record.worker || "N/A",
+  //       record.workerType || "N/A",
+  //       record.site || "N/A",
+  //       record.area || "N/A",
+  //       record.owner || "N/A",
+  //       record.ownerMobile || "N/A",
+  //       record.reference || "N/A",
+  //       record.referenceMobile || "N/A",
+  //       record.poolShape || "N/A",
+  //       record.poolSize || "N/A",
+  //       record.activeDate || "N/A",
+  //       record.inactiveDate || "N/A",
+  //       record.reason || "N/A",
+  //       productsString, // Products column
+  //       record.quotationAmount || "N/A",
+  //       record.AcceptedAmount || "N/A",
+  //       record.AdvanceAmount || "N/A",
+  //       record.OtherAmount || "N/A",
+  //       record.BalanceAmount || "N/A",
+  //       costingItemsString, // Costing items column
+  //     ];
+  //   });
+
+  //   // Create worksheet and workbook
+  //   const worksheet = XLSX.utils.aoa_to_sheet([csvHeaders, ...data]);
+  //   const workbook = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
+
+  //   // Set column width for better readability
+  //   worksheet["!cols"] = csvHeaders.map(() => ({ wch: 25 }));
+
+  //   // Apply bold styling to headers (Only works in pro version)
+  //   csvHeaders.forEach((_, index) => {
+  //     const cellAddress = XLSX.utils.encode_cell({ r: 0, c: index }); // Header row
+  //     if (!worksheet[cellAddress]) return;
+
+  //     worksheet[cellAddress].s = {
+  //       font: { bold: true },
+  //       alignment: { horizontal: "center" },
+  //     };
+  //   });
+
+  //   // Save file as Excel (.xlsx)
+  //   const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+  //   const fileName = `Maintenance_${currentDate}.xlsx`;
+
+  //   XLSX.writeFile(workbook, fileName);
+  // };
 
   let sr = 0;
 
@@ -822,14 +848,72 @@ const Maintence = () => {
               </select>
             </div>
 
-            <button
-              onClick={exportToCSV}
-              className="h-[45px] w-[160px] text-md font-[12px] rounded-xl flex justify-center items-center bg-[#35A1CC] hover:bg-[#0b6e99] focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-150 ease-in-out text-white  shadow-md hover:shadow-xl"
-            >
-              Export CSV
-              <FaDownload className="ml-2 text-sm" />
-            </button>
+            <div className="relative inline-block">
+              {/* Export Button */}
+              <div>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="h-[45px] w-[180px] text-md font-semibold rounded-xl flex justify-between items-center px-4 bg-[#35A1CC] hover:bg-[#0b6e99] focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-150 ease-in-out text-white shadow-md hover:shadow-lg"
+                >
+                  <span>Export CSV</span>
+                  <FaDownload className="text-lg" />
+                </button>
+              </div>
 
+              {/* Dropdown Menu */}
+              {dropdownOpen && (
+                <div className="absolute">
+                  {/* Download Button */}
+
+                  <div className="relative inline-block">
+                    {/* Dropdown Menu */}
+                    {dropdownOpen && (
+                      <div className="absolute w-[250px] bg-white shadow-lg rounded-xl p-4 z-20">
+                        {/* Year Selection */}
+                        <label className="block text-gray-700 font-semibold mb-1">
+                          Select Year
+                        </label>
+                        <select
+                          className="w-full p-2 border rounded-md outline-none cursor-pointer"
+                          value={selectedYear}
+                          onChange={(e) => setSelectedYear(e.target.value)}
+                        >
+                          {Array.from(
+                            { length: new Date().getFullYear() - 2020 + 1 },
+                            (_, i) => 2020 + i
+                          ).map((year) => (
+                            <option key={year} value={year}>
+                              {year}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Checkboxes for Details */}
+                        <div className="mt-3">
+                          <span className="block text-gray-700 font-semibold mb-1">
+                            Include Details:
+                          </span>
+                          {options.map((option, index) => (
+                            <label
+                              key={index}
+                              className="flex items-center space-x-2 py-1"
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
+                                checked={selectedOptions.includes(option)}
+                                onChange={() => toggleOption(option)}
+                              />
+                              <span className="text-gray-700">{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <Link to="/maintenceInput">
               <div className="h-[45px] border w-[150px] text-md rounded-xl  flex justify-center items-center bg-[#35A1CC]  hover:bg-[#0b6e99]  text-white cursor-pointer shadow-md hover:shadow-xl ">
                 Add New Site +
@@ -1061,6 +1145,29 @@ const Maintence = () => {
                       {selectedUser.ownerMobile}
                     </span>
                   </div>
+
+                  <div className="flex  items-center  w-[46%]">
+                    {" "}
+                    <p className="font-[450] text-[14px] mr-2 flex  items-center  ">
+                      Owner Email:
+                    </p>
+                    <span className="text-[13px]">
+                      {selectedUser.ownerEmail}
+                    </span>
+                  </div>
+
+
+                  <div className="flex  items-center  w-[46%]">
+                    {" "}
+                    <p className="font-[450] text-[14px] mr-2 flex  items-center  ">
+                       Owner Password:
+                    </p>
+                    <span className="text-[13px]">
+                      {selectedUser.ownerPassword}
+                    </span>
+                  </div>
+
+
                   <div className="flex items-center w-[46%]">
                     <p className="font-[450] text-[14px] mr-2 flex items-center">
                       Reference:
