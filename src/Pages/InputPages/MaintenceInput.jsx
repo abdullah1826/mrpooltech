@@ -13,6 +13,8 @@ import img from "../../imgs/noimg.jpg";
 import { TbRulerMeasure } from "react-icons/tb";
 import BillProducts from "../../components/BillProducts";
 import { Eye, EyeOff } from "lucide-react";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+
 // import NewProducts from "../../components/NewProducts";
 
 const Newinput = () => {
@@ -66,6 +68,11 @@ const Newinput = () => {
   const [showDescription, setShowDescription] = useState(true);
   const [showBalanceAmount, setShowBalanceAmount] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+   const [showOwnerDetails, setShowOwnerDetails] = useState(false);
+    const [owners, setOwners] = useState([]);
+    const [selectedOwner, setSelectedOwner] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
   const [products, setProducts] = useState([
     {
@@ -131,7 +138,7 @@ const Newinput = () => {
         const workersData = snapshot.exists()
           ? Object.values(snapshot.val())
           : [];
-        console.log(workersData);
+        // console.log(workersData);
         // Fetch Visiting Workers
         const visitingWorkersRef = ref(db, "/visitingWorkers");
         const snapshot2 = await get(visitingWorkersRef);
@@ -195,6 +202,79 @@ const Newinput = () => {
     };
   }, []);
 
+
+
+ useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        // const db = getDatabase();
+        const ownersRef = ref(db, "Owners");
+        const snapshot = await get(ownersRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const ownerList = Object.keys(data).map((key) => ({
+            id: key,
+            name: data[key].name || "Unknown",
+          }));
+          setOwners(ownerList);
+        } else {
+          setOwners([]);
+        }
+      } catch (err) {
+        setError("Failed to fetch owners.");
+        console.error("Error fetching owners:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOwners();
+  }, []);
+
+
+
+
+ const createOwner = async (data) => {
+    try {
+      const auth = getAuth();
+
+      // Step 1: Authenticate and Create Owner in Firebase Auth
+      console.log(data);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.ownerEmail,
+        data.ownerPassword
+      );
+      console.log(userCredential);
+      // Ensure the user is properly created before proceeding
+      if (!userCredential || !userCredential.user) {
+        throw new Error("User creation failed, userCredential is undefined.");
+      }
+
+      const user = userCredential.user;
+      const ownerId = user.uid; // Get the unique Firebase Auth UID
+      console.log("Owner ID:", ownerId);
+
+      // Step 2: Ensure ownerId is valid before updating Firebase
+      if (!ownerId) {
+        throw new Error("ownerId is undefined. Firebase update aborted.");
+      }
+
+      // Step 3: Store Owner Details in Firebase Database
+      await update(ref(db, `Owners/${ownerId}`), {
+        id: ownerId,
+        name: data.owner || "N/A",
+        mobile: data.ownerMobile || "N/A",
+        email: data.ownerEmail || "N/A",
+      });
+
+      console.log("Owner details updated successfully!");
+      return ownerId;
+    } catch (error) {
+      console.error("Error creating owner:", error);
+    }
+  };
   // console.log(options);
 
   const date = new Date();
@@ -209,23 +289,23 @@ const Newinput = () => {
       toast.warn("Site, area, and worker fields should not be empty.");
       return;
     }
-    // if (
-    //   !data.QuotationAmount ||
-    //   !data.AcceptedAmount ||
-    //   !data.AdvanceAmount ||
-
-    //   !data.OtherAmount ||
-    //   !data.BalanceAmount
-    // ) {
-    //   toast.warn(" Quotation fields should not be empty.");
-    //   return;
-    // }
+  
     if (data.site && data.area) {
       // console.log(data);
       var projectId = await generateProjectId(data.site);
       // const resolvedProjectId = await projectId;
       // console.log(resolvedProjectId);
       console.log(projectId);
+
+      
+      let ownerId; // Declare it outside so it is accessible
+
+      // Step 1: Authenticate and Create Owner in Firebase Auth
+      ownerId = await createOwner(data);
+      console.log(ownerId);
+
+
+
       const pushKeyRef = push(ref(db, "Maintenance/"));
       const pushKey = pushKeyRef.key;
       const removeProduct = (index) => {
@@ -250,8 +330,8 @@ const Newinput = () => {
         workerType: worker?.type || "Nill",
         site: data.site || "",
         area: data.area || "",
-        owner: data.owner || "",
-        ownerMobile: data.ownerMobile || "",
+        // owner: data.owner || "",
+        // ownerMobile: data.ownerMobile || "",
         reference: data.reference || "Nill",
         referenceMobile: data.referenceMobile || "Nill",
         status: data.status !== undefined ? data.status : true,
@@ -403,10 +483,10 @@ const Newinput = () => {
       const snapshot = await get(projectRef);
 
       if (snapshot.exists()) {
-        console.log("Snapshot Data:", snapshot.val()); // Debugging
+        // console.log("Snapshot Data:", snapshot.val()); // Debugging
 
         const projects = Object.values(snapshot.val());
-        console.log("Extracted projects:", projects); // Debugging
+        // console.log("Extracted projects:", projects); // Debugging
 
         // Extract numeric parts of existing IDs for the current year
         const numbers = projects
@@ -418,7 +498,7 @@ const Newinput = () => {
           })
           .filter((num) => num !== null);
 
-        console.log("Extracted numbers:", numbers); // Debugging
+        // console.log("Extracted numbers:", numbers); // Debugging
 
         // Find the highest project number
         const maxNumber = numbers.length ? Math.max(...numbers) : 0;
@@ -1019,88 +1099,145 @@ ${
                       />
                     </div>
                   </div>
-
                 </div>
 
                 {/* Owner Details Section */}
                 <div>
                   <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
-                  Client Details
+                    Client Details
                   </h1>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">Client Name</h2>
-                      <input
-                        type="text"
-                        placeholder="Client Name"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, owner: e.target.value })
-                        }
-                        value={data.owner}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                      Client Mobile
-                      </h2>
-                      <input
-                        type="number"
-                        placeholder="Client Mobile"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, ownerMobile: e.target.value })
-                        }
-                        value={data.ownerMobile}
-                      />
-                    </div>
 
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                      Client Email
-                      </h2>
-                      <input
-                        type="email"
-                        placeholder="Client Email"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, ownerEmail: e.target.value })
-                        }
-                        value={data.ownerEmail}
-                      />
-                    </div>
+                  {/* Button to Show Owner Details */}
 
-                    <div className="flex flex-col relative">
-                      <h2 className="text-lg font-semibold mb-2">
-                      Client Password
-                      </h2>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Client Password"
-                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
-                          onChange={(e) =>
-                            setData({ ...data, ownerPassword: e.target.value })
-                          }
-                          value={data.ownerPassword}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  <div className="flex w-[100%] items-center justify-between">
+                    {/* Select Owner Dropdown */}
+                    <div className="w-[30%]">
+                      <label htmlFor="ownerDropdown">Select Owner:</label>
+                      {loading ? (
+                        <p>Loading owners...</p>
+                      ) : error ? (
+                        <p className="text-red-500">{error}</p>
+                      ) : (
+                        <select
+                          id="ownerDropdown"
+                          value={selectedOwner}
+                          onChange={(e) => setSelectedOwner(e.target.value)}
+                          className="border p-2 rounded w-[100%]"
+                          disabled={showOwnerDetails} // Disable dropdown when "Create New Owner" is active
                         >
-                          {showPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
+                          <option value="">-- Select an Owner --</option>
+                          {owners.map((owner) => (
+                            <option key={owner.id} value={owner.id}>
+                              {owner.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <p>OR</p>
+                    {/* Create New Owner Button */}
+                    <button
+                      onClick={() => {
+                        setShowOwnerDetails(!showOwnerDetails);
+                        setSelectedOwner(""); // Reset selected owner when creating a new one
+                      }}
+                      className="h-[40px] w-[30%] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
+                      disabled={selectedOwner} // Disable button when an owner is selected
+                    >
+                      {showOwnerDetails
+                        ? "Hide Owner Details"
+                        : "Create New Owner"}
+                    </button>
+                  </div>
+
+                  {/* Owner Details Section - Only Shows When Button is Clicked */}
+                  {showOwnerDetails && (
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Owner Name */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Owner Name
+                        </h2>
+                        <input
+                          type="text"
+                          placeholder="Owner Name"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, owner: e.target.value })
+                          }
+                          value={data.owner}
+                        />
+                      </div>
+
+                      {/* Owner Mobile */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Mobile
+                        </h2>
+                        <input
+                          type="number"
+                          placeholder="Owner Mobile"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerMobile: e.target.value })
+                          }
+                          value={data.ownerMobile}
+                        />
+                      </div>
+
+                      {/* Owner Email */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Email
+                        </h2>
+                        <input
+                          type="email"
+                          placeholder="Owner Email"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerEmail: e.target.value })
+                          }
+                          value={data.ownerEmail}
+                        />
+                      </div>
+
+                      {/* Owner Password with Eye Icon */}
+                      <div className="flex flex-col relative">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Password
+                        </h2>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Owner Password"
+                            className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) =>
+                              setData({
+                                ...data,
+                                ownerPassword: e.target.value,
+                              })
+                            }
+                            value={data.ownerPassword}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            {showPassword ? (
+                              <EyeOff size={20} />
+                            ) : (
+                              <Eye size={20} />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
+                
               </div>
-              
             </div>
           )}
 

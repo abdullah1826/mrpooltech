@@ -11,6 +11,7 @@ import {
   getDatabase,
   set,
   ref,
+  get,
   update,
   push,
   onValue,
@@ -31,171 +32,62 @@ const PermentWorker = () => {
 
   let { showmodal, deletemodal } = useContext(ModalContext);
 
-  // -----------------------------------Delete Worker----------------------------------
-  let updateLinks = () => {
-    if (mylist?.length === 1) {
-      setmylist([]);
-      setfiltered([]);
+  const [owners, setOwners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deleteOwnerId, setDeleteOwnerId] = useState(null); // Store owner ID for deletion
+  const [showModal, setShowModal] = useState(false); // Control modal visibility
+
+  useEffect(() => {
+    fetchOwners();
+  }, []);
+
+  const fetchOwners = async () => {
+    try {
+      const db = getDatabase();
+      const ownersRef = ref(db, "Owners");
+      const snapshot = await get(ownersRef);
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const ownerList = Object.keys(data).map((key) => ({
+          id: key,
+          name: data[key].name || "Unknown",
+          email: data[key].email || "No Email",
+          mobile: data[key].mobile || "No Mobile",
+        }));
+        setOwners(ownerList);
+      } else {
+        setOwners([]);
+      }
+    } catch (err) {
+      setError("Failed to fetch owners.");
+      console.error("Error fetching owners:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = () => {
-    remove(ref(db, `/workers/${delid}`));
-    setdelid("");
-    updateLinks();
-    toast.success("Worker delete successfuly!");
+  const confirmDelete = (ownerId) => {
+    setDeleteOwnerId(ownerId);
+    setShowModal(true);
   };
 
-  let modalseter = (id) => {
-    showmodal();
-    setdelid(id);
+  const deleteOwner = async () => {
+    if (!deleteOwnerId) return;
+
+    try {
+      const db = getDatabase();
+      await remove(ref(db, `Owners/${deleteOwnerId}`));
+      setOwners(owners.filter((owner) => owner.id !== deleteOwnerId)); // Update UI
+      console.log("Owner deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting owner:", error);
+    } finally {
+      setShowModal(false);
+      setDeleteOwnerId(null);
+    }
   };
-
-  // --------------------------geting the user data from firebase------------------------
-
-  useEffect(() => {
-    let getingdata = async () => {
-      const starCountRef = ref(db, "/workers");
-      onValue(starCountRef, async (snapshot) => {
-        const data = await snapshot.val();
-        //  console.log(data)
-        MediaKeyStatusMap;
-        console.log("Fetched Data:", data); 
-        setmylist(Object.values(data));
-        setfiltered(Object.values(data));
-
-        // updateStarCount(postElement, data);
-      });
-    };
-
-    getingdata();
-  }, []);
-
-  //----------------------Filtering the userdata (search functionality)--------------------
-
-  useEffect(() => {
-    const result = mylist.filter((user) => {
-      return (
-        user.workerName.toLowerCase().match(search.toLowerCase()) ||
-        user.email.toLowerCase().match(search.toLowerCase()) ||
-        user.cnic.toLowerCase().match(search.toLowerCase())
-      );
-    });
-
-    setfiltered(result);
-  }, [search]);
-
-  console.log("list", mylist);
-
-  // const handleDelete = (id) => {
-  //   //  try {
-  //   remove(ref(db, `users/${id}`))
-  // }
-
-  // let [toggle, settoggle] = useState([])
-  // let toglesetter = (status, id) => {
-  //     if (status === true) {
-  //         update(ref(db, `//userdata/${id}`), { status: false })
-  //     }
-  //     else {
-  //         update(ref(db, `//userdata/${id}`), { status: true })
-  //     }
-  // }
-
-  const Editdata = (id) => {
-    navigate(`/updateworker/${id}`);
-  };
-
-  const view = (id) => {
-    navigate(`/singleWorker/${id}`);
-  };
-
-  let sr = 0;
-
-  const columns = [
-    {
-      name: "Sr",
-      selector: (_, index) => index + 1,
-      sortable: false,
-      width: "60px",
-    },
-    // { name: 'Sr', cell: (row) => { sr += 0.5; return sr }, sortable: true, },
-    {
-      name: "Worker name",
-      selector: (row) => {
-        return row.workerName;
-      },
-      sortable: true,
-      width: "150px",
-    },
-    {
-      name: "Email",
-      selector: (row) => {
-        return row.email;
-      },
-      sortable: true,
-      width: "120px",
-    },
-    {
-      name: "Password",
-      selector: (row) => {
-        return row.password;
-      },
-      sortable: true,
-      width: "120px",
-    },
-    {
-      name: "Phone",
-      selector: (row) => {
-        return row.phone1;
-      },
-      sortable: true,
-      width: "120px",
-    },
-
-    {
-      name: "Address",
-      selector: (row) => {
-        return row.address;
-      },
-      sortable: true,
-      width: "150px",
-    },
-    // { name: 'InActive Date', selector: (row) => { return row.inactiveDate }, sortable: true, width: '120px' },
-    // { name: 'Creation Date', selector: (row) => { return row.creationDate }, sortable: true, width: '130px' },
-    // // { name: 'Age', selector: 'age', sortable: true ,},
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="flex ">
-          <button
-            className="h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2"
-            onClick={() => Editdata(row.id)}
-          >
-            Edit
-          </button>
-          <button
-            className="h-[40px] w-[70px] border bg-[#35A1CC] rounded-md text-white mr-2"
-            onClick={() => view(row.id)}
-          >
-            View
-          </button>{" "}
-          <button
-            className="h-[40px] w-[70px] border bg-[#f44336] rounded-md text-white mr-2"
-            onClick={() => {
-              return modalseter(row.id);
-            }}
-          >
-            Delete
-          </button>
-        </div>
-      ),
-      width: "175px",
-    },
-    // onClick={() => { return modalseter(row.id) }}
-
-    // { name: 'Status', cell: (row) => row.status === true ? (<div className='h-[24px] w-[45px] bg-[#35A1CC] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border right-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }} ></div></div>) : (<div className='h-[24px] w-[45px] bg-[#707070] rounded-xl relative'><div className='h-[22px] w-[22px] bg-white rounded-full absolute top-[1px] border left-[-1px]' onClick={() => { return toglesetter(row.status, row.id) }}></div></div>) },
-  ];
 
   let delmsg = "Are you sure to delete this worker ?";
 
@@ -209,35 +101,76 @@ const PermentWorker = () => {
           <img src={upper} className="w-[100%]" />
           <Link to="/">
             <div className="h-[45px] border w-[200px] absolute rounded-md right-6 flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer">
-            + Add New Client 
+              Add New Worker +
             </div>
           </Link>
           <div className="w-[95%]  ml-[45px] mt-[60px] relative">
-            <div className="border">
-              {/* <DataTable
-                columns={columns}
-                data={filtered}
-                style={{ width: "1200px" }}
-                wrapperStyle={{ backgroundColor: "#DAECF3" }}
-                pagination
-                fixedHeader
-                subHeader
-                subHeaderComponent={
-                  <div className=" h-[70px]">
-                    <h2 className="text-xl  font-[450]">Search</h2>{" "}
-                    <input
-                      type="search"
-                      placeholder="Search here"
-                      className=" h-[25px] w-[310px] border-b-[1px]   p-1 outline-none placeholder:text-sm"
-                      value={search}
-                      onChange={(e) => {
-                        setsearch(e.target.value);
-                      }}
-                    />{" "}
+            <div className="p-4 border rounded-md shadow-md bg-white w-full">
+              <h2 className="text-lg font-semibold mb-3">Owner List</h2>
+
+              {loading ? (
+                <p>Loading owners...</p>
+              ) : error ? (
+                <p className="text-red-500">{error}</p>
+              ) : owners.length === 0 ? (
+                <p>No owners found.</p>
+              ) : (
+                <table className="w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100">
+                    <th className="border p-2">S. No.</th> {/* New Serial Number Column */}
+                      <th className="border p-2">Name</th>
+                      <th className="border p-2">Email</th>
+                      <th className="border p-2">Mobile</th>
+                      <th className="border p-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {owners.map((owner, index) => (
+                      <tr key={owner.id} className="text-center">
+                        <td className="border p-2">{index + 1}</td>{" "}
+                        <td className="border p-2">{owner.name}</td>
+                        <td className="border p-2">{owner.email}</td>
+                        <td className="border p-2">{owner.mobile}</td>
+                        <td className="border p-2">
+                          <button
+                            onClick={() => confirmDelete(owner.id)}
+                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              {/* Delete Confirmation Modal */}
+              {showModal && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                  <div className="bg-white p-6 rounded-lg shadow-md w-96">
+                    <h2 className="text-lg font-semibold mb-4">
+                      Confirm Deletion
+                    </h2>
+                    <p>Are you sure you want to delete this owner?</p>
+                    <div className=" flex  justify-between mt-4">
+                      <button
+                        onClick={() => setShowModal(false)}
+                        className="mr-2 px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                      >
+                        No
+                      </button>
+                      <button
+                        onClick={deleteOwner}
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        Yes
+                      </button>
+                    </div>
                   </div>
-                }
-                subHeaderAlign="left"
-              /> */}
+                </div>
+              )}
             </div>
             <br />
           </div>

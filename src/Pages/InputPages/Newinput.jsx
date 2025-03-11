@@ -14,6 +14,7 @@ import { TbRulerMeasure } from "react-icons/tb";
 import NewProducts from "../../components/NewProducts";
 import CostItems from "../../components/CostItems";
 import { Eye, EyeOff } from "lucide-react";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const Newinput = () => {
   const navigate = useNavigate();
@@ -44,6 +45,11 @@ const Newinput = () => {
   const [poolshape, setPoolshape] = useState("");
   const [modalopen, setModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showOwnerDetails, setShowOwnerDetails] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [selectedOwner, setSelectedOwner] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [products, setProducts] = useState([
     {
@@ -188,6 +194,34 @@ const Newinput = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        // const db = getDatabase();
+        const ownersRef = ref(db, "Owners");
+        const snapshot = await get(ownersRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const ownerList = Object.keys(data).map((key) => ({
+            id: key,
+            name: data[key].name || "Unknown",
+          }));
+          setOwners(ownerList);
+        } else {
+          setOwners([]);
+        }
+      } catch (err) {
+        setError("Failed to fetch owners.");
+        console.error("Error fetching owners:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOwners();
+  }, []);
+
   // console.log(quotationTotal)
 
   const date = new Date();
@@ -195,37 +229,236 @@ const Newinput = () => {
   let month = date.getMonth() + 1;
   let year = date.getFullYear();
   let currentDate = `${year}-${month}-${day}`;
+
+  // const addData = async () => {
+  //   if (!data.site || !data.area || !worker) {
+  //     toast.warn("Site, area, and worker fields should not be empty.");
+  //     return;
+  //   }
+  //   // if (
+  //   //   !data.QuotationAmount ||
+  //   //   !data.AcceptedAmount ||
+  //   //   !data.AdvanceAmount ||
+  //   //   !data.OtherAmount ||
+  //   //   !data.BalanceAmount
+  //   // ) {
+  //   //   toast.warn(" Quotation fields should not be empty.");
+  //   //   return;
+  //   // }
+
+  //   if (data.site && data.area) {
+  //     var projectId = await generateProjectId(data.site);
+  //     console.log(projectId);
+  //     const pushKeyRef = push(ref(db, "NewProjects/"));
+  //     const pushKey = pushKeyRef.key;
+  //     const removeProduct = (index) => {
+  //       setProducts((prevProducts) =>
+  //         prevProducts.filter((_, i) => i !== index)
+  //       );
+  //     };
+
+  //     // console.log(quotationTotal)
+
+  //     update(ref(db, `NewProjects/${pushKey}`), {
+  //       id: pushKey,
+  //       projectId: projectId,
+  //       products: products.map((product, index) => ({
+  //         id: `${pushKey}_${index + 1}`,
+  //         productName: product.productName || "N/A",
+  //         unit: product.unit || "N/A",
+  //         quantity: product.quantity || 0,
+  //         price: product.price || 0,
+  //         total: product.total || 0,
+  //       })),
+
+  //       items: items.map((items, index) => ({
+  //         id: `${pushKey}_${index + 1}`,
+  //         itemsName: items.itemsName || "N/A",
+  //         category: items.category || "N/A",
+  //         unit: items.unit || "N/A",
+  //         quantity: items.quantity || 0,
+  //         price: items.price || 0,
+  //         total: items.total || 0,
+  //         itemDescription: items.itemDescription || 0,
+  //       })),
+
+  //       site: data.site || "Nill",
+  //       area: data.area || "Nill",
+  //       owner: data.owner || "Nill",
+  //       ownerMobile: data.ownerMobile || "Nill",
+  //       reference: data.reference || "Nill",
+  //       referenceMobile: data.referenceMobile || "Nill",
+  //       poolSize: data.poolSize || "Nill",
+  //       poolShape: data.poolShape || "Nill",
+  //       activeDate: data.activeDate || "Nill",
+  //       inactiveDate: data.inactiveDate || "Nill",
+  //       status: data.status || "Nill",
+  //       worker: worker?.label || "Nill",
+  //       workerType: worker?.type || "Nill",
+  //       // quotationTotal: data.quotationTotal || "Nill",
+  //       ownerEmail: data.ownerEmail || "Nill",
+  //       ownerPassword: data.ownerPassword || "Nill",
+  //       quotationAmount: quotationTotal || "Nill",
+  //       AcceptedAmount: data.AcceptedAmount || "Nill",
+  //       AdvanceAmount: data.AdvanceAmount || "Nill",
+  //       OtherAmount: data.OtherAmount || "Nill",
+  //       BalanceAmount: data.BalanceAmount || "Nill",
+  //     }).then(() => {
+  //       let isPermanent = workers?.some((elm) => {
+  //         return elm?.id === worker.value;
+  //       });
+
+  //       let isVisiting = visitingWorkers?.some((elm) => {
+  //         return elm?.id === worker.value;
+  //       });
+
+  //       let isOther = otherWorkers?.some((elm) => {
+  //         return elm?.id === worker.value;
+  //       });
+
+  //       if (isPermanent) {
+  //         update(ref(db, `workers/${worker.value}/assignedSites/${pushKey}`), {
+  //           id: pushKey,
+  //           siteName: data.site,
+  //           projectId: projectId,
+  //           siteUid: pushKey,
+  //         });
+  //         // console.log(projectId , "projectid new ");
+  //       } else if (isVisiting) {
+  //         update(
+  //           ref(db, `visitingWorkers/${worker.value}/assignedSites/${pushKey}`),
+  //           {
+  //             id: pushKey,
+  //             siteName: data.site,
+  //             projectId: projectId,
+  //             siteUid: pushKey,
+  //           }
+  //         );
+  //       } else if (isOther) {
+  //         update(
+  //           ref(db, `otherWorkers/${worker.value}/assignedSites/${pushKey}`),
+  //           {
+  //             id: pushKey,
+  //             siteName: data.site,
+  //             projectId: projectId,
+  //             siteUid: pushKey,
+  //           }
+  //         );
+  //       }
+  //     });
+  //     toast.success("Record added successfully");
+  //     setTimeout(() => {
+  //       navigate(`/newproject`);
+  //     }, 1500);
+  //     setData({
+  //       site: "",
+  //       projectId: "",
+  //       status: true,
+  //       activeDate: "",
+  //       inactiveDate: "",
+  //       poolSize: "",
+  //       poolShape: "",
+  //       owner: "",
+  //       ownerMobile: "",
+  //       ownerEmail: "",
+  //       ownerPassword: "",
+  //       reference: "",
+  //       referenceMobile: "",
+  //       // QuotationAmount: "",
+  //       // quotationTotal:"",
+  //       quotationAmount: "",
+  //       AcceptedAmount: "",
+  //       AdvanceAmount: "",
+  //       OtherAmount: "",
+  //       BalanceAmount: "",
+  //       itemsName: "",
+  //       unit: "",
+  //       quantity: 0,
+  //       price: 0,
+  //       total: 0,
+  //       category: "",
+  //       itemDescription: "",
+  //       // worker: "",
+  //       area: "",
+  //     });
+  //   }
+  // };
+
+  // function generateKeyFromTime(name) {
+  //   const currentYear = new Date().getFullYear();
+  //   // const initials = name
+  //   //   .split(" ")
+  //   //   .map((word) => word[0].toUpperCase())
+  //   //   .join("");
+  //   const randomId = Math.floor(10000 + Math.random() * 90000); // 5-digit random number
+  //   // Get current timestamp in milliseconds
+  //   return `"PT-NP-${randomId}_${currentYear}`;
+  // }
+
+  const createOwner = async (data) => {
+    try {
+      const auth = getAuth();
+
+      // Step 1: Authenticate and Create Owner in Firebase Auth
+      console.log(data);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.ownerEmail,
+        data.ownerPassword
+      );
+      console.log(userCredential);
+      // Ensure the user is properly created before proceeding
+      if (!userCredential || !userCredential.user) {
+        throw new Error("User creation failed, userCredential is undefined.");
+      }
+
+      const user = userCredential.user;
+      const ownerId = user.uid; // Get the unique Firebase Auth UID
+      console.log("Owner ID:", ownerId);
+
+      // Step 2: Ensure ownerId is valid before updating Firebase
+      if (!ownerId) {
+        throw new Error("ownerId is undefined. Firebase update aborted.");
+      }
+
+      // Step 3: Store Owner Details in Firebase Database
+      await update(ref(db, `Owners/${ownerId}`), {
+        id: ownerId,
+        name: data.owner || "N/A",
+        mobile: data.ownerMobile || "N/A",
+        email: data.ownerEmail || "N/A",
+      });
+
+      console.log("Owner details updated successfully!");
+      return ownerId;
+    } catch (error) {
+      console.error("Error creating owner:", error);
+    }
+  };
+
   const addData = async () => {
     if (!data.site || !data.area || !worker) {
       toast.warn("Site, area, and worker fields should not be empty.");
       return;
     }
-    // if (
-    //   !data.QuotationAmount ||
-    //   !data.AcceptedAmount ||
-    //   !data.AdvanceAmount ||
-    //   !data.OtherAmount ||
-    //   !data.BalanceAmount
-    // ) {
-    //   toast.warn(" Quotation fields should not be empty.");
-    //   return;
-    // }
+
     if (data.site && data.area) {
       var projectId = await generateProjectId(data.site);
       console.log(projectId);
+
+      let ownerId; // Declare it outside so it is accessible
+
+      // Step 1: Authenticate and Create Owner in Firebase Auth
+      ownerId = await createOwner(data);
+      console.log(ownerId);
+     
       const pushKeyRef = push(ref(db, "NewProjects/"));
       const pushKey = pushKeyRef.key;
-      const removeProduct = (index) => {
-        setProducts((prevProducts) =>
-          prevProducts.filter((_, i) => i !== index)
-        );
-      };
-
-      // console.log(quotationTotal)
 
       update(ref(db, `NewProjects/${pushKey}`), {
         id: pushKey,
         projectId: projectId,
+        ownerId: ownerId, // Store the created owner ID here
         products: products.map((product, index) => ({
           id: `${pushKey}_${index + 1}`,
           productName: product.productName || "N/A",
@@ -234,7 +467,6 @@ const Newinput = () => {
           price: product.price || 0,
           total: product.total || 0,
         })),
-
         items: items.map((items, index) => ({
           id: `${pushKey}_${index + 1}`,
           itemsName: items.itemsName || "N/A",
@@ -243,42 +475,29 @@ const Newinput = () => {
           quantity: items.quantity || 0,
           price: items.price || 0,
           total: items.total || 0,
-          itemDescription: items.itemDescription || 0,
+          itemDescription: items.itemDescription || "N/A",
         })),
-
-        site: data.site || "Nill",
-        area: data.area || "Nill",
-        owner: data.owner || "Nill",
-        ownerMobile: data.ownerMobile || "Nill",
-        reference: data.reference || "Nill",
-        referenceMobile: data.referenceMobile || "Nill",
-        poolSize: data.poolSize || "Nill",
-        poolShape: data.poolShape || "Nill",
-        activeDate: data.activeDate || "Nill",
-        inactiveDate: data.inactiveDate || "Nill",
-        status: data.status || "Nill",
-        worker: worker?.label || "Nill",
-        workerType: worker?.type || "Nill",
-        // quotationTotal: data.quotationTotal || "Nill",
-        ownerEmail: data.ownerEmail || "Nill",
-        ownerPassword: data.ownerPassword || "Nill",
-        quotationAmount: quotationTotal || "Nill",
-        AcceptedAmount: data.AcceptedAmount || "Nill",
-        AdvanceAmount: data.AdvanceAmount || "Nill",
-        OtherAmount: data.OtherAmount || "Nill",
-        BalanceAmount: data.BalanceAmount || "Nill",
+        site: data.site || "N/A",
+        area: data.area || "N/A",
+        // owner: data.owner || "N/A",
+        // ownerMobile: data.ownerMobile || "N/A",
+        // ownerEmail: data.ownerEmail || "N/A",
+        // ownerPassword: data.ownerPassword || "N/A",
+        reference: data.reference || "N/A",
+        referenceMobile: data.referenceMobile || "N/A",
+        quotationAmount: quotationTotal || "N/A",
+        AcceptedAmount: data.AcceptedAmount || "N/A",
+        AdvanceAmount: data.AdvanceAmount || "N/A",
+        OtherAmount: data.OtherAmount || "N/A",
+        BalanceAmount: data.BalanceAmount || "N/A",
+        worker: worker?.label || "N/A",
+        workerType: worker?.type || "N/A",
       }).then(() => {
-        let isPermanent = workers?.some((elm) => {
-          return elm?.id === worker.value;
-        });
-
-        let isVisiting = visitingWorkers?.some((elm) => {
-          return elm?.id === worker.value;
-        });
-
-        let isOther = otherWorkers?.some((elm) => {
-          return elm?.id === worker.value;
-        });
+        let isPermanent = workers?.some((elm) => elm?.id === worker.value);
+        let isVisiting = visitingWorkers?.some(
+          (elm) => elm?.id === worker.value
+        );
+        let isOther = otherWorkers?.some((elm) => elm?.id === worker.value);
 
         if (isPermanent) {
           update(ref(db, `workers/${worker.value}/assignedSites/${pushKey}`), {
@@ -287,7 +506,6 @@ const Newinput = () => {
             projectId: projectId,
             siteUid: pushKey,
           });
-          // console.log(projectId , "projectid new ");
         } else if (isVisiting) {
           update(
             ref(db, `visitingWorkers/${worker.value}/assignedSites/${pushKey}`),
@@ -310,10 +528,12 @@ const Newinput = () => {
           );
         }
       });
+
       toast.success("Record added successfully");
       setTimeout(() => {
         navigate(`/newproject`);
       }, 1500);
+
       setData({
         site: "",
         projectId: "",
@@ -328,8 +548,6 @@ const Newinput = () => {
         ownerPassword: "",
         reference: "",
         referenceMobile: "",
-        // QuotationAmount: "",
-        // quotationTotal:"",
         quotationAmount: "",
         AcceptedAmount: "",
         AdvanceAmount: "",
@@ -342,22 +560,10 @@ const Newinput = () => {
         total: 0,
         category: "",
         itemDescription: "",
-        // worker: "",
         area: "",
       });
     }
   };
-
-  // function generateKeyFromTime(name) {
-  //   const currentYear = new Date().getFullYear();
-  //   // const initials = name
-  //   //   .split(" ")
-  //   //   .map((word) => word[0].toUpperCase())
-  //   //   .join("");
-  //   const randomId = Math.floor(10000 + Math.random() * 90000); // 5-digit random number
-  //   // Get current timestamp in milliseconds
-  //   return `"PT-NP-${randomId}_${currentYear}`;
-  // }
 
   async function generateProjectId() {
     const currentYear = new Date().getFullYear();
@@ -369,7 +575,7 @@ const Newinput = () => {
 
       if (snapshot.exists()) {
         const projects = Object.values(snapshot.val()); // Get all existing project IDs
-        console.log(projects);
+        // console.log(projects);
         // Extract numeric parts of existing IDs for the current year
         const numbers = projects
           .map((p) => {
@@ -603,6 +809,7 @@ const Newinput = () => {
                         value={data.site}
                       />
                     </div>
+
                     <div className="flex flex-col">
                       <h2 className="text-lg font-semibold mb-2">Address</h2>
                       <input
@@ -708,81 +915,138 @@ const Newinput = () => {
                   <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
                     Client Details
                   </h1>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">Owner Name</h2>
-                      <input
-                        type="text"
-                        placeholder="Owner Name"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, owner: e.target.value })
-                        }
-                        value={data.owner}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Mobile
-                      </h2>
-                      <input
-                        type="number"
-                        placeholder="Owner Mobile"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, ownerMobile: e.target.value })
-                        }
-                        value={data.ownerMobile}
-                      />
-                    </div>
 
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Email
-                      </h2>
-                      <input
-                        type="email"
-                        placeholder="Owner Email"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, ownerEmail: e.target.value })
-                        }
-                        value={data.ownerEmail}
-                      />
-                    </div>
+                  {/* Button to Show Owner Details */}
 
-                    <div className="flex flex-col relative">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Password
-                      </h2>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Owner Password"
-                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
-                          onChange={(e) =>
-                            setData({ ...data, ownerPassword: e.target.value })
-                          }
-                          value={data.ownerPassword}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  <div className="flex w-[100%] items-center justify-between">
+                    {/* Select Owner Dropdown */}
+                    <div className="w-[30%]">
+                      <label htmlFor="ownerDropdown">Select Owner:</label>
+                      {loading ? (
+                        <p>Loading owners...</p>
+                      ) : error ? (
+                        <p className="text-red-500">{error}</p>
+                      ) : (
+                        <select
+                          id="ownerDropdown"
+                          value={selectedOwner}
+                          onChange={(e) => setSelectedOwner(e.target.value)}
+                          className="border p-2 rounded w-[100%]"
+                          disabled={showOwnerDetails} // Disable dropdown when "Create New Owner" is active
                         >
-                          {showPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
+                          <option value="">-- Select an Owner --</option>
+                          {owners.map((owner) => (
+                            <option key={owner.id} value={owner.id}>
+                              {owner.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <p>OR</p>
+                    {/* Create New Owner Button */}
+                    <button
+                      onClick={() => {
+                        setShowOwnerDetails(!showOwnerDetails);
+                        setSelectedOwner(""); // Reset selected owner when creating a new one
+                      }}
+                      className="h-[40px] w-[30%] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
+                      disabled={selectedOwner} // Disable button when an owner is selected
+                    >
+                      {showOwnerDetails
+                        ? "Hide Owner Details"
+                        : "Create New Owner"}
+                    </button>
+                  </div>
+
+                  {/* Owner Details Section - Only Shows When Button is Clicked */}
+                  {showOwnerDetails && (
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Owner Name */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Owner Name
+                        </h2>
+                        <input
+                          type="text"
+                          placeholder="Owner Name"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, owner: e.target.value })
+                          }
+                          value={data.owner}
+                        />
+                      </div>
+
+                      {/* Owner Mobile */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Mobile
+                        </h2>
+                        <input
+                          type="number"
+                          placeholder="Owner Mobile"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerMobile: e.target.value })
+                          }
+                          value={data.ownerMobile}
+                        />
+                      </div>
+
+                      {/* Owner Email */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Email
+                        </h2>
+                        <input
+                          type="email"
+                          placeholder="Owner Email"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerEmail: e.target.value })
+                          }
+                          value={data.ownerEmail}
+                        />
+                      </div>
+
+                      {/* Owner Password with Eye Icon */}
+                      <div className="flex flex-col relative">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Password
+                        </h2>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Owner Password"
+                            className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) =>
+                              setData({
+                                ...data,
+                                ownerPassword: e.target.value,
+                              })
+                            }
+                            value={data.ownerPassword}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            {showPassword ? (
+                              <EyeOff size={20} />
+                            ) : (
+                              <Eye size={20} />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
+
               </div>
-
-
             </div>
           )}
 
@@ -882,112 +1146,6 @@ const Newinput = () => {
           {activeTab === "costing" && (
             <div className=" Quotations flex items-start justify-center flex-col gap-2  w-[95%]  mt-[50px] h-auto">
               <CostItems items={items} setItems={setItems} />
-
-              {/* <h1 className=" mt-[10px] text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4">
-               Costing
-              </h1>
-
-              <div className="flex items-start justify-between  w-[90%]   ">
-                <div className="flex flex-col w-[45%]  ">
-                  <h2 className="text-lg font-semibold mb-2">
-                    Plumber
-                  </h2>
-                  <input
-                    type="number"
-                    placeholder="Quotation Amount"
-                    className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                      setData({ ...data, QuotationAmount: e.target.value });
-                    }}
-                    value={data.QuotationAmount}
-                  />
-                </div>
-
-                <div className="flex flex-col  w-[45%] ">
-                  <h2 className="text-lg font-semibold mb-2">
-                  Electric
-                  </h2>
-                  <input
-                    type="number"
-                    placeholder="Accepted Amount"
-                    className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                      setData({ ...data, AcceptedAmount: e.target.value });
-                    }}
-                    value={data.AcceptedAmount}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-start justify-between  w-[90%]   ">
-                <div className="flex flex-col  w-[45%] ">
-                  <h2 className="text-lg font-semibold mb-2">Filter</h2>
-                  <input
-                    type="number"
-                    placeholder="Advance Amount"
-                    className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                      setData({ ...data, AdvanceAmount: e.target.value });
-                    }}
-                    value={data.AdvanceAmount}
-                  />
-                </div>
-
-                <div className="flex flex-col  w-[45%] ">
-                  <h2 className="text-lg font-semibold mb-2">Pump</h2>
-                  <input
-                    type="number"
-                    placeholder="Other Amount"
-                    className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                      setData({ ...data, OtherAmount: e.target.value });
-                    }}
-                    value={data.OtherAmount}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-start justify-between  w-[90%]   ">
-                <div className="flex flex-col  w-[45%] ">
-                  <h2 className="text-lg font-semibold mb-2">Labour</h2>
-                  <input
-                    type="number"
-                    placeholder="Advance Amount"
-                    className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                      setData({ ...data, AdvanceAmount: e.target.value });
-                    }}
-                    value={data.AdvanceAmount}
-                  />
-                </div>
-
-                <div className="flex flex-col  w-[45%] ">
-                  <h2 className="text-lg font-semibold mb-2">Fuel</h2>
-                  <input
-                    type="number"
-                    placeholder="Other Amount"
-                    className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                      setData({ ...data, OtherAmount: e.target.value });
-                    }}
-                    value={data.OtherAmount}
-                  />
-                </div>
-              </div>
-              
-
-              <div className="flex flex-col  w-[36%] ">
-                <h2 className="text-lg font-semibold mb-2">Others</h2>
-                <input
-                  type="number"
-                  placeholder="Balance Amount"
-                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => {
-                    setData({ ...data, BalanceAmount: e.target.value });
-                  }}
-                  value={data.BalanceAmount}
-                />
-              </div> */}
             </div>
           )}
 

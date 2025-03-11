@@ -34,10 +34,13 @@ const Newproject = () => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [filtered, setFiltered] = useState(mylist);
   const [status, setStatus] = useState("all"); // 'all', 'active', 'inactive'
-
   const [modal, setModal] = useState(false);
-
   const [modal1, setModal1] = useState(false);
+
+  // console.log(filtered.value)
+
+
+  
   const viewUserData = (row) => {
     setSelectedUser(row);
     setModal1(true);
