@@ -168,8 +168,8 @@ const Repare = () => {
         }
     
         // ✅ Delete the Maintenance Record
-        // await remove(ref(db, `Repairing/${delid}`));
-        // console.log(`Deleted Maintenance record with ID: ${delid}`);
+        await remove(ref(db, `Repairing/${delid}`));
+        console.log(`Deleted Maintenance record with ID: ${delid}`);
     
         // ✅ Reset state and show success message
         setdelid("");

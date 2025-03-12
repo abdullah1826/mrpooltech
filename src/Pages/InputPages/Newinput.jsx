@@ -1,6 +1,6 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, push, ref, update, get } from "firebase/database";
+import { onValue, push, ref, set, update, get } from "firebase/database";
 import { db } from "../../Firbase";
 import { useState } from "react";
 import Select from "react-select";
@@ -50,6 +50,7 @@ const Newinput = () => {
   const [selectedOwner, setSelectedOwner] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+// console.log(selectedOwner)
 
   const [products, setProducts] = useState([
     {
@@ -394,6 +395,24 @@ const Newinput = () => {
   //   // Get current timestamp in milliseconds
   //   return `"PT-NP-${randomId}_${currentYear}`;
   // }
+  
+  const handleOwnerChange = async (e) => {
+    const ownerId = e.target.value;
+    setSelectedOwner(ownerId); // Update state
+  
+    if (ownerId) {
+      try {
+        await set(ref(db, `selectedOwners/userId`), {
+          ownerId: ownerId,
+          timestamp: new Date().toISOString(),
+        });
+  
+        console.log("Owner saved successfully");
+      } catch (error) {
+        console.error("Error saving owner:", error);
+      }
+    }
+  };
 
   const createOwner = async (data) => {
     try {
@@ -448,10 +467,17 @@ const Newinput = () => {
 
       let ownerId; // Declare it outside so it is accessible
 
-      // Step 1: Authenticate and Create Owner in Firebase Auth
-      ownerId = await createOwner(data);
-      console.log(ownerId);
-     
+      if (selectedOwner) {
+        ownerId = selectedOwner; // Use the selected owner if available
+      } else {
+        ownerId = await createOwner(data); // Create a new owner if none is selected
+      }
+    
+      if (!ownerId) {
+        console.error("No valid owner ID found!");
+        return;
+      }
+
       const pushKeyRef = push(ref(db, "NewProjects/"));
       const pushKey = pushKeyRef.key;
 
@@ -930,9 +956,9 @@ const Newinput = () => {
                         <select
                           id="ownerDropdown"
                           value={selectedOwner}
-                          onChange={(e) => setSelectedOwner(e.target.value)}
+                          onChange={handleOwnerChange}
                           className="border p-2 rounded w-[100%]"
-                          disabled={showOwnerDetails} // Disable dropdown when "Create New Owner" is active
+                          disabled={showOwnerDetails}
                         >
                           <option value="">-- Select an Owner --</option>
                           {owners.map((owner) => (
@@ -1045,7 +1071,7 @@ const Newinput = () => {
                     </div>
                   )}
                 </div>
-
+                
               </div>
             </div>
           )}

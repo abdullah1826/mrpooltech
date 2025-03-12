@@ -15,7 +15,7 @@ import NewProducts from "../../components/NewProducts";
 import CostItems from "../../components/CostItems";
 import BillProducts from "../../components/BillProducts";
 import { Eye, EyeOff } from "lucide-react";
-
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const Repareinput = () => {
   const navigate = useNavigate();
@@ -29,8 +29,8 @@ const Repareinput = () => {
     poolShape: "",
     owner: "",
     ownerMobile: "",
-    ownerPassword:"",
-    ownerEmail:"",
+    ownerPassword: "",
+    ownerEmail: "",
     reference: "",
     referenceMobile: "",
     // QuotationAmount: "",
@@ -65,8 +65,16 @@ const Repareinput = () => {
   const [showDescription, setShowDescription] = useState(true);
   const [showBalanceAmount, setShowBalanceAmount] = useState(true);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState({});
-    const [showPassword, setShowPassword] = useState(false);
-  
+  const [showPassword, setShowPassword] = useState(false);
+  const [showOwnerDetails, setShowOwnerDetails] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [selectedOwner, setSelectedOwner] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+
+console.log(selectedOwner)
+console.log(owners)
 
   const [products, setProducts] = useState([
     {
@@ -173,6 +181,94 @@ const Repareinput = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        // const db = getDatabase();
+        const ownersRef = ref(db, "Owners");
+        const snapshot = await get(ownersRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const ownerList = Object.keys(data).map((key) => ({
+            id: key,
+            name: data[key].name || "Unknown",
+          }));
+          setOwners(ownerList);
+        } else {
+          setOwners([]);
+        }
+      } catch (err) {
+        setError("Failed to fetch owners.");
+        console.error("Error fetching owners:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOwners();
+  }, []);
+
+
+  const handleOwnerChange = async (e) => {
+    const ownerId = e.target.value;
+    setSelectedOwner(ownerId); // Update state
+
+    if (ownerId) {
+      try {
+        await set(ref(db, `selectedOwners/userId`), {
+          ownerId: ownerId,
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log("Owner saved successfully");
+      } catch (error) {
+        console.error("Error saving owner:", error);
+      }
+    }
+  };
+
+  const createOwner = async (data) => {
+    try {
+      const auth = getAuth();
+
+      // Step 1: Authenticate and Create Owner in Firebase Auth
+      console.log(data);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.ownerEmail,
+        data.ownerPassword
+      );
+      console.log(userCredential);
+      // Ensure the user is properly created before proceeding
+      if (!userCredential || !userCredential.user) {
+        throw new Error("User creation failed, userCredential is undefined.");
+      }
+
+      const user = userCredential.user;
+      const ownerId = user.uid; // Get the unique Firebase Auth UID
+      console.log("Owner ID:", ownerId);
+
+      // Step 2: Ensure ownerId is valid before updating Firebase
+      if (!ownerId) {
+        throw new Error("ownerId is undefined. Firebase update aborted.");
+      }
+
+      // Step 3: Store Owner Details in Firebase Database
+      await update(ref(db, `Owners/${ownerId}`), {
+        id: ownerId,
+        name: data.owner || "N/A",
+        mobile: data.ownerMobile || "N/A",
+        email: data.ownerEmail || "N/A",
+      });
+
+      console.log("Owner details updated successfully!");
+      return ownerId;
+    } catch (error) {
+      console.error("Error creating owner:", error);
+    }
+  };
+
   // console.log(options);
 
   const date = new Date();
@@ -200,6 +296,20 @@ const Repareinput = () => {
     if (data.site && data.area) {
       var projectId = await generateProjectId(data.site);
       console.log(projectId);
+
+      let ownerId; // Declare it outside so it is accessible
+
+      if (selectedOwner) {
+        ownerId = selectedOwner; // Use the selected owner if available
+      } else {
+        ownerId = await createOwner(data); // Create a new owner if none is selected
+      }
+
+      if (!ownerId) {
+        console.error("No valid owner ID found!");
+        return;
+      }
+
       const pushKeyRef = push(ref(db, "Repairing/"));
       const pushKey = pushKeyRef.key;
       const removeProduct = (index) => {
@@ -211,6 +321,7 @@ const Repareinput = () => {
       update(ref(db, `Repairing/${pushKey}`), {
         id: pushKey,
         projectId: projectId,
+        ownerId: ownerId, 
         products: products.map((product, index) => ({
           id: `${pushKey}_${index + 1}`,
           productName: product.productName || "N/A",
@@ -234,10 +345,10 @@ const Repareinput = () => {
 
         site: data.site || "Nill",
         area: data.area || "Nill",
-        owner: data.owner || "Nill",
-        ownerMobile: data.ownerMobile || "Nill",
-        ownerPassword: data.ownerPassword || "",
-        ownerEmail: data.ownerEmail || "",
+        // owner: data.owner || "Nill",
+        // ownerMobile: data.ownerMobile || "Nill",
+        // ownerPassword: data.ownerPassword || "",
+        // ownerEmail: data.ownerEmail || "",
         reference: data.reference || "Nill",
         referenceMobile: data.referenceMobile || "Nill",
         poolSize: data.poolSize || "Nill",
@@ -314,8 +425,8 @@ const Repareinput = () => {
         poolShape: "",
         owner: "",
         ownerMobile: "",
-        ownerPassword:"",
-        ownerEmail:"",
+        ownerPassword: "",
+        ownerEmail: "",
         reference: "",
         referenceMobile: "",
         // QuotationAmount: "",
@@ -416,14 +527,11 @@ const Repareinput = () => {
     },
   ];
 
-
-
   const dayOptions = Array.from({ length: 31 }, (_, index) => (
     <option key={index + 1} value={index + 1}>
       {index + 1}
     </option>
   ));
-
 
   const CustomSelect = () => {
     const [data, setData] = useState({ poolShape: "" });
@@ -776,260 +884,316 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
               </h1>
 
               {/*------ sitedata ----- */}
-          
-                        <div className="grid grid-cols-1 gap-12 bg-gray-30 w-[90%] p-6 rounded-lg shadow-md">
-                          {/* Site Details Section */}
-                          <div>
-                            <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
-                              Site Details
-                            </h1>
-                            <div className="grid grid-cols-2 gap-6">
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">Site</h2>
-                                <input
-                                  type="text"
-                                  placeholder="Site"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, site: e.target.value })
-                                  }
-                                  value={data.site}
-                                />
-                              </div>
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">Address</h2>
-                                <input
-                                  type="text"
-                                  placeholder="Address"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) => {
-                                    setData({ ...data, area: e.target.value });
-                                  }}
-                                  value={data.area}
-                                />
-                              </div>
-          
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">Reference</h2>
-                                <input
-                                  type="text"
-                                  placeholder="Reference"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, reference: e.target.value })
-                                  }
-                                  value={data.reference}
-                                />
-                              </div>
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">
-                                  Reference Mobile
-                                </h2>
-                                <input
-                                  type="number"
-                                  placeholder="Phone number"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) => {
-                                    setData({ ...data, referenceMobile: e.target.value });
-                                  }}
-                                  value={data.referenceMobile}
-                                />
-                              </div>
-          
-                              {/* Pool Size Input */}
-                              <div className="flex flex-col relative">
-                                <h2 className="text-lg font-semibold mb-2">
-                                  Total Volume Of Water (Gallons)
-                                </h2>
-                                <input
-                                  type="text"
-                                  placeholder="Pool size"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) => {
-                                    setData({ ...data, poolSize: e.target.value });
-                                  }}
-                                  value={data.poolSize}
-                                />
-                                <TbRulerMeasure
-                                  onClick={() => handleOpen()}
-                                  className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
-                                />
-                              </div>
-          
-                              <div className="flex flex-col relative">
-                                <h2 className="text-lg font-semibold mb-2">Pool Size</h2>
-                                <input
-                                  type="text"
-                                  placeholder="Pool size"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, poolSize: e.target.value })
-                                  }
-                                  value={data.poolSize}
-                                />
-                                <TbRulerMeasure
-                                  onClick={handleOpen}
-                                  className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
-                                />
-                              </div>
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">
-                                  Number of Visit
-                                </h2>
-                                <select
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) => {
-                                    setData({ ...data, visitNum: e.target.value });
-                                  }}
-                                  value={data.visitNum}
-                                >
-                                  <option value="" disabled>
-                                    0
-                                  </option>
-                                  {dayOptions}
-                                </select>
-                              </div>
-          
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">
-                                  Start Project
-                                </h2>
-                                <input
-                                  type="date"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, activeDate: e.target.value })
-                                  }
-                                  value={data.activeDate}
-                                />
-                              </div>
-          
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">
-                                  Complete Project
-                                </h2>
-                                <input
-                                  type="date"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, inactiveDate: e.target.value })
-                                  }
-                                  value={data.inactiveDate}
-                                />
-                              </div>
-          
-                              <div className="flex flex-col ">
-                                <h2 className="text-lg font-semibold mb-2">
-                                  Total Amount
-                                </h2>
-                                <input
-                                  type="number"
-                                  placeholder="Enter Amount"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) => {
-                                    setData({ ...data, TotalAmount: e.target.value });
-                                  }}
-                                  value={data.TotalAmount}
-                                />
-                              </div>
-          
-                              {/* Payment Due Date Date */}
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">
-                                  Payment Due Date
-                                </h2>
-                                <input
-                                  type="date"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) => {
-                                    setData({ ...data, inactiveDate: e.target.value });
-                                  }}
-                                  value={data.inactiveDate}
-                                />
-                              </div>
-                            </div>
-          
-                          </div>
-          
-                          {/* Owner Details Section */}
-                          <div>
-                            <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
-                               Client Details
-                            </h1>
-                            <div className="grid grid-cols-2 gap-6">
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">Client Name</h2>
-                                <input
-                                  type="text"
-                                  placeholder="Client Name"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, owner: e.target.value })
-                                  }
-                                  value={data.owner}
-                                />
-                              </div>
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">
-                                Client Mobile
-                                </h2>
-                                <input
-                                  type="number"
-                                  placeholder="Client Mobile"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, ownerMobile: e.target.value })
-                                  }
-                                  value={data.ownerMobile}
-                                />
-                              </div>
-          
-                              <div className="flex flex-col">
-                                <h2 className="text-lg font-semibold mb-2">
-                                Client Email
-                                </h2>
-                                <input
-                                  type="email"
-                                  placeholder="Client Email"
-                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) =>
-                                    setData({ ...data, ownerEmail: e.target.value })
-                                  }
-                                  value={data.ownerEmail}
-                                />
-                              </div>
-          
-                              <div className="flex flex-col relative">
-                                <h2 className="text-lg font-semibold mb-2">
-                                Client Password
-                                </h2>
-                                <div className="relative">
-                                  <input
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="Client Password"
-                                    className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
-                                    onChange={(e) =>
-                                      setData({ ...data, ownerPassword: e.target.value })
-                                    }
-                                    value={data.ownerPassword}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                  >
-                                    {showPassword ? (
-                                      <EyeOff size={20} />
-                                    ) : (
-                                      <Eye size={20} />
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
 
+              <div className="grid grid-cols-1 gap-12 bg-gray-30 w-[90%] p-6 rounded-lg shadow-md">
+                {/* Site Details Section */}
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                    Site Details
+                  </h1>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Site</h2>
+                      <input
+                        type="text"
+                        placeholder="Site"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, site: e.target.value })
+                        }
+                        value={data.site}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Address</h2>
+                      <input
+                        type="text"
+                        placeholder="Address"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, area: e.target.value });
+                        }}
+                        value={data.area}
+                      />
+                    </div>
+
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">Reference</h2>
+                      <input
+                        type="text"
+                        placeholder="Reference"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, reference: e.target.value })
+                        }
+                        value={data.reference}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Reference Mobile
+                      </h2>
+                      <input
+                        type="number"
+                        placeholder="Phone number"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, referenceMobile: e.target.value });
+                        }}
+                        value={data.referenceMobile}
+                      />
+                    </div>
+
+                    {/* Pool Size Input */}
+                    <div className="flex flex-col relative">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Total Volume Of Water (Gallons)
+                      </h2>
+                      <input
+                        type="text"
+                        placeholder="Pool size"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, poolSize: e.target.value });
+                        }}
+                        value={data.poolSize}
+                      />
+                      <TbRulerMeasure
+                        onClick={() => handleOpen()}
+                        className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
+                      />
+                    </div>
+
+                    <div className="flex flex-col relative">
+                      <h2 className="text-lg font-semibold mb-2">Pool Size</h2>
+                      <input
+                        type="text"
+                        placeholder="Pool size"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, poolSize: e.target.value })
+                        }
+                        value={data.poolSize}
+                      />
+                      <TbRulerMeasure
+                        onClick={handleOpen}
+                        className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Number of Visit
+                      </h2>
+                      <select
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, visitNum: e.target.value });
+                        }}
+                        value={data.visitNum}
+                      >
+                        <option value="" disabled>
+                          0
+                        </option>
+                        {dayOptions}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Start Project
+                      </h2>
+                      <input
+                        type="date"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, activeDate: e.target.value })
+                        }
+                        value={data.activeDate}
+                      />
+                    </div>
+
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Complete Project
+                      </h2>
+                      <input
+                        type="date"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) =>
+                          setData({ ...data, inactiveDate: e.target.value })
+                        }
+                        value={data.inactiveDate}
+                      />
+                    </div>
+
+                    <div className="flex flex-col ">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Total Amount
+                      </h2>
+                      <input
+                        type="number"
+                        placeholder="Enter Amount"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, TotalAmount: e.target.value });
+                        }}
+                        value={data.TotalAmount}
+                      />
+                    </div>
+
+                    {/* Payment Due Date Date */}
+                    <div className="flex flex-col">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Payment Due Date
+                      </h2>
+                      <input
+                        type="date"
+                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                          setData({ ...data, inactiveDate: e.target.value });
+                        }}
+                        value={data.inactiveDate}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Owner Details Section */}
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                    Client Details
+                  </h1>
+
+                  {/* Button to Show Owner Details */}
+
+                  <div className="flex w-[100%] items-center justify-between">
+                    {/* Select Owner Dropdown */}
+                    <div className="w-[30%]">
+                      <label htmlFor="ownerDropdown">Select Owner:</label>
+                      {loading ? (
+                        <p>Loading owners...</p>
+                      ) : error ? (
+                        <p className="text-red-500">{error}</p>
+                      ) : (
+                        <select
+                          id="ownerDropdown"
+                          value={selectedOwner}
+                          onChange={handleOwnerChange}
+                          className="border p-2 rounded w-[100%]"
+                          disabled={showOwnerDetails}
+                        >
+                          <option value="">-- Select an Owner --</option>
+                          {owners.map((owner) => (
+                            <option key={owner.id} value={owner.id}>
+                              {owner.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <p>OR</p>
+                    {/* Create New Owner Button */}
+                    <button
+                      onClick={() => {
+                        setShowOwnerDetails(!showOwnerDetails);
+                        setSelectedOwner(""); // Reset selected owner when creating a new one
+                      }}
+                      className="h-[40px] w-[30%] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
+                      disabled={selectedOwner} // Disable button when an owner is selected
+                    >
+                      {showOwnerDetails
+                        ? "Hide Owner Details"
+                        : "Create New Owner"}
+                    </button>
+                  </div>
+
+                  {/* Owner Details Section - Only Shows When Button is Clicked */}
+                  {showOwnerDetails && (
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Owner Name */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Owner Name
+                        </h2>
+                        <input
+                          type="text"
+                          placeholder="Owner Name"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, owner: e.target.value })
+                          }
+                          value={data.owner}
+                        />
+                      </div>
+
+                      {/* Owner Mobile */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Mobile
+                        </h2>
+                        <input
+                          type="number"
+                          placeholder="Owner Mobile"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerMobile: e.target.value })
+                          }
+                          value={data.ownerMobile}
+                        />
+                      </div>
+
+                      {/* Owner Email */}
+                      <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Email
+                        </h2>
+                        <input
+                          type="email"
+                          placeholder="Owner Email"
+                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) =>
+                            setData({ ...data, ownerEmail: e.target.value })
+                          }
+                          value={data.ownerEmail}
+                        />
+                      </div>
+
+                      {/* Owner Password with Eye Icon */}
+                      <div className="flex flex-col relative">
+                        <h2 className="text-lg font-semibold mb-2">
+                          Client Password
+                        </h2>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Owner Password"
+                            className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) =>
+                              setData({
+                                ...data,
+                                ownerPassword: e.target.value,
+                              })
+                            }
+                            value={data.ownerPassword}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            {showPassword ? (
+                              <EyeOff size={20} />
+                            ) : (
+                              <Eye size={20} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

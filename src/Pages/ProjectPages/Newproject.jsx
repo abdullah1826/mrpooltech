@@ -36,11 +36,99 @@ const Newproject = () => {
   const [status, setStatus] = useState("all"); // 'all', 'active', 'inactive'
   const [modal, setModal] = useState(false);
   const [modal1, setModal1] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [owners, setOwners] = useState({});
+  const [selectedOwnerId, setSelectedOwnerId] = useState(""); // Selected owner ID
+  const [selectedOwner, setSelectedOwner] = useState(null); // Stores selected owner details
+
+  useEffect(() => {
+    const fetchProjectsWithOwners = async () => {
+      try {
+        // Fetch all owners
+        const ownersSnapshot = await get(ref(db, "Owners"));
+        const ownersData = ownersSnapshot.exists() ? ownersSnapshot.val() : {};
+        setOwners(ownersData); // Store owners data for reference
+
+        // Fetch all projects
+        const projectsSnapshot = await get(ref(db, "NewProjects"));
+        const projectsData = projectsSnapshot.exists()
+          ? projectsSnapshot.val()
+          : {};
+
+        // Convert projectsData to an array and match ownerId with owner details
+        const projectsArray = Object.keys(projectsData).map((key) => {
+          const project = projectsData[key];
+          const owner = ownersData[project.ownerId] || {}; // Get owner details
+
+          return {
+            id: key, // Project ID
+            ...project, // Spread project details
+            ownerName: owner.name || "Unknown Owner",
+            ownerMobile: owner.mobile || "N/A",
+            ownerEmail: owner.email || "N/A",
+          };
+        });
+
+        console.log("Projects with Owner Details:", projectsArray);
+
+        // Save the updated projects with owner details back to Firebase
+        for (const project of projectsArray) {
+          await update(ref(db, `NewProjects/${project.id}`), {
+            ownerName: project.ownerName,
+            ownerMobile: project.ownerMobile,
+            ownerEmail: project.ownerEmail,
+          });
+        }
+
+        setProjects(projectsArray); // Set projects state as an array
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchProjectsWithOwners();
+  }, []);
+
+  // useEffect(() => {
+  //   const fetchProjectsWithOwners = async () => {
+  //     try {
+  //       // Fetch all owners
+  //       const ownersSnapshot = await get(ref(db, "Owners"));
+  //       const ownersData = ownersSnapshot.exists() ? ownersSnapshot.val() : {};
+  //       setOwners(ownersData); // Store all owners in state
+
+  //       // Fetch all projects
+  //       const projectsSnapshot = await get(ref(db, "NewProjects"));
+  //       const projectsData = projectsSnapshot.exists() ? projectsSnapshot.val() : {};
+
+  //       // Convert projectsData to an array and attach only the matched owner details
+  //       const projectsArray = Object.keys(projectsData).map((key) => {
+  //         const project = projectsData[key];
+  //         const owner = ownersData[project.ownerId] || {}; // Match the correct owner
+
+  //         return {
+  //           id: key, // Project ID
+  //           ...project, // Spread project details
+  //           ownerName: owner.name || "Unknown Owner",
+  //           ownerMobile: owner.mobile || "N/A",
+  //           ownerEmail: owner.email || "N/A",
+  //         };
+  //       });
+
+  //       setProjects(projectsArray); // Set only the matched projects
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //     }
+  //   };
+
+  //   fetchProjectsWithOwners();
+  // }, []);
+
+  console.log(owners);
+  // console.log(owners.name)
 
   // console.log(filtered.value)
 
-
-  
   const viewUserData = (row) => {
     setSelectedUser(row);
     setModal1(true);
@@ -662,9 +750,9 @@ const Newproject = () => {
     },
 
     {
-      name: "Owner",
+      name: "Client",
       selector: (row) => {
-        return row.owner;
+        // return project.ownerName;
       },
       sortable: true,
       width: "14%",
@@ -1096,6 +1184,68 @@ const Newproject = () => {
                 </div>
 
                 <div className=" flex justify-start items-center gap-4 flex-wrap w-[100%] ">
+                  {/* <div className="border w-[100%] " >
+                    {projects.map((project) => (
+                      <div key={project.id} className="border w-[100%] flex  p-3 mb-3">
+                      <div className="flex flex-col w-[50%] " >
+                        <div className="flex items-center w-[49%]">
+                          <p className="font-[450] text-[14px] mr-2 flex items-center">
+                            Client:
+                          </p>
+                          <span className="text-[13px]">
+                            {project.ownerName}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center w-[49%]">
+                          <p className="font-[450] text-[14px] mr-2 flex items-center">
+                            Client Mobile:
+                          </p>
+                          <span className="text-[13px]">
+                            {project.ownerMobile}
+                          </span>
+                        </div>
+
+                        </div>
+
+                        <div className="flex items-center w-[50%]">
+                          <p className="font-[450] text-[14px] mr-2 flex items-center">
+                            Client Email:
+                          </p>
+                          <span className="text-[13px]">
+                            {project.ownerEmail}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div> */}
+                  <div>
+      <h2 className="text-lg font-bold">Project & Matched Owner Details</h2>
+
+      {/* Display only the matched project with its owner */}
+      {projects.length > 0 ? (
+        projects.map((project) => (
+          <div key={project.id} className="border p-4 my-2">
+            <p className="text-lg font-bold">Project ID: {project.id}</p>
+            <p><strong>Site:</strong> {project.site}</p>
+            <p><strong>Reference:</strong> {project.reference}</p>
+            <p><strong>Worker:</strong> {project.worker}</p>
+
+            {/* Show only the owner that matches the project's ownerId */}
+            {project.ownerName !== "Unknown Owner" && (
+              <div className="mt-2 p-2 border rounded bg-gray-100">
+                <p className="font-bold">Client Details</p>
+                <p><strong>Name:</strong> {project.ownerName}</p>
+                <p><strong>Mobile:</strong> {project.ownerMobile}</p>
+                <p><strong>Email:</strong> {project.ownerEmail}</p>
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <p>Loading projects...</p>
+      )}
+    </div>
                   <div className="flex  items-center w-[46%]">
                     {" "}
                     <p className="font-[450] text-[14px] mr-2 flex  items-center ">
@@ -1135,47 +1285,16 @@ const Newproject = () => {
                     </p>
                     <span className="text-[13px]">{selectedUser.area}</span>
                   </div>
-                  <div className="flex  items-center  w-[46%]">
-                    {" "}
-                    <p className="font-[450] text-[14px] mr-2 flex  items-center ">
-                      {" "}
-                      Owner :
-                    </p>
-                    <span className="text-[13px]">{selectedUser.owner}</span>
-                  </div>
-                  <div className="flex  items-center  w-[46%]">
+
+                  {/* <div className="flex  items-center  w-[46%]">
                     {" "}
                     <p className="font-[450] text-[14px] mr-2 flex  items-center  ">
-                      Owner Mobile:
-                    </p>
-                    <span className="text-[13px]">
-                      {selectedUser.ownerMobile}
-                    </span>
-                  </div>
-
-                  <div className="flex  items-center  w-[46%]">
-                    {" "}
-                    <p className="font-[450] text-[14px] mr-2 flex  items-center  ">
-                      Owner Email:
-                    </p>
-                    <span className="text-[13px]">
-                      {selectedUser.ownerEmail}
-                    </span>
-                  </div>
-
-
-                  <div className="flex  items-center  w-[46%]">
-                    {" "}
-                    <p className="font-[450] text-[14px] mr-2 flex  items-center  ">
-                       Owner Password:
+                      Client Password:
                     </p>
                     <span className="text-[13px]">
                       {selectedUser.ownerPassword}
                     </span>
-                  </div>
-
-
-
+                  </div> */}
 
                   <div className="flex  items-center  w-[46%]">
                     {" "}
