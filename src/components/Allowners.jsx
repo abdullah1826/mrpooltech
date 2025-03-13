@@ -99,11 +99,11 @@ const PermentWorker = () => {
         <div className="relative  overflow-x-auto  w-[83%]">
           {/* {deletemodal && <Model delfunc={handleDelete} msg={delmsg} />} */}
           <img src={upper} className="w-[100%]" />
-          <Link to="/">
+          {/* <Link to="/">
             <div className="h-[45px] border w-[200px] absolute rounded-md right-6 flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer">
               Add New Worker +
             </div>
-          </Link>
+          </Link> */}
           <div className="w-[95%]  ml-[45px] mt-[60px] relative">
             <div className="p-4 border rounded-md shadow-md bg-white w-full">
               <h2 className="text-lg font-semibold mb-3">Owner List</h2>
@@ -119,6 +119,7 @@ const PermentWorker = () => {
                   <thead>
                     <tr className="bg-gray-100">
                     <th className="border p-2">S. No.</th> {/* New Serial Number Column */}
+                    <th className="border p-2">Site</th>
                       <th className="border p-2">Name</th>
                       <th className="border p-2">Email</th>
                       <th className="border p-2">Mobile</th>
@@ -129,6 +130,7 @@ const PermentWorker = () => {
                     {owners.map((owner, index) => (
                       <tr key={owner.id} className="text-center">
                         <td className="border p-2">{index + 1}</td>{" "}
+                        <td className="border p-2">{owner.site}</td> 
                         <td className="border p-2">{owner.name}</td>
                         <td className="border p-2">{owner.email}</td>
                         <td className="border p-2">{owner.mobile}</td>

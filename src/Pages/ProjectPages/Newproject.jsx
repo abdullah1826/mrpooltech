@@ -39,7 +39,7 @@ const Newproject = () => {
   const [projects, setProjects] = useState([]);
   const [owners, setOwners] = useState({});
   const [selectedOwnerId, setSelectedOwnerId] = useState(""); // Selected owner ID
-  const [selectedOwner, setSelectedOwner] = useState(null); // Stores selected owner details
+  // const [selectedOwner, setSelectedOwner] = useState(null); // Stores selected owner details
 
   useEffect(() => {
     const fetchProjectsWithOwners = async () => {
@@ -48,91 +48,84 @@ const Newproject = () => {
         const ownersSnapshot = await get(ref(db, "Owners"));
         const ownersData = ownersSnapshot.exists() ? ownersSnapshot.val() : {};
         setOwners(ownersData); // Store owners data for reference
-
-        // Fetch all projects
-        const projectsSnapshot = await get(ref(db, "NewProjects"));
-        const projectsData = projectsSnapshot.exists()
-          ? projectsSnapshot.val()
-          : {};
-
-        // Convert projectsData to an array and match ownerId with owner details
-        const projectsArray = Object.keys(projectsData).map((key) => {
-          const project = projectsData[key];
-          const owner = ownersData[project.ownerId] || {}; // Get owner details
-
-          return {
-            id: key, // Project ID
-            ...project, // Spread project details
-            ownerName: owner.name || "Unknown Owner",
-            ownerMobile: owner.mobile || "N/A",
-            ownerEmail: owner.email || "N/A",
-          };
-        });
-
-        console.log("Projects with Owner Details:", projectsArray);
-
-        // Save the updated projects with owner details back to Firebase
-        for (const project of projectsArray) {
-          await update(ref(db, `NewProjects/${project.id}`), {
-            ownerName: project.ownerName,
-            ownerMobile: project.ownerMobile,
-            ownerEmail: project.ownerEmail,
-          });
-        }
-
-        setProjects(projectsArray); // Set projects state as an array
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
+    //     // Fetch all projects
+    //     const projectsSnapshot = await get(ref(db, "NewProjects"));
+    //     const projectsData = projectsSnapshot.exists()
+    //       ? projectsSnapshot.val()
+    //       : {};
+
+    //     // Convert projectsData to an array and match ownerId with owner details
+    //     const projectsArray = Object.keys(projectsData).map((key) => {
+    //       const project = projectsData[key];
+    //       const owner = ownersData[project.ownerId] || {}; // Get owner details
+
+    //       return {
+    //         id: key, // Project ID
+    //         ...project, // Spread project details
+    //         ownerName: owner.name || "Unknown Owner",
+    //         ownerMobile: owner.mobile || "N/A",
+    //         ownerEmail: owner.email || "N/A",
+    //       };
+    //     });
+
+    //     console.log("Projects with Owner Details:", projectsArray);
+
+    //     // Save the updated projects with owner details back to Firebase
+    //     for (const project of projectsArray) {
+    //       await update(ref(db, `NewProjects/${project.id}`), {
+    //         ownerName: project.ownerName,
+    //         ownerMobile: project.ownerMobile,
+    //         ownerEmail: project.ownerEmail,
+    //       });
+    //     }
+
+    //     setProjects(projectsArray); // Set projects state as an array
+    //   } catch (error) {
+    //     console.error("Error fetching data:", error);
+    //   }
+    // };
 
     fetchProjectsWithOwners();
   }, []);
 
-  // useEffect(() => {
-  //   const fetchProjectsWithOwners = async () => {
-  //     try {
-  //       // Fetch all owners
-  //       const ownersSnapshot = await get(ref(db, "Owners"));
-  //       const ownersData = ownersSnapshot.exists() ? ownersSnapshot.val() : {};
-  //       setOwners(ownersData); // Store all owners in state
-
-  //       // Fetch all projects
-  //       const projectsSnapshot = await get(ref(db, "NewProjects"));
-  //       const projectsData = projectsSnapshot.exists() ? projectsSnapshot.val() : {};
-
-  //       // Convert projectsData to an array and attach only the matched owner details
-  //       const projectsArray = Object.keys(projectsData).map((key) => {
-  //         const project = projectsData[key];
-  //         const owner = ownersData[project.ownerId] || {}; // Match the correct owner
-
-  //         return {
-  //           id: key, // Project ID
-  //           ...project, // Spread project details
-  //           ownerName: owner.name || "Unknown Owner",
-  //           ownerMobile: owner.mobile || "N/A",
-  //           ownerEmail: owner.email || "N/A",
-  //         };
-  //       });
-
-  //       setProjects(projectsArray); // Set only the matched projects
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
-
-  //   fetchProjectsWithOwners();
-  // }, []);
-
-  console.log(owners);
-  // console.log(owners.name)
-
   // console.log(filtered.value)
 
+  // const viewUserData = (row) => {
+  //   console.log(owners)
+  //   let selectedOwner = Object.values(owners).find(
+  //     (owner) => owner?.id == row?.ownerId
+  //   );
+  //   console.log(selectedOwner)
+  //   row = { ...row, owner: selectedOwner }; // Corrected spread syntax
+  //   console.log(row)
+  //   setSelectedUser(row);
+  //   setModal1(true);
+  // };
+  
   const viewUserData = (row) => {
-    setSelectedUser(row);
+    console.log(owners);
+    
+    let selectedOwner = Object.values(owners).find(
+      (owner) => owner?.id == row?.ownerId
+    );
+  
+    console.log(selectedOwner);
+  
+    // Ensure the state is updated properly
+    const updatedRow = { ...row, owner: selectedOwner };
+  
+    console.log(updatedRow);
+  
+    setSelectedUser(updatedRow); // Update state correctly
     setModal1(true);
   };
+  
+
+
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
   const handleModalOpen = (id) => {
@@ -571,7 +564,7 @@ const Newproject = () => {
   };
 
   const exportToCSV = (selectedYear, selectedOptions, status) => {
-    console.log("Selected Options:", selectedOptions); // Debug log
+    // console.log("Selected Options:", selectedOptions); // Debug log
 
     if (!mylist || mylist.length === 0) {
       alert("No data to export");
@@ -586,7 +579,7 @@ const Newproject = () => {
       status === "active" ? user.status === true : user.status === false
     );
 
-    console.log(`Filtered ${status} List:`, filteredList);
+    // console.log(`Filtered ${status} List:`, filteredList);
 
     if (filteredList.length === 0) {
       alert(`No ${status} sites found to export.`);
@@ -599,10 +592,10 @@ const Newproject = () => {
     let includeProducts = selectedOptions.includes("Products");
     let includeCosting = selectedOptions.includes("Costing");
 
-    console.log("Include Project:", includeProject);
-    console.log("Include Quotation:", includeQuotation);
-    console.log("Include Costing:", includeCosting);
-    console.log("Include Products:", includeProducts);
+    // console.log("Include Project:", includeProject);
+    // console.log("Include Quotation:", includeQuotation);
+    // console.log("Include Costing:", includeCosting);
+    // console.log("Include Products:", includeProducts);
 
     // ✅ Add headers dynamically
     if (includeProject) {
@@ -1219,33 +1212,29 @@ const Newproject = () => {
                       </div>
                     ))}
                   </div> */}
-                  <div>
-      <h2 className="text-lg font-bold">Project & Matched Owner Details</h2>
+                  <div className="w-[100%]">
 
-      {/* Display only the matched project with its owner */}
-      {projects.length > 0 ? (
-        projects.map((project) => (
-          <div key={project.id} className="border p-4 my-2">
-            <p className="text-lg font-bold">Project ID: {project.id}</p>
-            <p><strong>Site:</strong> {project.site}</p>
-            <p><strong>Reference:</strong> {project.reference}</p>
-            <p><strong>Worker:</strong> {project.worker}</p>
+                    {selectedUser.owner !== "Unknown Owner" && (
+                    
+                      
+                      <div className=" flex justify-evenly flex-wrap w-[95%] mt-2 p-2 border rounded ">
+                      <p className="font-bold">Client Details</p>
+                      <div className=" flex justify-between flex-wrap w-[100%] mt-2 p-2 border rounded bg-gray-100">
 
-            {/* Show only the owner that matches the project's ownerId */}
-            {project.ownerName !== "Unknown Owner" && (
-              <div className="mt-2 p-2 border rounded bg-gray-100">
-                <p className="font-bold">Client Details</p>
-                <p><strong>Name:</strong> {project.ownerName}</p>
-                <p><strong>Mobile:</strong> {project.ownerMobile}</p>
-                <p><strong>Email:</strong> {project.ownerEmail}</p>
-              </div>
-            )}
-          </div>
-        ))
-      ) : (
-        <p>Loading projects...</p>
-      )}
-    </div>
+                        <p>
+                          <strong>Name:</strong> {selectedUser.owner.name}
+                        </p>
+                        <p>
+                          <strong>Mobile:</strong> {selectedUser.owner.mobile}
+                        </p>
+                        <p>
+                          <strong>Email:</strong> {selectedUser.owner.email}
+                        </p>
+                      </div>
+                      </div>
+
+                    )}
+                  </div>
                   <div className="flex  items-center w-[46%]">
                     {" "}
                     <p className="font-[450] text-[14px] mr-2 flex  items-center ">

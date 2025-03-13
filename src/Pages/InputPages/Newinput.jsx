@@ -13,7 +13,7 @@ import img from "../../imgs/noimg.jpg";
 import { TbRulerMeasure } from "react-icons/tb";
 import NewProducts from "../../components/NewProducts";
 import CostItems from "../../components/CostItems";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff ,ChevronDown, ChevronUp } from "lucide-react";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const Newinput = () => {
@@ -50,7 +50,7 @@ const Newinput = () => {
   const [selectedOwner, setSelectedOwner] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-// console.log(selectedOwner)
+  // console.log(selectedOwner)
 
   const [products, setProducts] = useState([
     {
@@ -395,18 +395,25 @@ const Newinput = () => {
   //   // Get current timestamp in milliseconds
   //   return `"PT-NP-${randomId}_${currentYear}`;
   // }
-  
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (ownerId) => {
+    setSelectedOwner(ownerId);
+    setIsOpen(false); // Close dropdown after selection
+  };
+
   const handleOwnerChange = async (e) => {
     const ownerId = e.target.value;
     setSelectedOwner(ownerId); // Update state
-  
+
     if (ownerId) {
       try {
         await set(ref(db, `selectedOwners/userId`), {
           ownerId: ownerId,
           timestamp: new Date().toISOString(),
         });
-  
+
         console.log("Owner saved successfully");
       } catch (error) {
         console.error("Error saving owner:", error);
@@ -446,6 +453,7 @@ const Newinput = () => {
         name: data.owner || "N/A",
         mobile: data.ownerMobile || "N/A",
         email: data.ownerEmail || "N/A",
+        site: data.site || "N/A",
       });
 
       console.log("Owner details updated successfully!");
@@ -472,7 +480,7 @@ const Newinput = () => {
       } else {
         ownerId = await createOwner(data); // Create a new owner if none is selected
       }
-    
+
       if (!ownerId) {
         console.error("No valid owner ID found!");
         return;
@@ -709,6 +717,14 @@ const Newinput = () => {
   const workerOptions = workerType ? workersByType[workerType.value] : [];
   // console.log(workerOptions);
 
+  const customStyles = {
+    menuList: (provided) => ({
+      ...provided,
+      maxHeight: "150px", // Adjust height as needed
+      overflowY: "auto", // Enables scrollbar
+    }),
+  };
+
   return (
     <>
       <VolumeCalculateModal
@@ -722,54 +738,10 @@ const Newinput = () => {
         <Sidebar />
 
         <div className="relative flex flex-col  w-[100%] h-auto pl-9">
-          <div className="  flex justify-between items-end mt-10 w-[95%] ">
-            {/* --------workerdetails-------- */}
-            <div className="flex flex-col w-[55%]  ">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
-                Employee Selection
-              </h2>
-
-              {/* Merged Selector */}
-              <div className="flex flex-row gap-6 w-[100%] items-center justify-between ">
-                {/* Worker Type Selector */}
-                <div className="w-[90%]">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Employee Type
-                  </label>
-                  <Select
-                    onChange={(selectedOption) => {
-                      setWorkerType(selectedOption);
-                      setWorker(null); // Reset worker selection
-                    }}
-                    value={workerType}
-                    options={workerTypeOptions}
-                    placeholder="Select Type First"
-                    className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* Worker Selector */}
-                <div className="w-[90%]">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Employee Name
-                  </label>
-                  <Select
-                    onChange={setWorker}
-                    value={worker}
-                    options={workerOptions}
-                    placeholder={
-                      workerType ? "Select Worker" : "Select  Type First"
-                    }
-                    isDisabled={!workerType}
-                    className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-
+          <div className="  flex justify-center items-end mt-10 w-[100%] ">
             {/* --------togglebuttons-------- */}
 
-            <div className="flex justify-center  w-[40%]  bg-gray-200  rounded-[35px] mb-[0px]">
+            <div className="flex justify-center  w-[50%]  bg-gray-200  rounded-[35px] mb-[0px]">
               <button
                 className={`px-2 py-0 w-[33%] font-semibold text-sm rounded-[35px] h-[45px] ${
                   activeTab === "projectDetails"
@@ -810,16 +782,17 @@ const Newinput = () => {
           {activeTab === "projectDetails" && (
             <div className=" ProjectDetails flex items-start justify-center flex-col gap-2  mt-[20px] ">
               {/*-------- workerlist -------- */}
-
-              <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4 mt-4">
-                Project Details
-              </h1>
+              <div className="w-[90%] flex items-center justify-center">
+                <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4 mt-4">
+                  Project Details
+                </h1>
+              </div>
 
               {/*------ sitedata ----- */}
               <div className="grid grid-cols-1 gap-12 bg-gray-30 w-[90%] p-6 rounded-lg shadow-md">
                 {/* Site Details Section */}
-                <div>
-                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                <div className="w-[100%]">
+                  <h1 className=" w-max items-start text-start text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
                     Site Details
                   </h1>
                   <div className="grid grid-cols-2 gap-6">
@@ -938,7 +911,7 @@ const Newinput = () => {
 
                 {/* Owner Details Section */}
                 <div>
-                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                  <h1 className="text-xl w-max font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
                     Client Details
                   </h1>
 
@@ -946,38 +919,49 @@ const Newinput = () => {
 
                   <div className="flex w-[100%] items-center justify-between">
                     {/* Select Owner Dropdown */}
-                    <div className="w-[30%]">
-                      <label htmlFor="ownerDropdown">Select Owner:</label>
-                      {loading ? (
-                        <p>Loading owners...</p>
-                      ) : error ? (
-                        <p className="text-red-500">{error}</p>
-                      ) : (
-                        <select
-                          id="ownerDropdown"
-                          value={selectedOwner}
-                          onChange={handleOwnerChange}
-                          className="border p-2 rounded w-[100%]"
-                          disabled={showOwnerDetails}
-                        >
-                          <option value="">-- Select an Owner --</option>
-                          {owners.map((owner) => (
-                            <option key={owner.id} value={owner.id}>
-                              {owner.name}
-                            </option>
-                          ))}
-                        </select>
+                    <div className="relative w-[49%]">
+                      {/* Dropdown Button */}
+                      <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        disabled={showOwnerDetails}
+                        className="border flex justify-between p-2 rounded w-full text-left bg-white shadow-md"
+                      >
+                        {selectedOwner
+                          ? owners.find((owner) => owner.id === selectedOwner)
+                              ?.name
+                          : "-- Select recent Owner --"}
+                          {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </button>
+
+                      {/* Dropdown List (Shows only when isOpen is true) */}
+                      {isOpen && (
+                        <div className="absolute left-0 mt-1 w-full border rounded bg-white shadow-lg max-h-40 overflow-y-auto z-10">
+                          {owners.length > 0 ? (
+                            owners.map((owner) => (
+                              <div
+                                key={owner.id}
+                                onClick={() => handleSelect(owner.id)}
+                                className="p-2 cursor-pointer hover:bg-gray-200"
+                              >
+                                {owner.name}
+                              </div>
+                            ))
+                          ) : (
+                            <p className="p-2 text-gray-500">No Clients found</p>
+                          )}
+                        </div>
                       )}
                     </div>
+                    {/* <div className="flex justify-between w-max" > <div  className="border-b-2 border-gray-400" >.ks</div> <p>OR</p> <div className="border-b-2 border-gray-400" ></div> </div> */}
 
-                    <p>OR</p>
+                    <p>-- OR --</p>
                     {/* Create New Owner Button */}
                     <button
                       onClick={() => {
                         setShowOwnerDetails(!showOwnerDetails);
                         setSelectedOwner(""); // Reset selected owner when creating a new one
                       }}
-                      className="h-[40px] w-[30%] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
+                      className="h-[40px] w-[30%]  bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
                       disabled={selectedOwner} // Disable button when an owner is selected
                     >
                       {showOwnerDetails
@@ -1070,6 +1054,53 @@ const Newinput = () => {
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* --------workerdetails-------- */}
+                <div className="flex flex-col w-[100%]  ">
+                  <h2 className="text-xl  w-max font-bold border-b-2 border-gray-300 text-gray-800 mb-6">
+                    Employee Selection
+                  </h2>
+
+                  {/* Merged Selector */}
+                  <div className="flex flex-row gap-6 w-[100%] items-center justify-between ">
+                    {/* Worker Type Selector */}
+                    <div className="w-[90%]">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Employee Type
+                      </label>
+                      <Select
+                        onChange={(selectedOption) => {
+                          setWorkerType(selectedOption);
+                          setWorker(null); // Reset worker selection
+                        }}
+                        value={workerType}
+                        options={workerTypeOptions}
+                        placeholder="Select Type First"
+                        className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Worker Selector */}
+                    <div className="w-[90%]">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Employee Name
+                      </label>
+                      <Select
+                        onChange={setWorker}
+                        value={worker}
+                        options={workerOptions}
+                        placeholder={
+                          workerType ? "Select Worker" : "Select  Type First"
+                        }
+                        isDisabled={!workerType}
+                        menuPlacement="top" 
+                        styles={customStyles} // Apply custom styles
+                        className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500 scroll-y-auto"
+                      />
+                    </div>
+
+                  </div>
                 </div>
                 
               </div>
