@@ -92,39 +92,23 @@ const Newproject = () => {
     fetchProjectsWithOwners();
   }, []);
 
-  // console.log(filtered.value)
-
-  // const viewUserData = (row) => {
-  //   console.log(owners)
-  //   let selectedOwner = Object.values(owners).find(
-  //     (owner) => owner?.id == row?.ownerId
-  //   );
-  //   console.log(selectedOwner)
-  //   row = { ...row, owner: selectedOwner }; // Corrected spread syntax
-  //   console.log(row)
-  //   setSelectedUser(row);
-  //   setModal1(true);
-  // };
-  
   const viewUserData = (row) => {
     console.log(owners);
-    
+
     let selectedOwner = Object.values(owners).find(
       (owner) => owner?.id == row?.ownerId
     );
-  
+
     console.log(selectedOwner);
-  
+
     // Ensure the state is updated properly
     const updatedRow = { ...row, owner: selectedOwner };
-  
+
     console.log(updatedRow);
-  
+
     setSelectedUser(updatedRow); // Update state correctly
     setModal1(true);
   };
-  
-
 
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
@@ -1212,29 +1196,32 @@ const Newproject = () => {
                       </div>
                     ))}
                   </div> */}
-                  <div className="w-[100%]">
-
-                    {selectedUser.owner !== "Unknown Owner" && (
-                    
-                      
-                      <div className=" flex justify-evenly flex-wrap w-[95%] mt-2 p-2 border rounded ">
-                      <p className="font-bold">Client Details</p>
-                      <div className=" flex justify-between flex-wrap w-[100%] mt-2 p-2 border rounded bg-gray-100">
-
-                        <p>
-                          <strong>Name:</strong> {selectedUser.owner.name}
+                  <div className="w-[100%] flex items-center justify-center">
+                  {selectedUser?.owner !== "Unknown Owner" && (
+                      <div className=" flex justify-evenly flex-wrap w-[100%] mt-2 p-2 border rounded ">
+                        <p className=" w-[100%] text-start font-bold">
+                          Client Details
                         </p>
-                        <p>
-                          <strong>Mobile:</strong> {selectedUser.owner.mobile}
-                        </p>
-                        <p>
-                          <strong>Email:</strong> {selectedUser.owner.email}
-                        </p>
+                        <div className=" flex justify-between flex-wrap w-[100%] mt-2 p-2 border rounded bg-gray-100">
+                          <p>
+                            <strong>Name:</strong> {selectedUser?.owner.name}
+                          </p>
+                          <p>
+                            <strong>Mobile:</strong>{" "}
+                            {selectedUser?.owner.mobile}
+                          </p>
+                          <p>
+                            <strong>Email:</strong> {selectedUser?.owner.email}
+                          </p>
+                        </div>
                       </div>
-                      </div>
-
                     )}
                   </div>
+
+
+                  <h2 className="text-md w-[95%] text-start font-bold  border-b border-gray-300 pb-2 text-gray-800">
+                    Site Details
+                  </h2>
                   <div className="flex  items-center w-[46%]">
                     {" "}
                     <p className="font-[450] text-[14px] mr-2 flex  items-center ">

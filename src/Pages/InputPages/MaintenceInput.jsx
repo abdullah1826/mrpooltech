@@ -237,7 +237,7 @@ const Newinput = () => {
     setIsOpen(false); // Close dropdown after selection
   };
 
-  const createOwner = async (data) => {
+  const createOwner = async (data , projectId) => {
     try {
       const auth = getAuth();
 
@@ -248,7 +248,7 @@ const Newinput = () => {
         data.ownerEmail,
         data.ownerPassword
       );
-      console.log(userCredential);
+      // console.log(userCredential);
       // Ensure the user is properly created before proceeding
       if (!userCredential || !userCredential.user) {
         throw new Error("User creation failed, userCredential is undefined.");
@@ -263,13 +263,28 @@ const Newinput = () => {
         throw new Error("ownerId is undefined. Firebase update aborted.");
       }
 
-      // Step 3: Store Owner Details in Firebase Database
-      await update(ref(db, `Owners/${ownerId}`), {
-        id: ownerId,
-        name: data.owner || "N/A",
-        mobile: data.ownerMobile || "N/A",
-        email: data.ownerEmail || "N/A",
-      });
+       // Define pushKey dynamically for assigned sites
+          const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+          if (!pushKey) {
+            throw new Error("Failed to generate pushKey.");
+          }
+    
+         
+          await update(ref(db, `Owners/${ownerId}`), {
+            id: ownerId,
+            name: data.owner || "N/A",
+            mobile: data.ownerMobile || "N/A",
+            email: data.ownerEmail || "N/A",
+            projectId: projectId, // Ensure projectId is stored
+            assignedSites: {
+              [pushKey]: {
+                id: pushKey,
+                siteName: data.site || "N/A",
+                projectId: projectId,
+                siteUid: pushKey,
+              }
+            }
+          });
 
       console.log("Owner details updated successfully!");
       return ownerId;
@@ -302,7 +317,7 @@ const Newinput = () => {
       let ownerId; // Declare it outside so it is accessible
 
       // Step 1: Authenticate and Create Owner in Firebase Auth
-      ownerId = await createOwner(data);
+      ownerId = await createOwner(data , projectId);
       console.log(ownerId);
 
       const pushKeyRef = push(ref(db, "Maintenance/"));
@@ -316,6 +331,8 @@ const Newinput = () => {
       update(ref(db, `Maintenance/${pushKey}`), {
         id: pushKey,
         projectId: projectId,
+        ownerId: ownerId, // Store the created owner ID here
+
         products: products.map((product, index) => ({
           id: `${pushKey}_${index + 1}`,
           productName: product.productName || "N/A",

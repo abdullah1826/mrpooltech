@@ -1,6 +1,6 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, ref, get ,remove, update } from "firebase/database";
+import { onValue, ref, get, remove, update } from "firebase/database";
 import { db } from "../../Firbase";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -30,9 +30,39 @@ const Repare = () => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [filtered, setFiltered] = useState(mylist);
   const [status, setStatus] = useState("all"); // 'all', 'active', 'inactive'
+  const [owners, setOwners] = useState({});
+  const [selectedOwnerId, setSelectedOwnerId] = useState(""); // Selected owner ID
+
+  useEffect(() => {
+    const fetchProjectsWithOwners = async () => {
+      try {
+        // Fetch all owners
+        const ownersSnapshot = await get(ref(db, "Owners"));
+        const ownersData = ownersSnapshot.exists() ? ownersSnapshot.val() : {};
+        setOwners(ownersData); // Store owners data for reference
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchProjectsWithOwners();
+  }, []);
 
   const viewUserData = (row) => {
-    setSelectedUser(row);
+    console.log(owners);
+
+    let selectedOwner = Object.values(owners).find(
+      (owner) => owner?.id == row?.ownerId
+    );
+
+    console.log(selectedOwner);
+
+    // Ensure the state is updated properly
+    const updatedRow = { ...row, owner: selectedOwner };
+
+    console.log(updatedRow);
+
+    setSelectedUser(updatedRow); // Update state correctly
     setModal1(true);
   };
 
@@ -53,16 +83,13 @@ const Repare = () => {
 
   let { showmodal, deletemodal } = useContext(ModalContext);
   const [modal, setModal] = useState(false);
-  console.log(mylist);
+  // console.log(mylist);
   let updateLinks = () => {
     if (mylist?.length === 1) {
       setmylist([]);
       setFiltered([]);
     }
   };
-
-
-
 
   // const handleDelete = () => {
   //   remove(ref(db, `/Repairing/${delid}`));
@@ -72,124 +99,119 @@ const Repare = () => {
   //   toast.success("Record delete successfully!");
   // };
 
+  const handleDelete = async () => {
+    try {
+      // console.log("Deleting record with ID:", delid);
 
+      // ✅ Get the projectId from the Maintenance record
+      const maintenanceSnapshot = await get(ref(db, `Repairing/${delid}`));
+      if (!maintenanceSnapshot.exists()) {
+        toast.error("Maintenance record not found!");
+        return;
+      }
 
+      const maintenanceData = maintenanceSnapshot.val();
+      // console.log("Maintenance Record:", maintenanceData);
 
-  
-    const handleDelete = async () => {
+      let projectId = maintenanceData.projectId; // Default projectId from Maintenance
+      let deletePromises = []; // Array to hold delete operations
+
+      let workerType = maintenanceData.workerType;
+      // console.log("Worker Type:", workerType);
+
+      let workertable = "";
+
+      if (workerType === "permanent") {
+        workertable = "workers";
+      } else if (workerType === "other") {
+        workertable = "otherWorkers";
+      } else if (workerType === "visitor") {
+        workertable = "visitingWorkers";
+      } else {
+        console.error("Invalid workerType:", workerType);
+        toast.error("Invalid worker type!");
+        return; // Stop execution if workerType is invalid
+      }
+
+      // console.log("Worker Table:", workertable);
+
+      // ✅ Fetch all workers based on workerType
+      let workersSnapshot;
       try {
-        // console.log("Deleting record with ID:", delid);
-    
-        // ✅ Get the projectId from the Maintenance record
-        const maintenanceSnapshot = await get(ref(db, `Repairing/${delid}`));
-        if (!maintenanceSnapshot.exists()) {
-          toast.error("Maintenance record not found!");
-          return;
-        }
-    
-        const maintenanceData = maintenanceSnapshot.val();
-        // console.log("Maintenance Record:", maintenanceData);
-    
-        let projectId = maintenanceData.projectId; // Default projectId from Maintenance
-        let deletePromises = []; // Array to hold delete operations
-    
-        let workerType = maintenanceData.workerType;
-        // console.log("Worker Type:", workerType);
-    
-        let workertable = "";
-    
-        if (workerType === "permanent") {
-          workertable = "workers";
-        } else if (workerType === "other") {
-          workertable = "otherWorkers";
-        } else if (workerType === "visitor") {
-          workertable = "visitingWorkers";
-        } else {
-          console.error("Invalid workerType:", workerType);
-          toast.error("Invalid worker type!");
-          return; // Stop execution if workerType is invalid
-        }
-    
-        // console.log("Worker Table:", workertable);
-    
-        // ✅ Fetch all workers based on workerType
-        let workersSnapshot;
-        try {
-          workersSnapshot = await get(ref(db, workertable));
-          // console.log("Workers Data:", workersSnapshot.val());
-        } catch (error) {
-          console.error("Error fetching workers:", error);
-          toast.error("Failed to fetch workers.");
-          return;
-        }
-    
-        if (workersSnapshot.exists()) {
-          const workersData = workersSnapshot.val();
-          // console.log("Workers Data:", workersData);
-    
-          // 🔄 Loop through each worker
-          for (const workerId in workersData) {
-            const worker = workersData[workerId];
-    
-            if (worker.assignedSites) {
-              // console.log(`Worker ${workerId} Assigned Sites:`, worker.assignedSites);
-    
-              for (const siteId in worker.assignedSites) {
-                const site = worker.assignedSites[siteId];
-    
-                // console.log(`Checking site:`, site);
-    
-                // 🔎 Check if this site matches the deleted maintenance record
-                if (site?.siteUid === delid) {
-                  // console.log(`Deleting assigned site: ${siteId} from worker: ${workerId}`);
-    
-                  // ✅ Correct database path usage
-                  deletePromises?.push(
-                    remove(ref(db, `${workertable}/${workerId}/assignedSites/${siteId}`))
-                  );
-    
-                  projectId = site?.projectId;
-                  console.log("Found and Deleted Assigned Site. Project ID:", projectId);
-                }
+        workersSnapshot = await get(ref(db, workertable));
+        // console.log("Workers Data:", workersSnapshot.val());
+      } catch (error) {
+        console.error("Error fetching workers:", error);
+        toast.error("Failed to fetch workers.");
+        return;
+      }
+
+      if (workersSnapshot.exists()) {
+        const workersData = workersSnapshot.val();
+        // console.log("Workers Data:", workersData);
+
+        // 🔄 Loop through each worker
+        for (const workerId in workersData) {
+          const worker = workersData[workerId];
+
+          if (worker.assignedSites) {
+            // console.log(`Worker ${workerId} Assigned Sites:`, worker.assignedSites);
+
+            for (const siteId in worker.assignedSites) {
+              const site = worker.assignedSites[siteId];
+
+              // console.log(`Checking site:`, site);
+
+              // 🔎 Check if this site matches the deleted maintenance record
+              if (site?.siteUid === delid) {
+                // console.log(`Deleting assigned site: ${siteId} from worker: ${workerId}`);
+
+                // ✅ Correct database path usage
+                deletePromises?.push(
+                  remove(
+                    ref(
+                      db,
+                      `${workertable}/${workerId}/assignedSites/${siteId}`
+                    )
+                  )
+                );
+
+                projectId = site?.projectId;
+                console.log(
+                  "Found and Deleted Assigned Site. Project ID:",
+                  projectId
+                );
               }
             }
           }
-        } else {
-          console.log("No workers data found!");
         }
-    
-        // ✅ Execute all delete operations before proceeding
-        await Promise.all(deletePromises);
-    
-        // ✅ Ensure projectId is valid before proceeding
-        if (!projectId) {
-          toast.error("Project ID not found!");
-          return;
-        }
-    
-        // ✅ Delete the Maintenance Record
-        await remove(ref(db, `Repairing/${delid}`));
-        console.log(`Deleted Maintenance record with ID: ${delid}`);
-    
-        // ✅ Reset state and show success message
-        setdelid("");
-        updateLinks();
-        setModal(false);
-        toast.success("Record deleted successfully!");
-      } catch (error) {
-        console.error("Error deleting record:", error);
-        toast.error("Failed to delete record.");
+      } else {
+        console.log("No workers data found!");
       }
-    };
-    
 
+      // ✅ Execute all delete operations before proceeding
+      await Promise.all(deletePromises);
 
+      // ✅ Ensure projectId is valid before proceeding
+      if (!projectId) {
+        toast.error("Project ID not found!");
+        return;
+      }
 
+      // ✅ Delete the Maintenance Record
+      await remove(ref(db, `Repairing/${delid}`));
+      console.log(`Deleted Maintenance record with ID: ${delid}`);
 
-
-
-
-
+      // ✅ Reset state and show success message
+      setdelid("");
+      updateLinks();
+      setModal(false);
+      toast.success("Record deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      toast.error("Failed to delete record.");
+    }
+  };
 
   const handleclose = () => {
     setModal(false);
@@ -251,7 +273,7 @@ const Repare = () => {
     setFiltered(result);
   }, [search, status, mylist]);
 
-  console.log("list", mylist);
+  // console.log("list", mylist);
 
   // const handleDelete = (id) => {
   //   //  try {
@@ -398,13 +420,9 @@ const Repare = () => {
   //   XLSX.writeFile(workbook, fileName);
   // };
 
-
-
-  
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedOptions, setSelectedOptions] = useState([]);
-  
 
   const toggleOption = (option) => {
     setSelectedOptions((prev) =>
@@ -438,7 +456,6 @@ const Repare = () => {
       alert("No data to export");
       return;
     }
-
 
     // Define header columns
     const csvHeaders = [
@@ -549,9 +566,6 @@ const Repare = () => {
 
     XLSX.writeFile(workbook, fileName);
   };
-
-
-
 
   let sr = 0;
 
@@ -736,75 +750,72 @@ const Repare = () => {
               </select>
             </div>
 
-           <div className="relative inline-block">
-                        {/* Export Button */}
-                        <div>
-                     
-                        <button
-                          onClick={() => setDropdownOpen(!dropdownOpen)}
-                          className="h-[45px] w-[180px] text-md font-semibold rounded-xl flex justify-between items-center px-4 bg-[#35A1CC] hover:bg-[#0b6e99] focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-150 ease-in-out text-white shadow-md hover:shadow-lg"
+            <div className="relative inline-block">
+              {/* Export Button */}
+              <div>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="h-[45px] w-[180px] text-md font-semibold rounded-xl flex justify-between items-center px-4 bg-[#35A1CC] hover:bg-[#0b6e99] focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-150 ease-in-out text-white shadow-md hover:shadow-lg"
+                >
+                  <span>Export CSV</span>
+                  <FaDownload className="text-lg" />
+                </button>
+              </div>
+
+              {/* Dropdown Menu */}
+              {dropdownOpen && (
+                <div className="absolute">
+                  {/* Download Button */}
+
+                  <div className="relative inline-block">
+                    {/* Dropdown Menu */}
+                    {dropdownOpen && (
+                      <div className="absolute w-[250px] bg-white shadow-lg rounded-xl p-4 z-20">
+                        {/* Year Selection */}
+                        <label className="block text-gray-700 font-semibold mb-1">
+                          Select Year
+                        </label>
+                        <select
+                          className="w-full p-2 border rounded-md outline-none cursor-pointer"
+                          value={selectedYear}
+                          onChange={(e) => setSelectedYear(e.target.value)}
                         >
-                          <span>Export CSV</span>
-                          <FaDownload className="text-lg" />
-                        </button>
-          
+                          {Array.from(
+                            { length: new Date().getFullYear() - 2020 + 1 },
+                            (_, i) => 2020 + i
+                          ).map((year) => (
+                            <option key={year} value={year}>
+                              {year}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Checkboxes for Details */}
+                        <div className="mt-3">
+                          <span className="block text-gray-700 font-semibold mb-1">
+                            Include Details:
+                          </span>
+                          {options.map((option, index) => (
+                            <label
+                              key={index}
+                              className="flex items-center space-x-2 py-1"
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
+                                checked={selectedOptions.includes(option)}
+                                onChange={() => toggleOption(option)}
+                              />
+                              <span className="text-gray-700">{option}</span>
+                            </label>
+                          ))}
                         </div>
-          
-                        {/* Dropdown Menu */}
-                         {dropdownOpen && (
-                          <div className="absolute">
-                            {/* Download Button */}
-          
-                            <div className="relative inline-block">                  
-                              {/* Dropdown Menu */}
-                              {dropdownOpen && (
-                                <div className="absolute w-[250px] bg-white shadow-lg rounded-xl p-4 z-20">
-                                  {/* Year Selection */}
-                                  <label className="block text-gray-700 font-semibold mb-1">
-                                    Select Year
-                                  </label>
-                                  <select
-                                    className="w-full p-2 border rounded-md outline-none cursor-pointer"
-                                    value={selectedYear}
-                                    onChange={(e) => setSelectedYear(e.target.value)}
-                                  >
-                                    {Array.from(
-                                      { length: new Date().getFullYear() - 2020 + 1 },
-                                      (_, i) => 2020 + i
-                                    ).map((year) => (
-                                      <option key={year} value={year}>
-                                        {year}
-                                      </option>
-                                    ))}
-                                  </select>
-          
-                                  {/* Checkboxes for Details */}
-                                  <div className="mt-3">
-                                    <span className="block text-gray-700 font-semibold mb-1">
-                                      Include Details:
-                                    </span>
-                                    {options.map((option, index) => (
-                                      <label
-                                        key={index}
-                                        className="flex items-center space-x-2 py-1"
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
-                                          checked={selectedOptions.includes(option)}
-                                          onChange={() => toggleOption(option)}
-                                        />
-                                        <span className="text-gray-700">{option}</span>
-                                      </label>
-                                    ))}
-                                  </div>
-                                 
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <Link to="/repareInput">
               <div className="h-[45px] border w-[150px] text-md rounded-xl  flex justify-center items-center bg-[#35A1CC]  hover:bg-[#0b6e99]  text-white cursor-pointer shadow-md hover:shadow-xl ">
@@ -912,7 +923,7 @@ const Repare = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 800,
+            width: 850,
             bgcolor: "white",
             borderRadius: "5px",
             background: "#FFF",
@@ -943,49 +954,72 @@ const Repare = () => {
           {selectedUser && (
             <>
               <div className="flex justify-start items-center flex-col w-[100%]">
-                <div className="w-[90%]  flex items-center justify-between border-b border-gray-300 pb-2 mt-5 mb-5">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Pool Features
-                  </h2>
+              <div className="w-[95%]  flex items-center mt-2 justify-between   ">
+              <Typography variant="h5" className="mt-5 mb-5 " gutterBottom>
+                    <h1 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4  ">
+                      Project Details
+                    </h1>
+                  </Typography>
 
                   <button
                     onClick={() =>
                       navigate(`/Invoice2/${selectedUser?.id}/repairing`)
                     }
-                    className=" mr-[15px] w-[100px] h-[40px] text-sm px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
+                    className=" mb-[40px] mr-[40px] w-[100px] h-[40px] text-sm px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
                   >
                     Invoice
                   </button>
                 </div>
 
-                <div className="flex items-center justify-start w-[90%]">
-                  <p className="font-[450] text-[14px] mr-3 flex items-center">
-                    Selected Pools:
-                  </p>
-                  <span className="text-[12px] ">
-                    {selectedUser?.selectedCheckboxes
-                      ? Object.entries(selectedUser.selectedCheckboxes).map(
-                          ([key, value], index, array) =>
-                            value && (
-                              <span key={index} className="  ">
-                                {key}
-                                {index < array.length - 1 && ", "}
-                              </span>
-                            )
-                        )
-                      : "No pools selected"}
-                  </span>
+              
+                <div className="w-[100%] flex items-center justify-center">
+                  {selectedUser?.owner !== "Unknown Owner" && (
+                    <div className=" flex justify-evenly flex-wrap w-[95%] mt-2 p-2 border rounded ">
+                      <p className=" w-[100%] text-start font-bold">
+                        Client Details
+                      </p>
+                      <div className=" flex justify-between flex-wrap w-[100%] mt-2 p-2  rounded bg-gray-100">
+                        <p>
+                          <strong>Name:</strong> {selectedUser?.owner.name}
+                        </p>
+                        <p>
+                          <strong>Mobile:</strong> {selectedUser?.owner.mobile}
+                        </p>
+                        <p>
+                          <strong>Email:</strong> {selectedUser?.owner.email}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className=" flex justify-start items-center w-[90%] ">
-                  <Typography variant="h5" className="mt-5 mb-5" gutterBottom>
-                    <h1 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4  ">
-                      Project Details
-                    </h1>
-                  </Typography>
+                <div className=" flex justify-evenly flex-wrap w-[95%] my-2 p-2 border rounded ">
+                  <h2 className="text-md w-[100%] text-start font-bold text-gray-800">
+                    Pool Features
+                  </h2>
+
+                  <div className="flex items-center justify-start w-[100%]">
+                    <p className="font-[450] text-[14px] mr-1 my-2 flex items-center">
+                      Selected Pools:
+                    </p>
+                    <span className="text-[12px] ">
+                      {selectedUser?.selectedCheckboxes
+                        ? Object.entries(selectedUser.selectedCheckboxes).map(
+                            ([key, value], index, array) =>
+                              value && (
+                                <span key={index} className="  ">
+                                  {key}
+                                  {index < array.length - 1 && ", "}
+                                </span>
+                              )
+                          )
+                        : "No pools selected"}
+                    </span>
+                  </div>
                 </div>
 
-                <div className=" flex justify-start items-center gap-4 flex-wrap w-[90%] ">
+
+                <div className=" flex justify-start items-center gap-4 flex-wrap w-[95%] ">
                   <div className="flex  items-center w-[46%]">
                     {" "}
                     <p className="font-[450] text-[14px] mr-2 flex  items-center ">
@@ -1026,23 +1060,8 @@ const Repare = () => {
                     </p>
                     <span className="text-[13px]">{selectedUser.area}</span>
                   </div>
-                  <div className="flex  items-center  w-[46%]">
-                    {" "}
-                    <p className="font-[450] text-[14px] mr-2 flex  items-center ">
-                      {" "}
-                      Owner :
-                    </p>
-                    <span className="text-[13px]">{selectedUser.owner}</span>
-                  </div>
-                  <div className="flex  items-center  w-[46%]">
-                    {" "}
-                    <p className="font-[450] text-[14px] mr-2 flex  items-center  ">
-                      Owner Mobile:
-                    </p>
-                    <span className="text-[13px]">
-                      {selectedUser.ownerMobile}
-                    </span>
-                  </div>
+                  
+                 
 
                   <div className="flex  items-center  w-[46%]">
                     {" "}
@@ -1109,14 +1128,14 @@ const Repare = () => {
                   </div>
                 </div>
 
-                <div className=" flex justify-start items-center w-[90%] ">
+                <div className=" flex justify-start items-center w-[95%]">
                   <Typography variant="h5" className="mt-5 mb-5" gutterBottom>
                     <h1 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4  ">
                       Billing
                     </h1>
                   </Typography>
                 </div>
-                <div className=" flex justify-start items-center gap-4 flex-wrap w-[90%] ">
+                <div className=" flex justify-start items-center gap-4 flex-wrap w-[95%] ">
                   <div className="flex items-center w-[46%]">
                     <p className="font-[450] text-[14px] mr-2 flex items-center">
                       Site:
@@ -1182,7 +1201,7 @@ const Repare = () => {
                   </div>
                 </div>
 
-                <div className=" flex justify-start items-center w-[90%] ">
+                <div className=" flex justify-start items-center w-[95%] ">
                   <Typography variant="h5" className="mt-5 mb-5" gutterBottom>
                     <h1 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4  ">
                       Bill Products
@@ -1190,7 +1209,7 @@ const Repare = () => {
                   </Typography>
                 </div>
 
-                <div className="flex items-center w-[90%]">
+                <div className="flex items-center w-[95%]">
                   {selectedUser?.products?.length > 0 ? (
                     <table className="w-[100%] table-auto text-[13px] border-collapse border border-gray-300">
                       <thead>
@@ -1245,7 +1264,7 @@ const Repare = () => {
                   )}
                 </div>
 
-                <div className=" flex justify-start items-center w-[90%] ">
+                <div className=" flex justify-start items-center w-[95%] ">
                   <Typography variant="h5" className="mt-5 mb-1" gutterBottom>
                     <h1 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4  ">
                       Costing
@@ -1253,7 +1272,7 @@ const Repare = () => {
                   </Typography>
                 </div>
 
-                <table className="table-auto border-collapse border border-gray-300 w-[90%] text-sm">
+                <table className="table-auto border-collapse border border-gray-300 w-[95%] text-sm">
                   <thead>
                     <tr className="bg-gray-200 ">
                       <th className="border border-gray-300 px-4 py-2 text-left">

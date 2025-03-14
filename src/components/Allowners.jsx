@@ -22,6 +22,8 @@ import { ModalContext } from "../context/Modalcontext";
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
+import ReactPaginate from "react-paginate";
+
 const PermentWorker = () => {
   const [mylist, setmylist] = useState([]);
   const [search, setsearch] = useState("");
@@ -55,7 +57,11 @@ const PermentWorker = () => {
           name: data[key].name || "Unknown",
           email: data[key].email || "No Email",
           mobile: data[key].mobile || "No Mobile",
+          assignedSites: data[key].assignedSites
+            ? Object.values(data[key].assignedSites) // Convert object to an array
+            : [], // If no assigned sites, return an empty array
         }));
+
         setOwners(ownerList);
       } else {
         setOwners([]);
@@ -73,23 +79,76 @@ const PermentWorker = () => {
     setShowModal(true);
   };
 
+  // const deleteOwner = async () => {
+  //   if (!deleteOwnerId) return;
+
+  //   try {
+  //     const db = getDatabase();
+  //     await remove(ref(db, `Owners/${deleteOwnerId}`));
+  //     setOwners(owners.filter((owner) => owner.id !== deleteOwnerId)); // Update UI
+  //     console.log("Owner deleted successfully.");
+  //   } catch (error) {
+  //     console.error("Error deleting owner:", error);
+  //   } finally {
+  //     setShowModal(false);
+  //     setDeleteOwnerId(null);
+  //   }
+  // };
+
   const deleteOwner = async () => {
     if (!deleteOwnerId) return;
 
     try {
-      const db = getDatabase();
+      // Remove owner from Firebase database
       await remove(ref(db, `Owners/${deleteOwnerId}`));
-      setOwners(owners.filter((owner) => owner.id !== deleteOwnerId)); // Update UI
-      console.log("Owner deleted successfully.");
+
+      // Update the state to reflect the changes
+      setOwners((prevOwners) =>
+        prevOwners.filter((owner) => owner.id !== deleteOwnerId)
+      );
+
+      // Close the modal and reset state
+      setDeleteOwnerId(null);
+      setShowModal(false);
+
+      console.log("Owner deleted successfully!");
     } catch (error) {
       console.error("Error deleting owner:", error);
-    } finally {
-      setShowModal(false);
-      setDeleteOwnerId(null);
     }
   };
 
   let delmsg = "Are you sure to delete this worker ?";
+
+  const [selectedOwner, setSelectedOwner] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // console.log(selectedOwner);
+
+  // Open the modal with selected owner
+  const openModal = (owner) => {
+    setSelectedOwner(owner);
+    setIsModalOpen(true);
+  };
+
+  // Close the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedOwner(null);
+  };
+
+  const [currentPage, setCurrentPage] = useState(0);
+  const ownersPerPage = 5; // Number of owners per page
+
+  // Calculate displayed owners
+  const pageCount = Math.ceil(owners.length / ownersPerPage);
+  const currentOwners = owners.slice(
+    currentPage * ownersPerPage,
+    (currentPage + 1) * ownersPerPage
+  );
+
+  const handlePageClick = ({ selected }) => {
+    setCurrentPage(selected);
+  };
 
   return (
     <>
@@ -105,69 +164,128 @@ const PermentWorker = () => {
             </div>
           </Link> */}
           <div className="w-[95%]  ml-[45px] mt-[60px] relative">
-            <div className="p-4 border rounded-md shadow-md bg-white w-full">
-              <h2 className="text-lg font-semibold mb-3">Owner List</h2>
+            <div>
+              {/* Owners Table */}
+              <table className="border-collapse border w-full">
+                <thead>
+                  <tr className="bg-gray-200 text-center">
+                    <th className="border p-2">#</th>
+                    <th className="border p-2">Name</th>
+                    <th className="border p-2">Email</th>
+                    <th className="border p-2">Mobile</th>
+                    <th className="border p-2">Sites</th>
+                    <th className="border p-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentOwners.map((owner, index) => (
+                    <tr key={owner.id} className="text-center">
+                      <td className="border p-2">
+                        {currentPage * ownersPerPage + index + 1}
+                      </td>
+                      <td className="border p-2">{owner.name || "N/A"}</td>
+                      <td className="border p-2">{owner.email || "N/A"}</td>
+                      <td className="border p-2">{owner.mobile || "N/A"}</td>
+                      <td className="border p-2">
+                        <button
+                          className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-800"
+                          onClick={() => openModal(owner)}
+                        >
+                          View Sites
+                        </button>
+                      </td>
+                      <td className="border p-2">
+                        <button
+                          onClick={() => confirmDelete(owner.id)}
+                          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                        >
+                          Delete
+                        </button>
+                      </td>
 
-              {loading ? (
-                <p>Loading owners...</p>
-              ) : error ? (
-                <p className="text-red-500">{error}</p>
-              ) : owners.length === 0 ? (
-                <p>No owners found.</p>
-              ) : (
-                <table className="w-full border-collapse border border-gray-300">
-                  <thead>
-                    <tr className="bg-gray-100">
-                    <th className="border p-2">S. No.</th> {/* New Serial Number Column */}
-                    <th className="border p-2">Site</th>
-                      <th className="border p-2">Name</th>
-                      <th className="border p-2">Email</th>
-                      <th className="border p-2">Mobile</th>
-                      <th className="border p-2">Actions</th>
+                      {/* Delete Confirmation Modal */}
+                      {showModal && (
+                        <div className="fixed inset-0 flex items-center justify-center  bg-black bg-opacity-50"
+                          onClick={() => setShowModal(false)} 
+                        >
+                          <div className="w-1/3 bg-white p-6 rounded-lg shadow-lg">
+                            <h2 className="text-lg font-semibold">
+                              Are you sure?
+                            </h2>
+                            <p>You are about to delete this owner.</p>
+
+                            <div className="flex  justify-between mt-4">
+                              <button
+                                onClick={() => setShowModal(false)}
+                                className="mr-2 bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={deleteOwner}
+                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                              >
+                               Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {owners.map((owner, index) => (
-                      <tr key={owner.id} className="text-center">
-                        <td className="border p-2">{index + 1}</td>{" "}
-                        <td className="border p-2">{owner.site}</td> 
-                        <td className="border p-2">{owner.name}</td>
-                        <td className="border p-2">{owner.email}</td>
-                        <td className="border p-2">{owner.mobile}</td>
-                        <td className="border p-2">
-                          <button
-                            onClick={() => confirmDelete(owner.id)}
-                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+                  ))}
+                </tbody>
+              </table>
 
-              {/* Delete Confirmation Modal */}
-              {showModal && (
+              {/* Pagination using react-paginate */}
+              <div className="flex justify-end mt-4">
+                <ReactPaginate
+                  previousLabel={"<"}
+                  nextLabel={">"}
+                  breakLabel={"..."}
+                  pageCount={pageCount}
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={3}
+                  onPageChange={handlePageClick}
+                  containerClassName={"flex space-x-2"}
+                  activeClassName={"bg-blue-500 text-white px-3 py-1 rounded"}
+                  pageClassName={"border px-3 py-1 rounded cursor-pointer"}
+                  previousClassName={"border px-3 py-1 rounded cursor-pointer"}
+                  nextClassName={"border px-3 py-1 rounded cursor-pointer"}
+                  disabledClassName={"text-gray-400 cursor-not-allowed"}
+                />
+              </div>
+
+              {/* Modal for Showing Sites */}
+              {isModalOpen && selectedOwner && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                  <div className="bg-white p-6 rounded-lg shadow-md w-96">
-                    <h2 className="text-lg font-semibold mb-4">
-                      Confirm Deletion
+                  <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
+                    <h2 className="text-xl font-semibold mb-4">
+                      Assigned Sites for {selectedOwner.name}
                     </h2>
-                    <p>Are you sure you want to delete this owner?</p>
-                    <div className=" flex  justify-between mt-4">
+                    <ul className="">
+                      {selectedOwner.assignedSites &&
+                      Object.keys(selectedOwner.assignedSites).length > 0 ? (
+                        Object.values(selectedOwner.assignedSites).map(
+                          (site, index) => (
+                            <li key={site.id} className="mb-2">
+                              <span className="font-small text-sm">
+                                {index + 1}. {site.siteName} {site.siteName}
+                              </span>{" "}
+                              (Project ID: {site.projectId})
+                            </li>
+                          )
+                        )
+                      ) : (
+                        <p className="text-gray-500">No Assigned Sites</p>
+                      )}
+                    </ul>
+
+                    <div className="w-full flex justify-end">
                       <button
-                        onClick={() => setShowModal(false)}
-                        className="mr-2 px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                        className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        onClick={closeModal}
                       >
-                        No
-                      </button>
-                      <button
-                        onClick={deleteOwner}
-                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                      >
-                        Yes
+                        Close
                       </button>
                     </div>
                   </div>

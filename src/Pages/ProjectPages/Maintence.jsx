@@ -46,9 +46,75 @@ const Maintence = () => {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [filtered, setFiltered] = useState(mylist);
   const [status, setStatus] = useState("all"); // 'all', 'active', 'inactive'
+  const [owners, setOwners] = useState({});
+  const [selectedOwnerId, setSelectedOwnerId] = useState(""); // Selected owner ID
+
+  useEffect(() => {
+    const fetchProjectsWithOwners = async () => {
+      try {
+        // Fetch all owners
+        const ownersSnapshot = await get(ref(db, "Owners"));
+        const ownersData = ownersSnapshot.exists() ? ownersSnapshot.val() : {};
+        setOwners(ownersData); // Store owners data for reference
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    //     // Fetch all projects
+    //     const projectsSnapshot = await get(ref(db, "NewProjects"));
+    //     const projectsData = projectsSnapshot.exists()
+    //       ? projectsSnapshot.val()
+    //       : {};
+
+    //     // Convert projectsData to an array and match ownerId with owner details
+    //     const projectsArray = Object.keys(projectsData).map((key) => {
+    //       const project = projectsData[key];
+    //       const owner = ownersData[project.ownerId] || {}; // Get owner details
+
+    //       return {
+    //         id: key, // Project ID
+    //         ...project, // Spread project details
+    //         ownerName: owner.name || "Unknown Owner",
+    //         ownerMobile: owner.mobile || "N/A",
+    //         ownerEmail: owner.email || "N/A",
+    //       };
+    //     });
+
+    //     console.log("Projects with Owner Details:", projectsArray);
+
+    //     // Save the updated projects with owner details back to Firebase
+    //     for (const project of projectsArray) {
+    //       await update(ref(db, `NewProjects/${project.id}`), {
+    //         ownerName: project.ownerName,
+    //         ownerMobile: project.ownerMobile,
+    //         ownerEmail: project.ownerEmail,
+    //       });
+    //     }
+
+    //     setProjects(projectsArray); // Set projects state as an array
+    //   } catch (error) {
+    //     console.error("Error fetching data:", error);
+    //   }
+    // };
+
+    fetchProjectsWithOwners();
+  }, []);
 
   const viewUserData = (row) => {
-    setSelectedUser(row);
+    console.log(owners);
+
+    let selectedOwner = Object.values(owners).find(
+      (owner) => owner?.id == row?.ownerId
+    );
+
+    console.log(selectedOwner);
+
+    // Ensure the state is updated properly
+    const updatedRow = { ...row, owner: selectedOwner };
+
+    console.log(updatedRow);
+
+    setSelectedUser(updatedRow); // Update state correctly
     setModal1(true);
   };
 
@@ -1020,7 +1086,7 @@ const Maintence = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 700,
+           width: 850,
             bgcolor: "white",
             borderRadius: "5px",
             background: "#FFF",
@@ -1051,47 +1117,71 @@ const Maintence = () => {
           {selectedUser && (
             <>
               <div className="flex justify-start items-center flex-col w-[100%] ">
-                <div className="w-[90%]  flex items-center justify-between border-b border-gray-300 pb-2 mt-5 mb-5">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Pool Features
-                  </h2>
-
+                <div className="w-[95%]  flex items-center mt-2 justify-between   ">
+                  <Typography variant="h5" className="mt-5 mb-5" gutterBottom>
+                    <h1 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4  ">
+                      Project Details
+                    </h1>
+                  </Typography>
                   <button
                     onClick={() =>
                       navigate(`/Invoice2/${selectedUser?.id}/maintenance`)
                     }
-                    className="mb-[0px] mr-[20px] w-[100px] h-[40px] text-sm px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
+                    className=" mb-[40px] mr-[40px] w-[100px] h-[40px] text-sm px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
                   >
                     Invoice
                   </button>
                 </div>
 
-                <div className="flex items-center justify-start w-[90%]">
-                  <p className="font-[450] text-[14px] mr-3 flex items-center">
-                    Selected Pools:
-                  </p>
-                  <span className="text-[12px] ">
-                    {selectedUser?.selectedCheckboxes
-                      ? Object.entries(selectedUser.selectedCheckboxes).map(
-                          ([key, value], index, array) =>
-                            value && (
-                              <span key={index} className="  ">
-                                {key}
-                                {index < array.length - 1 && ", "}
-                              </span>
-                            )
-                        )
-                      : "No pools selected"}
-                  </span>
+                <div className="w-[100%] flex items-center justify-center">
+                  {selectedUser?.owner !== "Unknown Owner" && (
+                    <div className=" flex justify-evenly flex-wrap w-[95%] mt-2 p-2 border rounded ">
+                      <p className=" w-[100%] text-start font-bold">
+                        Client Details
+                      </p>
+                      <div className=" flex justify-between flex-wrap w-[100%] mt-2 p-2  rounded bg-gray-100">
+                        <p>
+                          <strong>Name:</strong> {selectedUser?.owner.name}
+                        </p>
+                        <p>
+                          <strong>Mobile:</strong> {selectedUser?.owner.mobile}
+                        </p>
+                        <p>
+                          <strong>Email:</strong> {selectedUser?.owner.email}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="w-[90%]  flex items-center border-b border-gray-300 pb-2 mt-5 mb-5">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    Project Details
+                <div className=" flex justify-evenly flex-wrap w-[95%] my-2 p-2 border rounded ">
+                <h2 className="text-md w-[100%] text-start font-bold text-gray-800">
+                    Pool Features
                   </h2>
+                  <div className="flex  items-center justify-start w-[100%]">
+                    <p className="font-[450] text-[14px] my-2 mr-1 flex items-center">
+                      Selected Pools :
+                    </p>
+                    <span className="text-[12px] ">
+                      {selectedUser?.selectedCheckboxes
+                        ? Object.entries(selectedUser.selectedCheckboxes).map(
+                            ([key, value], index, array) =>
+                              value && (
+                                <span key={index} className="  ">
+                                  {key}
+                                  {index < array.length - 1 && ", "}
+                                </span>
+                              )
+                          )
+                        : "No pools selected"}
+                    </span>
+                  </div>
                 </div>
 
-                <div className=" flex justify-start items-center gap-4 flex-wrap w-[90%] overflow-auto scrollbar scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 ">
+                <div className=" flex justify-start items-center gap-4 flex-wrap w-[95%] overflow-auto scrollbar scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 ">
+                <h2 className="text-md w-[100%] text-start font-bold  border-b border-gray-300 pb-2 text-gray-800">
+                    Site Details
+                  </h2>
                   <div className="flex  items-center w-[46%]">
                     {" "}
                     <p className="font-[450] text-[14px] mr-2 flex  items-center ">
@@ -1131,13 +1221,8 @@ const Maintence = () => {
                     </p>
                     <span className="text-[13px]">{selectedUser.area}</span>
                   </div>
-                  <div className="flex items-center w-[46%]">
-                    <p className="font-[450] text-[14px] mr-2 flex items-center">
-                      Owner:
-                    </p>
-                    <span className="text-[13px]">{selectedUser.owner}</span>
-                  </div>
-                  <div className="flex items-center w-[46%]">
+
+                  {/* <div className="flex items-center w-[46%]">
                     <p className="font-[450] text-[14px] mr-2 flex items-center">
                       Owner Mobile:
                     </p>
@@ -1156,17 +1241,15 @@ const Maintence = () => {
                     </span>
                   </div>
 
-
                   <div className="flex  items-center  w-[46%]">
                     {" "}
                     <p className="font-[450] text-[14px] mr-2 flex  items-center  ">
-                       Owner Password:
+                      Owner Password:
                     </p>
                     <span className="text-[13px]">
                       {selectedUser.ownerPassword}
                     </span>
-                  </div>
-
+                  </div> */}
 
                   <div className="flex items-center w-[46%]">
                     <p className="font-[450] text-[14px] mr-2 flex items-center">

@@ -233,7 +233,7 @@ const Repareinput = () => {
     }
   };
 
-  const createOwner = async (data) => {
+  const createOwner = async (data, projectId) => {
     try {
       const auth = getAuth();
 
@@ -259,12 +259,25 @@ const Repareinput = () => {
         throw new Error("ownerId is undefined. Firebase update aborted.");
       }
 
-      // Step 3: Store Owner Details in Firebase Database
+      const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+      if (!pushKey) {
+        throw new Error("Failed to generate pushKey.");
+      }
+
       await update(ref(db, `Owners/${ownerId}`), {
         id: ownerId,
         name: data.owner || "N/A",
         mobile: data.ownerMobile || "N/A",
         email: data.ownerEmail || "N/A",
+        projectId: projectId, // Ensure projectId is stored
+        assignedSites: {
+          [pushKey]: {
+            id: pushKey,
+            siteName: data.site || "N/A",
+            projectId: projectId,
+            siteUid: pushKey,
+          },
+        },
       });
 
       console.log("Owner details updated successfully!");
@@ -307,7 +320,7 @@ const Repareinput = () => {
       if (selectedOwner) {
         ownerId = selectedOwner; // Use the selected owner if available
       } else {
-        ownerId = await createOwner(data); // Create a new owner if none is selected
+        ownerId = await createOwner(data, projectId); // Create a new owner if none is selected
       }
 
       if (!ownerId) {

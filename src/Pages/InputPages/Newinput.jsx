@@ -13,7 +13,7 @@ import img from "../../imgs/noimg.jpg";
 import { TbRulerMeasure } from "react-icons/tb";
 import NewProducts from "../../components/NewProducts";
 import CostItems from "../../components/CostItems";
-import { Eye, EyeOff ,ChevronDown, ChevronUp } from "lucide-react";
+import { Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const Newinput = () => {
@@ -421,19 +421,62 @@ const Newinput = () => {
     }
   };
 
-  const createOwner = async (data) => {
+  // const createOwner = async (data) => {
+  //   try {
+  //     const auth = getAuth();
+
+  //     // Step 1: Authenticate and Create Owner in Firebase Auth
+  //     console.log(data);
+  //     const userCredential = await createUserWithEmailAndPassword(
+  //       auth,
+  //       data.ownerEmail,
+  //       data.ownerPassword
+  //     );
+  //     console.log(userCredential);
+  //     // Ensure the user is properly created before proceeding
+  //     if (!userCredential || !userCredential.user) {
+  //       throw new Error("User creation failed, userCredential is undefined.");
+  //     }
+
+  //     const user = userCredential.user;
+  //     const ownerId = user.uid; // Get the unique Firebase Auth UID
+  //     console.log("Owner ID:", ownerId);
+
+  //     // Step 2: Ensure ownerId is valid before updating Firebase
+  //     if (!ownerId) {
+  //       throw new Error("ownerId is undefined. Firebase update aborted.");
+  //     }
+
+  //     // Step 3: Store Owner Details in Firebase Database
+  //     await update(ref(db, `Owners/${ownerId}`), {
+  //       id: ownerId,
+  //       name: data.owner || "N/A",
+  //       mobile: data.ownerMobile || "N/A",
+  //       email: data.ownerEmail || "N/A",
+  //       site: data.site || "N/A",
+  //     });
+
+  //     console.log("Owner details updated successfully!");
+  //     return ownerId;
+  //   } catch (error) {
+  //     console.error("Error creating owner:", error);
+  //   }
+  // };
+
+  const createOwner = async (data, projectId) => {
     try {
       const auth = getAuth();
 
       // Step 1: Authenticate and Create Owner in Firebase Auth
-      console.log(data);
+      console.log("Creating owner with data:", data);
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         data.ownerEmail,
         data.ownerPassword
       );
-      console.log(userCredential);
-      // Ensure the user is properly created before proceeding
+      console.log("User Credential:", userCredential);
+
       if (!userCredential || !userCredential.user) {
         throw new Error("User creation failed, userCredential is undefined.");
       }
@@ -442,24 +485,43 @@ const Newinput = () => {
       const ownerId = user.uid; // Get the unique Firebase Auth UID
       console.log("Owner ID:", ownerId);
 
-      // Step 2: Ensure ownerId is valid before updating Firebase
       if (!ownerId) {
         throw new Error("ownerId is undefined. Firebase update aborted.");
       }
 
-      // Step 3: Store Owner Details in Firebase Database
+      // Ensure projectId is available
+      // if (!data.projectId) {
+      //   throw new Error("projectId is required.");
+      // }
+
+      // Define pushKey dynamically for assigned sites
+      const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+      if (!pushKey) {
+        throw new Error("Failed to generate pushKey.");
+      }
+
+     
       await update(ref(db, `Owners/${ownerId}`), {
         id: ownerId,
         name: data.owner || "N/A",
         mobile: data.ownerMobile || "N/A",
         email: data.ownerEmail || "N/A",
-        site: data.site || "N/A",
+        projectId: projectId, // Ensure projectId is stored
+        assignedSites: {
+          [pushKey]: {
+            id: pushKey,
+            siteName: data.site || "N/A",
+            projectId: projectId,
+            siteUid: pushKey,
+          }
+        }
       });
-
+      
       console.log("Owner details updated successfully!");
       return ownerId;
     } catch (error) {
-      console.error("Error creating owner:", error);
+      console.error("Error creating owner:", error.message);
+      throw error; // Re-throw for better error handling
     }
   };
 
@@ -477,8 +539,23 @@ const Newinput = () => {
 
       if (selectedOwner) {
         ownerId = selectedOwner; // Use the selected owner if available
+
+        const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+        if (!pushKey) {
+          throw new Error("Failed to generate pushKey.");
+        }
+          
+        await update(ref(db, `Owners/${ownerId}/assignedSites/${pushKey}`), {
+      
+              id: pushKey,
+              siteName: data.site || "N/A",
+              projectId: projectId,
+              siteUid: pushKey,
+            
+        });
+
       } else {
-        ownerId = await createOwner(data); // Create a new owner if none is selected
+        ownerId = await createOwner(data, projectId); // Create a new owner if none is selected
       }
 
       if (!ownerId) {
@@ -930,7 +1007,11 @@ const Newinput = () => {
                           ? owners.find((owner) => owner.id === selectedOwner)
                               ?.name
                           : "-- Select recent Owner --"}
-                          {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        {isOpen ? (
+                          <ChevronUp size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
+                        )}
                       </button>
 
                       {/* Dropdown List (Shows only when isOpen is true) */}
@@ -947,7 +1028,9 @@ const Newinput = () => {
                               </div>
                             ))
                           ) : (
-                            <p className="p-2 text-gray-500">No Clients found</p>
+                            <p className="p-2 text-gray-500">
+                              No Clients found
+                            </p>
                           )}
                         </div>
                       )}
@@ -1094,15 +1177,13 @@ const Newinput = () => {
                           workerType ? "Select Worker" : "Select  Type First"
                         }
                         isDisabled={!workerType}
-                        menuPlacement="top" 
+                        menuPlacement="top"
                         styles={customStyles} // Apply custom styles
                         className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500 scroll-y-auto"
                       />
                     </div>
-
                   </div>
                 </div>
-                
               </div>
             </div>
           )}
