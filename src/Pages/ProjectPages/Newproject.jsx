@@ -1197,7 +1197,7 @@ const Newproject = () => {
                     ))}
                   </div> */}
                   <div className="w-[100%] flex items-center justify-center">
-                  {selectedUser?.owner !== "Unknown Owner" && (
+                    {selectedUser?.owner !== "Unknown Owner" && (
                       <div className=" flex justify-evenly flex-wrap w-[100%] mt-2 p-2 border rounded ">
                         <p className=" w-[100%] text-start font-bold">
                           Client Details
@@ -1217,7 +1217,6 @@ const Newproject = () => {
                       </div>
                     )}
                   </div>
-
 
                   <h2 className="text-md w-[95%] text-start font-bold  border-b border-gray-300 pb-2 text-gray-800">
                     Site Details

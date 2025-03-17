@@ -1,4 +1,4 @@
-import { onValue, ref, push, update } from "firebase/database";
+import { onValue, ref, push, get, update } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../Firbase";
@@ -10,9 +10,8 @@ import VolumeCalculateModal from "./VolumeCalculateModal";
 import { TbRulerMeasure } from "react-icons/tb";
 import NewProducts from "../components/NewProducts";
 import CostItems from "../components/CostItems";
-import { Eye, EyeOff } from "lucide-react";
-
-
+import { Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const Updateinput = () => {
   const navigate = useNavigate();
@@ -37,11 +36,14 @@ const Updateinput = () => {
   const [totalVolume, setTotalVolume] = useState("");
   const [quotationTotal, setQuotationTotal] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
-
   const [poolshape, setPoolshape] = useState("");
   const [modalopen, setModalOpen] = useState(false);
   const [products, setProducts] = useState([]);
+  const [showOwnerDetails, setShowOwnerDetails] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [selectedOwner, setSelectedOwner] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // console.log(products);
 
@@ -79,7 +81,7 @@ const Updateinput = () => {
         //  console.log(data)
         // MediaKeyStatusMap
         setWorkers(Object.values(data));
-        console.log(data);
+        // console.log(data);
         // updateStarCount(postElement, data);
       });
 
@@ -101,7 +103,7 @@ const Updateinput = () => {
         // MediaKeyStatusMap
         setotherWorkers(Object.values(data3));
         // updateStarCount(postElement, data);
-        console.log(data3);
+        // console.log(data3);
       });
     };
 
@@ -325,6 +327,7 @@ const Updateinput = () => {
 
   const params = useParams();
   const uid = params.userid;
+
   useEffect(() => {
     let getingdata = async () => {
       const starCountRef = ref(db, `/NewProjects/${uid}`);
@@ -340,6 +343,7 @@ const Updateinput = () => {
           site: data.site,
           area: data.area || "",
           owner: data.owner || "",
+          ownerId: data.ownerId || "",
           ownerMobile: data.ownerMobile || "",
           reference: data.reference || "",
           referenceMobile: data.referenceMobile || "",
@@ -373,14 +377,98 @@ const Updateinput = () => {
     getingdata();
   }, []);
 
-  const updateData = () => {
+  useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        // const db = getDatabase();
+        const ownersRef = ref(db, "Owners");
+        const snapshot = await get(ownersRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const ownerList = Object.keys(data).map((key) => ({
+            id: key,
+            name: data[key].name || "Unknown",
+          }));
+          setOwners(ownerList);
+        } else {
+          setOwners([]);
+        }
+      } catch (err) {
+        setError("Failed to fetch owners.");
+        console.error("Error fetching owners:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOwners();
+  }, []);
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (ownerId) => {
+    setSelectedOwner(ownerId);
+    setIsOpen(false); // Close dropdown after selection
+  };
+
+  const createOrUpdateOwner = async (data) => {
+    try {
+      const auth = getAuth();
+
+      let ownerId = data.ownerId; // Check if an ownerId exists
+
+      console.log(ownerId);
+
+      if (!ownerId) {
+        console.log("Error: ownerId is required for updating.");
+        throw new Error("ownerId is required for updating.");
+      }
+
+      console.log("Updating existing owner with ID:", ownerId);
+
+      // Update owner details in Firebase Realtime Database
+      await update(ref(db, `Owners/${ownerId}`), {
+        name: data.owner || "N/A",
+        mobile: data.ownerMobile || "N/A",
+        email: data.ownerEmail || "N/A",
+      });
+
+      console.log("Owner details updated successfully!");
+      return ownerId;
+    } catch (error) {
+      console.error("Error updating owner:", error.message);
+      throw error;
+    }
+  };
+
+  const updateData = async () => {
     if (!data.site || !data.area) {
       toast.warn("Site and area fields should not be empty.");
       return;
     }
 
     if (data.site && data.area) {
-      console.log(products);
+      // console.log(products);
+
+      let ownerId = data.ownerId; // Use selected owner or existing ownerId
+      console.log(ownerId);
+
+      if (ownerId) {
+        const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+        if (!pushKey) {
+          throw new Error("Failed to generate pushKey.");
+        }
+
+        await update(ref(db, `Owners/${ownerId}/assignedSites/${pushKey}`), {
+          id: pushKey,
+          siteName: data.site || "N/A",
+          // projectId: projectId,
+          siteUid: pushKey,
+        });
+      } else {
+        ownerId = await createOrUpdateOwner(data); // Create a new owner if none is selected
+      }
 
       update(ref(db, `NewProjects/${uid}`), data)
         .then(() => {
@@ -445,7 +533,7 @@ const Updateinput = () => {
   // const [worker, setWorker] = useState(null);
   // Options for worker types
   // console.log(workerType)  // value here is "visitor"
-  console.log(worker);
+  // console.log(worker);
   const workerTypeOptions = [
     { value: "permanent", label: "Permanent" },
     { value: "visitor", label: "Visitor" },
@@ -453,13 +541,13 @@ const Updateinput = () => {
   ];
 
   const transformWorkers = (workers, type) => {
-    console.log(workers, type);
+    // console.log(workers, type);
     let dd = workers.map((worker) => ({
       value: worker.id, // Use a unique identifier (e.g., `id`)
       type: type,
       label: worker.workerName,
     }));
-    console.log(dd);
+    // console.log(dd);
     return dd;
   };
 
@@ -473,8 +561,8 @@ const Updateinput = () => {
   // Dynamically set options for the second dropdown
   const workerOptions = workerType ? workersByType[workerType] : [];
   // const workerOptions = workerType ? workersByType[workerType.value] : [];
-  console.log(workerOptions);
-  console.log(workerType);
+  // console.log(workerOptions);
+  // console.log(workerType);
   // console.log(workersByType['visitor'])
 
   useEffect(() => {
@@ -498,70 +586,9 @@ const Updateinput = () => {
         <Sidebar />
 
         <div className="relative flex flex-col  w-[100%] h-auto pl-9">
-          <div className="  flex justify-between items-end mt-10 w-[95%] ">
-            {/* --------workerdetails-------- */}
-            <div className="flex flex-col w-[55%]  ">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
-                Employee Selection
-              </h2>
-
-              {/* Merged Selector */}
-              <div className="flex flex-row gap-6 w-[100%] items-center justify-between ">
-                {/* Worker Type Selector */}
-                <div className="w-[90%]">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Employee Type
-                  </label>
-                  <Select
-                    onChange={(selectedOption) => {
-                      console.log("New Worker Type Selected:", selectedOption);
-
-                      // ✅ Update workerType correctly
-                      setWorkerType(selectedOption.value);
-
-                      // ✅ Restore previously selected worker for this type (if available)
-                      setWorker(selectedWorkers[selectedOption.value] || null);
-
-                      // ✅ Store the workerType in form data (if needed)
-                      setData((prevData) => ({
-                        ...prevData,
-                        workerType: selectedOption.value, // Save new type
-                      }));
-                    }}
-                    value={workerTypeOptions.find(
-                      (item) => item.value === workerType
-                    )}
-                    options={workerTypeOptions}
-                    placeholder="Select Type First"
-                    className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* Worker Selector */}
-                <div className="w-[90%]">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Employee Name
-                  </label>
-                  <Select
-                    onChange={handleWorkerChange}
-                    value={workerOptions.find(
-                      (option) => option.label === worker
-                    )} // Match by label
-                    options={workerOptions}
-                    placeholder={
-                      workerType
-                        ? "Select Worker"
-                        : "Select Employee Type First"
-                    }
-                    className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-
+          <div className="  flex justify-center items-center mt-10 w-[95%] ">
             {/* --------togglebuttons-------- */}
-
-            <div className="flex justify-center w-[40%] bg-gray-200  rounded-[35px] mb-[0px]">
+            <div className="flex justify-center w-[50%] bg-gray-200  rounded-[35px] mb-[0px]">
               <button
                 className={`px-2 py-0 w-[33%] font-semibold  text-sm rounded-[35px] h-[45px] ${
                   activeTab === "projectDetails"
@@ -602,9 +629,11 @@ const Updateinput = () => {
             <div className=" ProjectDetails flex items-start justify-center flex-col gap-2  mt-[20px] ">
               {/*-------- workerlist -------- */}
 
-              <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4 mt-4">
-                Project Details
-              </h1>
+              <div className="w-[90%] flex items-center justify-center">
+                <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4 mt-4">
+                  Project Details
+                </h1>
+              </div>
 
               {/*------ sitedata ----- */}
 
@@ -731,76 +760,128 @@ const Updateinput = () => {
 
                 {/* Owner Details Section */}
                 <div>
-                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                  <h1 className="text-xl w-max font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
                     Client Details
                   </h1>
+
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">Client</h2>
-                      <input
-                        type="text"
-                        placeholder="Owner name"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, owner: e.target.value })
-                        }
-                        value={data.owner}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Mobile
-                      </h2>
-                      <input
-                        type="number"
-                        placeholder="Phone number"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, ownerMobile: e.target.value })
-                        }
-                        value={data.ownerMobile}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Email
-                      </h2>
-                      <input
-                        type="email"
-                        placeholder="Owner Email"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...data, ownerEmail: e.target.value })
-                        }
-                        value={data.ownerEmail}
-                      />
-                    </div>
-                    <div className="flex flex-col relative">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Password
-                      </h2>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Owner Password"
-                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
-                          onChange={(e) =>
-                            setData({ ...data, ownerPassword: e.target.value })
-                          }
-                          value={data.ownerPassword}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? (
-                            <EyeOff size={20} />
+                    <div className="relative w-[100%]">
+                      {/* Dropdown Button */}
+                      <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        disabled={showOwnerDetails}
+                        className="border flex justify-between p-2 rounded w-full text-left bg-white shadow-md"
+                      >
+                        {selectedOwner
+                          ? owners.find((owner) => owner.id === selectedOwner)
+                              ?.name || "Unknown Owner"
+                          : "-- Select recent Owner --"}
+                        {isOpen ? (
+                          <ChevronUp size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
+                        )}
+                      </button>
+
+                      {/* Dropdown List */}
+                      {isOpen && (
+                        <div className="absolute left-0 mt-1 w-full border rounded bg-white shadow-lg max-h-40 overflow-y-auto z-10">
+                          {/* Deselect Option */}
+                          <div
+                            onClick={() => {
+                              setSelectedOwner(""); // Clear selection
+                              setIsOpen(false); // Close dropdown
+                            }}
+                            className="p-2 cursor-pointer text-white-500 hover:bg-gray-200"
+                          >
+                            -- Select recent Owner --
+                          </div>
+
+                          {/* List of Owners */}
+                          {owners.length > 0 ? (
+                            owners.map((owner) => (
+                              <div
+                                key={owner.id}
+                                onClick={() => {
+                                  setSelectedOwner(owner.id); // Set selected owner
+                                  setIsOpen(false); // Close dropdown
+                                }}
+                                className="px-3 py-1 cursor-pointer hover:bg-gray-200"
+                              >
+                                {owner.name}
+                              </div>
+                            ))
                           ) : (
-                            <Eye size={20} />
+                            <p className="p-2 text-gray-500">
+                              No Clients found
+                            </p>
                           )}
-                        </button>
-                      </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col w-[99%]  ">
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">
+                    Employee Selection
+                  </h2>
+
+                  {/* Merged Selector */}
+                  <div className="flex flex-row gap-6 w-[100%] items-center justify-between ">
+                    {/* Worker Type Selector */}
+                    <div className="w-[90%]">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Employee Type
+                      </label>
+                      <Select
+                        onChange={(selectedOption) => {
+                          console.log(
+                            "New Worker Type Selected:",
+                            selectedOption
+                          );
+
+                          // ✅ Update workerType correctly
+                          setWorkerType(selectedOption.value);
+
+                          // ✅ Restore previously selected worker for this type (if available)
+                          setWorker(
+                            selectedWorkers[selectedOption.value] || null
+                          );
+
+                          // ✅ Store the workerType in form data (if needed)
+                          setData((prevData) => ({
+                            ...prevData,
+                            workerType: selectedOption.value, // Save new type
+                          }));
+                        }}
+                        value={workerTypeOptions.find(
+                          (item) => item.value === workerType
+                        )}
+                        options={workerTypeOptions}
+                        placeholder="Select Type First"
+                        className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Worker Selector */}
+                    <div className="w-[90%]">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Employee Name
+                      </label>
+                      <Select
+                        onChange={handleWorkerChange}
+                        value={workerOptions.find(
+                          (option) => option.label === worker
+                        )} // Match by label
+                        options={workerOptions}
+                        placeholder={
+                          workerType
+                            ? "Select Worker"
+                            : "Select Employee Type First"
+                        }
+                        className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                   </div>
                 </div>

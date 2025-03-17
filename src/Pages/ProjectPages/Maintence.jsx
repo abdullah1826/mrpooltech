@@ -101,20 +101,31 @@ const Maintence = () => {
   }, []);
 
   const viewUserData = (row) => {
-    console.log(owners);
+    console.log("Owners:", owners);
+    console.log("Row Data:", row);
+    console.log("Row Owner ID:", row?.ownerId);
+
+    if (!owners || Object.keys(owners).length === 0) {
+      console.error("Owners data is missing or empty!");
+      return;
+    }
 
     let selectedOwner = Object.values(owners).find(
-      (owner) => owner?.id == row?.ownerId
+      (owner) => String(owner?.id) === String(row?.ownerId)
     );
 
-    console.log(selectedOwner);
+    if (!selectedOwner) {
+      console.warn("No matching owner found for ID:", row?.ownerId);
+      return;
+    }
 
-    // Ensure the state is updated properly
+    console.log("Selected Owner:", selectedOwner);
+
     const updatedRow = { ...row, owner: selectedOwner };
 
-    console.log(updatedRow);
+    console.log("Updated Row:", updatedRow);
 
-    setSelectedUser(updatedRow); // Update state correctly
+    setSelectedUser(updatedRow);
     setModal1(true);
   };
 
@@ -1086,7 +1097,7 @@ const Maintence = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-           width: 850,
+            width: 850,
             bgcolor: "white",
             borderRadius: "5px",
             background: "#FFF",
@@ -1155,7 +1166,7 @@ const Maintence = () => {
                 </div>
 
                 <div className=" flex justify-evenly flex-wrap w-[95%] my-2 p-2 border rounded ">
-                <h2 className="text-md w-[100%] text-start font-bold text-gray-800">
+                  <h2 className="text-md w-[100%] text-start font-bold text-gray-800">
                     Pool Features
                   </h2>
                   <div className="flex  items-center justify-start w-[100%]">
@@ -1179,7 +1190,7 @@ const Maintence = () => {
                 </div>
 
                 <div className=" flex justify-start items-center gap-4 flex-wrap w-[95%] overflow-auto scrollbar scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 ">
-                <h2 className="text-md w-[100%] text-start font-bold  border-b border-gray-300 pb-2 text-gray-800">
+                  <h2 className="text-md w-[100%] text-start font-bold  border-b border-gray-300 pb-2 text-gray-800">
                     Site Details
                   </h2>
                   <div className="flex  items-center w-[46%]">

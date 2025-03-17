@@ -1,12 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import axios from "axios";
-import { db, auth } from "../Firbase";
+import { db } from "../Firbase";
 import upper from "../imgs/pooltecuper.jpeg";
 import lower from "../imgs/poolteclower.jpeg";
 import { Link, useNavigate } from "react-router-dom";
 import Widgets from "./Widgets";
 import { Model } from "./Model";
+import { Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+// import { toast } from "react-toastify";
+
 import {
   getDatabase,
   set,
@@ -39,6 +43,7 @@ const PermentWorker = () => {
   const [error, setError] = useState(null);
   const [deleteOwnerId, setDeleteOwnerId] = useState(null); // Store owner ID for deletion
   const [showModal, setShowModal] = useState(false); // Control modal visibility
+  const [data, setData] = useState([]);
 
   useEffect(() => {
     fetchOwners();
@@ -63,6 +68,7 @@ const PermentWorker = () => {
         }));
 
         setOwners(ownerList);
+        // setOwners(data);
       } else {
         setOwners([]);
       }
@@ -95,6 +101,8 @@ const PermentWorker = () => {
   //   }
   // };
 
+  const db = getDatabase();
+
   const deleteOwner = async () => {
     if (!deleteOwnerId) return;
 
@@ -114,6 +122,58 @@ const PermentWorker = () => {
       console.log("Owner deleted successfully!");
     } catch (error) {
       console.error("Error deleting owner:", error);
+    }
+  };
+
+  const createOrUpdateOwner = async (ownerData) => {
+    try {
+      if (!ownerData || !ownerData.ownerEmail || !ownerData.ownerPassword) {
+        toast.error("Owner email and password are required.");
+        return;
+      }
+
+      console.log("Creating owner with data:", ownerData);
+
+      // Initialize database
+      const db = getDatabase();
+
+      // Generate a new push key for the owner
+      const pushKey = push(ref(db, "Owners")).key;
+
+      // Save owner details in Firebase Realtime Database
+      await update(ref(db, `Owners/${pushKey}`), {
+        
+        name: ownerData.owner || "N/A",
+        mobile: ownerData.ownerMobile || "N/A",
+        email: ownerData.ownerEmail || "N/A",
+      });
+
+      toast.success("New owner created successfully!");
+
+      // Refresh the owners list after adding a new owner
+      fetchOwners();
+    } catch (error) {
+      console.error("Error creating owner:", error.message);
+      toast.error("Failed to create owner.");
+    }
+  };
+
+  const submitData = async () => {
+    try {
+      if (!ownerData) {
+        throw new Error("No data provided for submission.");
+      }
+
+      await createOrUpdateOwner(ownerData); // Pass `data` to create a new owner
+
+      setEditModalOpen(false); // Close modal after submission
+      toast.success("Client added successfully!");
+
+      // Refresh the list of owners after submission
+      fetchOwners();
+    } catch (error) {
+      console.error("Error adding data:", error);
+      toast.error("Failed to add client.");
     }
   };
 
@@ -149,6 +209,37 @@ const PermentWorker = () => {
   const handlePageClick = ({ selected }) => {
     setCurrentPage(selected);
   };
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
+
+  const openEditModal = (owner = null) => {
+    if (owner) {
+      setEditData(owner); // Set data for editing
+      setIsEditing(true);
+    } else {
+      setEditData({ owner: "", ownerEmail: "", ownerMobile: "" }); // Empty fields for new client
+      setIsEditing(false);
+    }
+    setEditModalOpen(true); // ✅ Corrected this line
+  };
+
+  const handleEditChange = (e) => {
+    setEditData({ ...editData, [e.target.name]: e.target.value });
+  };
+
+  // const submitData = async () => {
+  //   await createOrUpdateOwner(editData);
+  //   setEditModalOpen(false);
+  //   toast.success(isEditing ? "Client details updated!" : "New client added!");
+  // };
+
+  // Close modal when clicking outside
+  const handleOverlayClick = (e) => {
+    if (e.target.id === "modalOverlay") {
+      setEditModalOpen(false);
+    }
+  };
 
   return (
     <>
@@ -158,11 +249,14 @@ const PermentWorker = () => {
         <div className="relative  overflow-x-auto  w-[83%]">
           {/* {deletemodal && <Model delfunc={handleDelete} msg={delmsg} />} */}
           <img src={upper} className="w-[100%]" />
-          {/* <Link to="/">
-            <div className="h-[45px] border w-[200px] absolute rounded-md right-6 flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer">
-              Add New Worker +
-            </div>
-          </Link> */}
+          {/* Add New Client */}
+          <div
+            onClick={() => openEditModal()}
+            className="h-[45px] border w-[200px] absolute rounded-md right-6 flex justify-center items-center bg-[#35A1CC] text-white cursor-pointer"
+          >
+            Add New Client +
+          </div>
+
           <div className="w-[95%]  ml-[45px] mt-[60px] relative">
             <div>
               {/* Owners Table */}
@@ -194,7 +288,20 @@ const PermentWorker = () => {
                           View Sites
                         </button>
                       </td>
-                      <td className="border p-2">
+                      <td className="border flex justify-evenly p-2">
+                        {/* Edit Button */}
+                        <button
+                          onClick={() =>
+                            openEditModal({
+                              ownerId: selectedOwner,
+                              ...owners.find((o) => o.id === selectedOwner),
+                            })
+                          }
+                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                        >
+                          Edit
+                        </button>
+
                         <button
                           onClick={() => confirmDelete(owner.id)}
                           className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
@@ -203,10 +310,84 @@ const PermentWorker = () => {
                         </button>
                       </td>
 
+                      {/* Modal for Adding & Editing */}
+                      {editModalOpen && (
+                        <div
+                          id="modalOverlay"
+                          onClick={handleOverlayClick}
+                          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-20"
+                        >
+                          <div className="bg-white p-5 rounded shadow-lg w-96">
+                            <h2 className="text-lg font-semibold mb-2">
+                              {isEditing
+                                ? "Edit Client Details"
+                                : "Add New Client"}
+                            </h2>
+                            <div className="flex flex-col gap-3 mb-2">
+                              <input
+                                type="text"
+                                name="owner"
+                                value={editData.owner}
+                                onChange={handleEditChange}
+                                placeholder="Client Name"
+                                className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <input
+                                type="email"
+                                name="ownerEmail"
+                                value={editData.ownerEmail}
+                                onChange={handleEditChange}
+                                placeholder="Client Email"
+                                className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <input
+                                type="number"
+                                name="ownerMobile"
+                                value={editData.ownerMobile}
+                                onChange={handleEditChange}
+                                placeholder="Client Mobile"
+                                className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+
+                              {/* Show password field only when adding a new client */}
+                              {!isEditing && (
+                                <input
+                                  type="password"
+                                  name="ownerPassword"
+                                  value={editData.ownerPassword || ""}
+                                  onChange={handleEditChange}
+                                  placeholder="Password"
+                                  className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              )}
+                            </div>
+
+                            <div className="flex justify-end space-x-2">
+                              <button
+                                onClick={() => setEditModalOpen(false)}
+                                className="px-3 py-1 bg-red-600 text-white rounded"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  await createOrUpdateOwner(editData);
+                                  setEditModalOpen(false); // Close modal after submission
+                                }}
+                                className="px-3 py-1 bg-blue-500 text-white rounded"
+                              >
+                                {isEditing ? "Save Changes" : "Save Client"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Delete Confirmation Modal */}
                       {showModal && (
-                        <div className="fixed inset-0 flex items-center justify-center  bg-black bg-opacity-50"
-                          onClick={() => setShowModal(false)} 
+                        <div
+                          className="fixed inset-0 flex items-center justify-center  bg-black bg-opacity-20"
+                          onClick={() => setShowModal(false)}
                         >
                           <div className="w-1/3 bg-white p-6 rounded-lg shadow-lg">
                             <h2 className="text-lg font-semibold">
@@ -225,7 +406,7 @@ const PermentWorker = () => {
                                 onClick={deleteOwner}
                                 className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                               >
-                               Delete
+                                Delete
                               </button>
                             </div>
                           </div>

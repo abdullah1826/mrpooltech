@@ -49,20 +49,31 @@ const Repare = () => {
   }, []);
 
   const viewUserData = (row) => {
-    console.log(owners);
+    console.log("Owners:", owners);
+    console.log("Row Data:", row);
+    console.log("Row Owner ID:", row?.ownerId);
+
+    if (!owners || Object.keys(owners).length === 0) {
+      console.error("Owners data is missing or empty!");
+      return;
+    }
 
     let selectedOwner = Object.values(owners).find(
-      (owner) => owner?.id == row?.ownerId
+      (owner) => String(owner?.id) === String(row?.ownerId)
     );
 
-    console.log(selectedOwner);
+    if (!selectedOwner) {
+      console.warn("No matching owner found for ID:", row?.ownerId);
+      return;
+    }
 
-    // Ensure the state is updated properly
+    console.log("Selected Owner:", selectedOwner);
+
     const updatedRow = { ...row, owner: selectedOwner };
 
-    console.log(updatedRow);
+    console.log("Updated Row:", updatedRow);
 
-    setSelectedUser(updatedRow); // Update state correctly
+    setSelectedUser(updatedRow);
     setModal1(true);
   };
 
@@ -954,8 +965,8 @@ const Repare = () => {
           {selectedUser && (
             <>
               <div className="flex justify-start items-center flex-col w-[100%]">
-              <div className="w-[95%]  flex items-center mt-2 justify-between   ">
-              <Typography variant="h5" className="mt-5 mb-5 " gutterBottom>
+                <div className="w-[95%]  flex items-center mt-2 justify-between   ">
+                  <Typography variant="h5" className="mt-5 mb-5 " gutterBottom>
                     <h1 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4  ">
                       Project Details
                     </h1>
@@ -971,7 +982,6 @@ const Repare = () => {
                   </button>
                 </div>
 
-              
                 <div className="w-[100%] flex items-center justify-center">
                   {selectedUser?.owner !== "Unknown Owner" && (
                     <div className=" flex justify-evenly flex-wrap w-[95%] mt-2 p-2 border rounded ">
@@ -1018,7 +1028,6 @@ const Repare = () => {
                   </div>
                 </div>
 
-
                 <div className=" flex justify-start items-center gap-4 flex-wrap w-[95%] ">
                   <div className="flex  items-center w-[46%]">
                     {" "}
@@ -1060,8 +1069,6 @@ const Repare = () => {
                     </p>
                     <span className="text-[13px]">{selectedUser.area}</span>
                   </div>
-                  
-                 
 
                   <div className="flex  items-center  w-[46%]">
                     {" "}

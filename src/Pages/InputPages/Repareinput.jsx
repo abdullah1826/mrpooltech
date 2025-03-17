@@ -319,10 +319,21 @@ const Repareinput = () => {
 
       if (selectedOwner) {
         ownerId = selectedOwner; // Use the selected owner if available
+
+        const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+        if (!pushKey) {
+          throw new Error("Failed to generate pushKey.");
+        }
+
+        await update(ref(db, `Owners/${ownerId}/assignedSites/${pushKey}`), {
+          id: pushKey,
+          siteName: data.site || "N/A",
+          projectId: projectId,
+          siteUid: pushKey,
+        });
       } else {
         ownerId = await createOwner(data, projectId); // Create a new owner if none is selected
       }
-
       if (!ownerId) {
         console.error("No valid owner ID found!");
         return;
@@ -1038,7 +1049,7 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
 
                   {/* Button to Show Owner Details */}
 
-                  <div className="flex w-[100%] items-center justify-between">
+                  <div className="flex w-full items-center justify-between">
                     {/* Select Owner Dropdown */}
                     <div className="relative w-[49%]">
                       {/* Dropdown Button */}
@@ -1049,7 +1060,7 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         {selectedOwner
                           ? owners.find((owner) => owner.id === selectedOwner)
-                              ?.name
+                              ?.name || "Unknown Owner"
                           : "-- Select recent Owner --"}
                         {isOpen ? (
                           <ChevronUp size={18} />
@@ -1058,14 +1069,29 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                         )}
                       </button>
 
-                      {/* Dropdown List (Shows only when isOpen is true) */}
+                      {/* Dropdown List */}
                       {isOpen && (
                         <div className="absolute left-0 mt-1 w-full border rounded bg-white shadow-lg max-h-40 overflow-y-auto z-10">
+                          {/* Deselect Option */}
+                          <div
+                            onClick={() => {
+                              setSelectedOwner(""); // Clear selection
+                              setIsOpen(false); // Close dropdown
+                            }}
+                            className="p-2 cursor-pointe hover:bg-gray-200"
+                          >
+                           -- Select recent Owner --
+                          </div>
+
+                          {/* List of Owners */}
                           {owners.length > 0 ? (
                             owners.map((owner) => (
                               <div
                                 key={owner.id}
-                                onClick={() => handleSelect(owner.id)}
+                                onClick={() => {
+                                  setSelectedOwner(owner.id); // Set selected owner
+                                  setIsOpen(false); // Close dropdown
+                                }}
                                 className="p-2 cursor-pointer hover:bg-gray-200"
                               >
                                 {owner.name}
@@ -1079,27 +1105,25 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                         </div>
                       )}
                     </div>
-                    {/* <div className="flex justify-between w-max" > <div  className="border-b-2 border-gray-400" >.ks</div> <p>OR</p> <div className="border-b-2 border-gray-400" ></div> </div> */}
 
                     <p>-- OR --</p>
+
                     {/* Create New Owner Button */}
                     <button
                       onClick={() => {
                         setShowOwnerDetails(!showOwnerDetails);
                         setSelectedOwner(""); // Reset selected owner when creating a new one
                       }}
-                      className="h-[40px] w-[30%]  bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
-                      disabled={selectedOwner} // Disable button when an owner is selected
+                      className="h-[40px] w-[30%] bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
                     >
                       {showOwnerDetails
                         ? "Hide Owner Details"
                         : "Create New Owner"}
                     </button>
                   </div>
-
                   {/* Owner Details Section - Only Shows When Button is Clicked */}
                   {showOwnerDetails && (
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-6 mt-4">
                       {/* Owner Name */}
                       <div className="flex flex-col">
                         <h2 className="text-lg font-semibold mb-2">

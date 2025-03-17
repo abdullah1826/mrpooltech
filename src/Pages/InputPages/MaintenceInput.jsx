@@ -237,7 +237,7 @@ const Newinput = () => {
     setIsOpen(false); // Close dropdown after selection
   };
 
-  const createOwner = async (data , projectId) => {
+  const createOwner = async (data, projectId) => {
     try {
       const auth = getAuth();
 
@@ -263,28 +263,27 @@ const Newinput = () => {
         throw new Error("ownerId is undefined. Firebase update aborted.");
       }
 
-       // Define pushKey dynamically for assigned sites
-          const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
-          if (!pushKey) {
-            throw new Error("Failed to generate pushKey.");
-          }
-    
-         
-          await update(ref(db, `Owners/${ownerId}`), {
-            id: ownerId,
-            name: data.owner || "N/A",
-            mobile: data.ownerMobile || "N/A",
-            email: data.ownerEmail || "N/A",
-            projectId: projectId, // Ensure projectId is stored
-            assignedSites: {
-              [pushKey]: {
-                id: pushKey,
-                siteName: data.site || "N/A",
-                projectId: projectId,
-                siteUid: pushKey,
-              }
-            }
-          });
+      // Define pushKey dynamically for assigned sites
+      const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+      if (!pushKey) {
+        throw new Error("Failed to generate pushKey.");
+      }
+
+      await update(ref(db, `Owners/${ownerId}`), {
+        id: ownerId,
+        name: data.owner || "N/A",
+        mobile: data.ownerMobile || "N/A",
+        email: data.ownerEmail || "N/A",
+        projectId: projectId, // Ensure projectId is stored
+        assignedSites: {
+          [pushKey]: {
+            id: pushKey,
+            siteName: data.site || "N/A",
+            projectId: projectId,
+            siteUid: pushKey,
+          },
+        },
+      });
 
       console.log("Owner details updated successfully!");
       return ownerId;
@@ -300,6 +299,7 @@ const Newinput = () => {
   let month = date.getMonth() + 1;
   let year = date.getFullYear();
   let currentDate = `${year}-${month}-${day}`;
+
   const addData = async () => {
     // console.log(worker);
     if (!data.site || !data.area || !worker) {
@@ -310,15 +310,32 @@ const Newinput = () => {
     if (data.site && data.area) {
       // console.log(data);
       var projectId = await generateProjectId(data.site);
-      // const resolvedProjectId = await projectId;
-      // console.log(resolvedProjectId);
       console.log(projectId);
 
-      let ownerId; // Declare it outside so it is accessible
+      let ownerId;
 
-      // Step 1: Authenticate and Create Owner in Firebase Auth
-      ownerId = await createOwner(data , projectId);
-      console.log(ownerId);
+      if (selectedOwner) {
+        ownerId = selectedOwner; // Use the selected owner if available
+
+        const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
+        if (!pushKey) {
+          throw new Error("Failed to generate pushKey.");
+        }
+
+        await update(ref(db, `Owners/${ownerId}/assignedSites/${pushKey}`), {
+          id: pushKey,
+          siteName: data.site || "N/A",
+          projectId: projectId,
+          siteUid: pushKey,
+        });
+      } else {
+        ownerId = await createOwner(data, projectId); // Create a new owner if none is selected
+      }
+
+      if (!ownerId) {
+        console.error("No valid owner ID found!");
+        return;
+      }
 
       const pushKeyRef = push(ref(db, "Maintenance/"));
       const pushKey = pushKeyRef.key;
@@ -765,45 +782,44 @@ const Newinput = () => {
         <Sidebar />
 
         <div className="relative flex flex-col  w-[100%]  pl-9">
+          {/* --------togglebuttons-------- */}
 
-                {/* --------togglebuttons-------- */}
+          <div className="flex justify-center mt-10  w-[100%] items-end  rounded-[35px] ">
+            <div className="flex justify-center  w-[50%]  bg-gray-200  rounded-[35px] mb-[0px]">
+              <button
+                className={`px-2 py-2 w-[33%]  font-semibold text-sm rounded-[35px] h-[45px] ${
+                  activeTab === "projectDetails"
+                    ? "bg-0b6e99 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+                onClick={() => setActiveTab("projectDetails")}
+              >
+                Project Details
+              </button>
 
-                <div className="flex justify-center mt-10  w-[100%] items-end  rounded-[35px] ">
-                  <div className="flex justify-center  w-[50%]  bg-gray-200  rounded-[35px] mb-[0px]">
-                    <button
-                      className={`px-2 py-2 w-[33%]  font-semibold text-sm rounded-[35px] h-[45px] ${
-                        activeTab === "projectDetails"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("projectDetails")}
-                    >
-                      Project Details
-                    </button>
+              <button
+                className={`px-2 py-2 w-[34%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
+                  activeTab === "quotations"
+                    ? "bg-0b6e99 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+                onClick={() => setActiveTab("quotations")}
+              >
+                Recovery
+              </button>
 
-                    <button
-                      className={`px-2 py-2 w-[34%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
-                        activeTab === "quotations"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("quotations")}
-                    >
-                      Recovery
-                    </button>
-
-                    <button
-                      className={`px-2 py-2  w-[33%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
-                        activeTab === "Billing"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("Billing")}
-                    >
-                      Billing
-                    </button>
-                  </div>
-                </div>
+              <button
+                className={`px-2 py-2  w-[33%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
+                  activeTab === "Billing"
+                    ? "bg-0b6e99 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+                onClick={() => setActiveTab("Billing")}
+              >
+                Billing
+              </button>
+            </div>
+          </div>
 
           {/* Project Details Section */}
 
@@ -930,7 +946,7 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                         className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
                       />
                     </div>
-
+{/* 
                     <div className="flex flex-col relative">
                       <h2 className="text-lg font-semibold mb-2">Pool Size</h2>
                       <input
@@ -946,7 +962,9 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                         onClick={handleOpen}
                         className="absolute text-xl cursor-pointer right-3 top-2 text-gray-500 hover:text-blue-500"
                       />
-                    </div>
+                    </div> */}
+
+                    
                     <div className="flex flex-col">
                       <h2 className="text-lg font-semibold mb-2">
                         Number of Visit
@@ -1033,7 +1051,7 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
 
                   {/* Button to Show Owner Details */}
 
-                  <div className="flex w-[100%] items-center justify-between">
+                  <div className="flex w-full items-center justify-between">
                     {/* Select Owner Dropdown */}
                     <div className="relative w-[49%]">
                       {/* Dropdown Button */}
@@ -1044,7 +1062,7 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         {selectedOwner
                           ? owners.find((owner) => owner.id === selectedOwner)
-                              ?.name
+                              ?.name || "Unknown Owner"
                           : "-- Select recent Owner --"}
                         {isOpen ? (
                           <ChevronUp size={18} />
@@ -1053,14 +1071,29 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                         )}
                       </button>
 
-                      {/* Dropdown List (Shows only when isOpen is true) */}
+                      {/* Dropdown List */}
                       {isOpen && (
                         <div className="absolute left-0 mt-1 w-full border rounded bg-white shadow-lg max-h-40 overflow-y-auto z-10">
+                          {/* Deselect Option */}
+                          <div
+                            onClick={() => {
+                              setSelectedOwner(""); // Clear selection
+                              setIsOpen(false); // Close dropdown
+                            }}
+                            className="p-2 cursor-pointer text-red-500 hover:bg-gray-200"
+                          >
+                            ❌ Deselect Owner
+                          </div>
+
+                          {/* List of Owners */}
                           {owners.length > 0 ? (
                             owners.map((owner) => (
                               <div
                                 key={owner.id}
-                                onClick={() => handleSelect(owner.id)}
+                                onClick={() => {
+                                  setSelectedOwner(owner.id); // Set selected owner
+                                  setIsOpen(false); // Close dropdown
+                                }}
                                 className="p-2 cursor-pointer hover:bg-gray-200"
                               >
                                 {owner.name}
@@ -1074,17 +1107,16 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                         </div>
                       )}
                     </div>
-                    {/* <div className="flex justify-between w-max" > <div  className="border-b-2 border-gray-400" >.ks</div> <p>OR</p> <div className="border-b-2 border-gray-400" ></div> </div> */}
 
                     <p>-- OR --</p>
+
                     {/* Create New Owner Button */}
                     <button
                       onClick={() => {
                         setShowOwnerDetails(!showOwnerDetails);
                         setSelectedOwner(""); // Reset selected owner when creating a new one
                       }}
-                      className="h-[40px] w-[30%]  bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
-                      disabled={selectedOwner} // Disable button when an owner is selected
+                      className="h-[40px] w-[30%] bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
                     >
                       {showOwnerDetails
                         ? "Hide Owner Details"

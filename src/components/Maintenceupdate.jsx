@@ -1,4 +1,4 @@
-import { set, onValue, ref, update, push } from "firebase/database";
+import { set, onValue, ref, get, update, push } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../Firbase";
@@ -9,7 +9,7 @@ import VolumeCalculateModal from "./VolumeCalculateModal";
 import Select from "react-select";
 import { TbRulerMeasure } from "react-icons/tb";
 import BillProducts from "../components/BillProducts";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
 
 const Maintenceupdate = () => {
   let [worker, setWorker] = useState(null);
@@ -55,6 +55,11 @@ const Maintenceupdate = () => {
   const [totalVolume, setTotalVolume] = useState("");
   const [showDescription, setShowDescription] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showOwnerDetails, setShowOwnerDetails] = useState(false);
+  const [owners, setOwners] = useState([]);
+  const [selectedOwner, setSelectedOwner] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [showBalanceAmount, setShowBalanceAmount] = useState(true);
 
@@ -74,6 +79,43 @@ const Maintenceupdate = () => {
 
   const handleClose = () => {
     setModalOpen(false);
+  };
+
+
+  
+    useEffect(() => {
+      const fetchOwners = async () => {
+        try {
+          // const db = getDatabase();
+          const ownersRef = ref(db, "Owners");
+          const snapshot = await get(ownersRef);
+  
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            const ownerList = Object.keys(data).map((key) => ({
+              id: key,
+              name: data[key].name || "Unknown",
+            }));
+            setOwners(ownerList);
+          } else {
+            setOwners([]);
+          }
+        } catch (err) {
+          setError("Failed to fetch owners.");
+          console.error("Error fetching owners:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchOwners();
+    }, []);
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (ownerId) => {
+    setSelectedOwner(ownerId);
+    setIsOpen(false); // Close dropdown after selection
   };
 
   // ------------------------geting data from firebase---------------------
@@ -684,133 +726,43 @@ const Maintenceupdate = () => {
       <div className="flex w-[100%] ">
         <Sidebar />
         <div className="relative flex flex-col  w-[100%]  pl-9">
-          <div className="  flex flex-col justify-between items-start mt-10 w-[95%] ">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">
-              Employee Selection
-            </h2>
-            {/* --------workerdetails-------- */}
-            <div className="flex  w-[100%] flex-start  ">
-              {/* Merged Selector */}
-              <div className="flex flex-row gap-6 w-[100%] items-start justify-between ">
-                {/* Worker Type Selector */}
-                <div className="flex flex-row gap-6 w-[55%] items-start justify-between ">
-                  <div className="w-[60%]">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Visit
-                    </label>
-                    <select
-                      onChange={handleVisitChange}
-                      value={mydata.visit || ""}
-                      className="w-full py-[9px] text-sm focus:outline-none shadow-md rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 p-2 transition duration-200 ease-in-out"
-                    >
-                      <option value="Yearly">Yearly</option>
-                      <option value="Seasonally">Seasonally</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {mydata.visit === "Other" && (
-                      <input
-                        type="text"
-                        placeholder="Please specify"
-                        value={mydata.otherText || ""}
-                        onChange={handleOtherTextChange}
-                        className="mt-2 w-full py-[14px] text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-blue-500 transition duration-200 ease-in-out"
-                      />
-                    )}
-                  </div>
+          <div className="  flex flex-col justify-center items-center mt-5 w-[100%] ">
+            {/* --------togglebuttons-------- */}
 
-                  <div className="w-[100%]">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Employee Type
-                    </label>
-                    <Select
-                      onChange={(selectedOption) => {
-                        console.log(
-                          "New Worker Type Selected:",
-                          selectedOption
-                        );
+            <div className="flex justify-center mt-[20px] w-[50%] items-end  rounded-[35px] mb-[0px]">
+              <div className="flex justify-center  w-[100%] h-[45px] bg-gray-200  rounded-[33px] mb-[0px]">
+                <button
+                  className={`px-2 py-2 w-[33%] font-semibold text-sm rounded-[35px] h-[45px] ${
+                    activeTab === "projectDetails"
+                      ? "bg-0b6e99 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                  onClick={() => setActiveTab("projectDetails")}
+                >
+                  Project Details
+                </button>
 
-                        // ✅ Update workerType correctly
-                        setWorkerType(selectedOption.value);
+                <button
+                  className={`px-2 py-2  w-[34%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
+                    activeTab === "quotations"
+                      ? "bg-0b6e99 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                  onClick={() => setActiveTab("quotations")}
+                >
+                  Recovery
+                </button>
 
-                        // ✅ Restore previously selected worker for this type (if available)
-                        setWorker(
-                          selectedWorkers[selectedOption.value] || null
-                        );
-
-                        // ✅ Store the workerType in form data (if needed)
-                        setData((prevData) => ({
-                          ...prevData,
-                          workerType: selectedOption.value, // Save new type
-                        }));
-                      }}
-                      value={workerTypeOptions.find(
-                        (item) => item.value === workerType
-                      )}
-                      options={workerTypeOptions}
-                      placeholder="Select Type First"
-                      className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Worker Selector */}
-                  <div className="w-[100%]">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Employee Name
-                    </label>
-                    <Select
-                      onChange={handleWorkerChange}
-                      value={workerOptions.find(
-                        (option) => option.label === worker
-                      )} // Match by label
-                      options={workerOptions}
-                      placeholder={
-                        workerType
-                          ? "Select Worker"
-                          : "Select Employee Type First"
-                      }
-                      className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {/* --------togglebuttons-------- */}
-
-                <div className="flex justify-center mt-[20px] w-[40%] items-end  rounded-[35px] mb-[0px]">
-                  <div className="flex justify-center  w-[100%] h-[45px] bg-gray-200  rounded-[33px] mb-[0px]">
-                    <button
-                      className={`px-2 py-2 w-[33%] font-semibold text-sm rounded-[35px] h-[45px] ${
-                        activeTab === "projectDetails"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("projectDetails")}
-                    >
-                      Project Details
-                    </button>
-
-                    <button
-                      className={`px-2 py-2  w-[34%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
-                        activeTab === "quotations"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("quotations")}
-                    >
-                      Recovery
-                    </button>
-
-                    <button
-                      className={`px-2 py-2  w-[33%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
-                        activeTab === "Billing"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("Billing")}
-                    >
-                      Billing
-                    </button>
-                  </div>
-                </div>
+                <button
+                  className={`px-2 py-2  w-[33%]  text-sm font-semibold rounded-[35px]  h-[45px]  ${
+                    activeTab === "Billing"
+                      ? "bg-0b6e99 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                  onClick={() => setActiveTab("Billing")}
+                >
+                  Billing
+                </button>
               </div>
             </div>
           </div>
@@ -820,6 +772,11 @@ const Maintenceupdate = () => {
           {activeTab === "projectDetails" && (
             <div className=" ProjectDetails flex items-start justify-center flex-col gap-2  mt-[20px] ">
               {/*-------- workerlist -------- */}
+              <div className="w-[90%] flex items-center justify-center">
+                <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4 mt-4">
+                  Project Details
+                </h1>
+              </div>
 
               <div className="p-6 bg-white shadow-lg items-center justify-center rounded-lg w-[90%] mt-5">
                 <h2 className="text-2xl font-bold mb-6 text-gray-800">
@@ -880,16 +837,12 @@ ${
                 </div>
               </div>
 
-              <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4 mt-4">
-                Project Details
-              </h1>
-
               {/*------ sitedata ----- */}
 
               <div className="grid grid-cols-1 gap-12 bg-gray-30 w-[90%] p-6 rounded-lg shadow-md">
                 {/* Site Details Section */}
                 <div>
-                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                  <h1 className="text-xl w-max font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
                     Site Details
                   </h1>
                   <div className="grid grid-cols-2 gap-6">
@@ -1064,83 +1017,150 @@ ${
 
                 {/* Owner Details Section */}
                 <div>
-                  <h1 className="text-xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                  <h1 className="text-xl w-max font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
                     Client Details
                   </h1>
+
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Name
-                      </h2>
-                      <input
-                        type="text"
-                        placeholder="Client Name"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...mydata, owner: e.target.value })
-                        }
-                        value={mydata.owner}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Mobile
-                      </h2>
-                      <input
-                        type="number"
-                        placeholder="Client Mobile"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...mydata, ownerMobile: e.target.value })
-                        }
-                        value={mydata.ownerMobile}
-                      />
-                    </div>
+                    <div className="relative w-[100%]">
+                      {/* Dropdown Button */}
+                      <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        disabled={showOwnerDetails}
+                        className="border flex justify-between p-2 rounded w-full text-left bg-white shadow-md"
+                      >
+                        {selectedOwner
+                          ? owners.find((owner) => owner.id === selectedOwner)
+                              ?.name || "Unknown Owner"
+                          : "-- Select recent Owner --"}
+                        {isOpen ? (
+                          <ChevronUp size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
+                        )}
+                      </button>
 
-                    <div className="flex flex-col">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Email
-                      </h2>
-                      <input
-                        type="email"
-                        placeholder="Client Email"
-                        className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 outline-none focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) =>
-                          setData({ ...mydata, ownerEmail: e.target.value })
-                        }
-                        value={mydata.ownerEmail}
-                      />
-                    </div>
+                      {/* Dropdown List */}
+                      {isOpen && (
+                        <div className="absolute left-0 mt-1 w-full border rounded bg-white shadow-lg max-h-40 overflow-y-auto z-10">
+                          {/* Deselect Option */}
+                          <div
+                            onClick={() => {
+                              setSelectedOwner(""); // Clear selection
+                              setIsOpen(false); // Close dropdown
+                            }}
+                            className="p-2 cursor-pointer text-white-500 hover:bg-gray-200"
+                          >
+                            -- Select recent Owner --
+                          </div>
 
-                    <div className="flex flex-col relative">
-                      <h2 className="text-lg font-semibold mb-2">
-                        Client Password
-                      </h2>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Client Password"
-                          className="h-10 w-full text-sm border border-gray-300 rounded-md p-2 pr-10 outline-none focus:ring-2 focus:ring-blue-500"
-                          onChange={(e) =>
-                            setData({
-                              ...mydata,
-                              ownerPassword: e.target.value,
-                            })
-                          }
-                          value={mydata.ownerPassword}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? (
-                            <EyeOff size={20} />
+                          {/* List of Owners */}
+                          {owners.length > 0 ? (
+                            owners.map((owner) => (
+                              <div
+                                key={owner.id}
+                                onClick={() => {
+                                  setSelectedOwner(owner.id); // Set selected owner
+                                  setIsOpen(false); // Close dropdown
+                                }}
+                                className="px-3 py-1 cursor-pointer hover:bg-gray-200"
+                              >
+                                {owner.name}
+                              </div>
+                            ))
                           ) : (
-                            <Eye size={20} />
+                            <p className="p-2 text-gray-500">
+                              No Clients found
+                            </p>
                           )}
-                        </button>
-                      </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col w-[100%] mt-4  ">
+                  <h1 className="text-xl w-max font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-6">
+                    Employee Selection
+                  </h1>
+
+                  <div className="flex flex-row gap-6 w-[100%] items-start justify-between ">
+                    <div className="w-[30%]">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Visit
+                      </label>
+                      <select
+                        onChange={handleVisitChange}
+                        value={mydata.visit || ""}
+                        className="w-full py-[9px] text-sm focus:outline-none shadow-md rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 p-2 transition duration-200 ease-in-out"
+                      >
+                        <option value="Yearly">Yearly</option>
+                        <option value="Seasonally">Seasonally</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {mydata.visit === "Other" && (
+                        <input
+                          type="text"
+                          placeholder="Please specify"
+                          value={mydata.otherText || ""}
+                          onChange={handleOtherTextChange}
+                          className="mt-2 w-full py-[14px] text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-blue-500 transition duration-200 ease-in-out"
+                        />
+                      )}
+                    </div>
+
+                    <div className="w-[30%]">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Employee Type
+                      </label>
+                      <Select
+                        onChange={(selectedOption) => {
+                          console.log(
+                            "New Worker Type Selected:",
+                            selectedOption
+                          );
+
+                          // ✅ Update workerType correctly
+                          setWorkerType(selectedOption.value);
+
+                          // ✅ Restore previously selected worker for this type (if available)
+                          setWorker(
+                            selectedWorkers[selectedOption.value] || null
+                          );
+
+                          // ✅ Store the workerType in form data (if needed)
+                          setData((prevData) => ({
+                            ...prevData,
+                            workerType: selectedOption.value, // Save new type
+                          }));
+                        }}
+                        value={workerTypeOptions.find(
+                          (item) => item.value === workerType
+                        )}
+                        options={workerTypeOptions}
+                        placeholder="Select Type First"
+                        className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Worker Selector */}
+                    <div className="w-[30%]">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Employee Name
+                      </label>
+                      <Select
+                        onChange={handleWorkerChange}
+                        value={workerOptions.find(
+                          (option) => option.label === worker
+                        )} // Match by label
+                        options={workerOptions}
+                        placeholder={
+                          workerType
+                            ? "Select Worker"
+                            : "Select Employee Type First"
+                        }
+                        className="text-sm rounded-md shadow-md border-gray-300 focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1337,7 +1357,7 @@ ${
                 </div>
               </div>
 
-              <div className="flex flex-start justify-start flex-wrap gap-4 w-[90%]">
+              <div className="flex flex-start justify-start flex-wrap gap-4 w-[100%]">
                 {/* Site Name */}
                 <div className="flex flex-col w-[15%]">
                   <h2 className="text-sm font-semibold mb-2">Site Name</h2>
@@ -1491,9 +1511,9 @@ ${
             </div>
           )}
 
-          <div className="w-[45%] flex justify-end">
+          <div className="w-[65%] flex justify-end">
             <button
-              className="h-[40px] w-[132px] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
+              className="h-[40px] w-[350px] mt-10 mb-8 bg-[#0b6e99] text-white rounded-md shadow-lg hover:bg-[#298bb0] transition-all duration-200 ease-in-out font-semibold text-lg"
               onClick={() => updateData()}
             >
               Update
