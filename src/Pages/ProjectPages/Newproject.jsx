@@ -699,6 +699,8 @@ const Newproject = () => {
     XLSX.writeFile(workbook, fileName);
   };
 
+
+
   let sr = 0;
 
   const columns = [
@@ -729,7 +731,7 @@ const Newproject = () => {
     {
       name: "Client",
       selector: (row) => {
-        // return project.ownerName;
+        return row?.owner?.name;
       },
       sortable: true,
       width: "14%",

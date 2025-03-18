@@ -100,8 +100,11 @@ const Maintence = () => {
     fetchProjectsWithOwners();
   }, []);
 
+
+// console.log(owners)
+
   const viewUserData = (row) => {
-    console.log("Owners:", owners);
+    console.log("Owners:",  Object.values(owners));
     console.log("Row Data:", row);
     console.log("Row Owner ID:", row?.ownerId);
 
@@ -109,10 +112,15 @@ const Maintence = () => {
       console.error("Owners data is missing or empty!");
       return;
     }
-
+    
     let selectedOwner = Object.values(owners).find(
       (owner) => String(owner?.id) === String(row?.ownerId)
     );
+
+// console.log(owner?.id)
+// console.log(row?.ownerId)
+
+
 
     if (!selectedOwner) {
       console.warn("No matching owner found for ID:", row?.ownerId);
@@ -650,22 +658,15 @@ const Maintence = () => {
 
     // { name: 'Sr', cell: (row) => { sr += 0.5; return sr }, sortable: true, width: '60px', },
     {
-      name: "Site",
-      selector: (row) => {
-        return row.site;
-      },
-      sortable: true,
-      width: "12%",
-    },
-
-    {
-      name: "Owner",
+      name: "Client",
       selector: (row) => {
         return row.owner;
       },
       sortable: true,
       width: "14%",
     },
+
+   
     {
       name: "Area",
       selector: (row) => {

@@ -412,6 +412,7 @@ const Updateinput = () => {
     setIsOpen(false); // Close dropdown after selection
   };
 
+  
   const createOrUpdateOwner = async (data) => {
     try {
       const auth = getAuth();
@@ -429,9 +430,19 @@ const Updateinput = () => {
 
       // Update owner details in Firebase Realtime Database
       await update(ref(db, `Owners/${ownerId}`), {
+        id: ownerId,
         name: data.owner || "N/A",
         mobile: data.ownerMobile || "N/A",
         email: data.ownerEmail || "N/A",
+        projectId: projectId, // Ensure projectId is stored
+        assignedSites: {
+          [pushKey]: {
+            id: pushKey,
+            siteName: data.site || "N/A",
+            projectId: projectId,
+            siteUid: pushKey,
+          },
+        },
       });
 
       console.log("Owner details updated successfully!");
@@ -441,6 +452,7 @@ const Updateinput = () => {
       throw error;
     }
   };
+
 
   const updateData = async () => {
     if (!data.site || !data.area) {

@@ -101,8 +101,6 @@ const PermentWorker = () => {
   //   }
   // };
 
-  const db = getDatabase();
-
   const deleteOwner = async () => {
     if (!deleteOwnerId) return;
 
@@ -125,24 +123,87 @@ const PermentWorker = () => {
     }
   };
 
-  const createOrUpdateOwner = async (ownerData) => {
+  // const createOrUpdateOwner = async (ownerData) => {
+  //   try {
+  //     const auth = getAuth();
+
+  //     if (!ownerData || !ownerData.ownerEmail || !ownerData.ownerPassword) {
+  //       toast.error("Owner email and password are required.");
+  //       return;
+  //     }
+
+  //     const userCredential = await createUserWithEmailAndPassword(
+  //       auth,
+  //       ownerData.ownerEmail,
+  //       ownerData.ownerPassword
+  //     );
+  //     console.log("User Credential:", userCredential);
+
+  //     if (!userCredential || !userCredential.user) {
+  //       throw new Error("User creation failed, userCredential is undefined.");
+  //     }
+
+  //     const user = userCredential.user;
+  //     const ownerId = user.uid; // Get the unique Firebase Auth UID
+  //     console.log("Owner ID:", ownerId);
+
+  //     if (!ownerId) {
+  //       throw new Error("ownerId is undefined. Firebase update aborted.");
+  //     }
+
+  //     console.log("Creating owner with data:", ownerData);
+
+  //     // Initialize database
+  //     const db = getDatabase();
+
+  //     // Generate a new push key for the owner
+  //     const pushKey = push(ref(db, "Owners")).key;
+
+  //     // Save owner details in Firebase Realtime Database
+  //     await update(ref(db, `Owners/${pushKey}`), {
+  //       id: ownerId,
+  //       name: ownerData.owner || "N/A",
+  //       mobile: ownerData.ownerMobile || "N/A",
+  //       email: ownerData.ownerEmail || "N/A",
+  //     });
+
+  //     toast.success("New owner created successfully!");
+
+  //     // Refresh the owners list after adding a new owner
+  //     fetchOwners();
+  //   } catch (error) {
+  //     console.error("Error creating owner:", error.message);
+  //     toast.error("Failed to create owner.");
+  //   }
+  // };
+
+  const auth = getAuth();
+  const db = getDatabase();
+
+  // **Function to CREATE a new owner**
+  const createOwner = async (ownerData) => {
     try {
       if (!ownerData || !ownerData.ownerEmail || !ownerData.ownerPassword) {
         toast.error("Owner email and password are required.");
         return;
       }
 
-      console.log("Creating owner with data:", ownerData);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        ownerData.ownerEmail,
+        ownerData.ownerPassword
+      );
 
-      // Initialize database
-      const db = getDatabase();
+      if (!userCredential || !userCredential.user) {
+        throw new Error("User creation failed, userCredential is undefined.");
+      }
 
-      // Generate a new push key for the owner
-      const pushKey = push(ref(db, "Owners")).key;
+      const ownerId = userCredential.user.uid; // Get Firebase Auth UID
+      console.log("New Owner ID:", ownerId);
 
       // Save owner details in Firebase Realtime Database
-      await update(ref(db, `Owners/${pushKey}`), {
-        
+      await update(ref(db, `Owners/${ownerId}`), {
+        id: ownerId,
         name: ownerData.owner || "N/A",
         mobile: ownerData.ownerMobile || "N/A",
         email: ownerData.ownerEmail || "N/A",
@@ -150,11 +211,39 @@ const PermentWorker = () => {
 
       toast.success("New owner created successfully!");
 
-      // Refresh the owners list after adding a new owner
+      // Refresh owners list
       fetchOwners();
     } catch (error) {
-      console.error("Error creating owner:", error.message);
+      console.error("Error in createOwner:", error.message);
       toast.error("Failed to create owner.");
+    }
+  };
+
+  // **Function to UPDATE an existing owner**
+  const updateOwner = async (ownerData) => {
+    try {
+      if (!ownerData || !ownerData.clientId) {
+        toast.error("Owner ID is required for updating.");
+        return;
+      }
+
+      console.log("Updating existing owner with ID:", ownerData.clientId   );
+
+      // Update owner details in Firebase Realtime Database
+      await update(ref(db, `Owners/${ownerData.clientId}`), {
+        id: ownerData.clientId,
+        name: ownerData.owner || "N/A",
+        mobile: ownerData.ownerMobile || "N/A",
+        email: ownerData.ownerEmail || "N/A",
+      });
+
+      toast.success("Owner updated successfully!");
+
+      // Refresh owners list
+      fetchOwners();
+    } catch (error) {
+      console.error("Error in updateOwner:", error.message);
+      toast.error("Failed to update owner.");
     }
   };
 
@@ -213,13 +302,14 @@ const PermentWorker = () => {
   const [editData, setEditData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
-  const openEditModal = (owner = null) => {
-    if (owner) {
-      setEditData(owner); // Set data for editing
-      setIsEditing(true);
-    } else {
-      setEditData({ owner: "", ownerEmail: "", ownerMobile: "" }); // Empty fields for new client
+  const openEditModal = (owner) => {
+    console.log(owner)
+    if (owner == null) {
+      setEditData({ owner: "", ownerEmail: "", ownerMobile: "" }); // Set data for editing
       setIsEditing(false);
+    } else {
+      setEditData({  owner: owner?.name, ownerEmail: owner?.email, ownerMobile: owner?.mobile , clientId:owner.id }); // Empty fields for new client
+      setIsEditing(true);
     }
     setEditModalOpen(true); // ✅ Corrected this line
   };
@@ -290,12 +380,21 @@ const PermentWorker = () => {
                       </td>
                       <td className="border flex justify-evenly p-2">
                         {/* Edit Button */}
-                        <button
+                        {/* <button
                           onClick={() =>
                             openEditModal({
                               ownerId: selectedOwner,
                               ...owners.find((o) => o.id === selectedOwner),
                             })
+                          }
+                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                        >
+                          Edit
+                        </button> */}
+
+                        <button
+                          onClick={() =>
+                            openEditModal(owner)
                           }
                           className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                         >
@@ -371,7 +470,11 @@ const PermentWorker = () => {
                               </button>
                               <button
                                 onClick={async () => {
-                                  await createOrUpdateOwner(editData);
+                                  if (isEditing) {
+                                    await updateOwner(editData); // Call update function when editing
+                                  } else {
+                                    await createOwner(editData); // Call create function when adding
+                                  }
                                   setEditModalOpen(false); // Close modal after submission
                                 }}
                                 className="px-3 py-1 bg-blue-500 text-white rounded"

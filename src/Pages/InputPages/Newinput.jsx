@@ -26,10 +26,10 @@ const Newinput = () => {
     inactiveDate: "",
     poolSize: "",
     poolShape: "",
-    owner: "",
-    ownerMobile: "",
-    ownerEmail: "",
-    ownerPassword: "",
+    // owner: "",
+    // ownerMobile: "",
+    // ownerEmail: "",
+    // ownerPassword: "",
     // worker: "",
     area: "",
   });
@@ -195,7 +195,6 @@ const Newinput = () => {
     };
   }, []);
 
-
   useEffect(() => {
     const fetchOwners = async () => {
       try {
@@ -223,7 +222,6 @@ const Newinput = () => {
 
     fetchOwners();
   }, []);
-
 
   // console.log(quotationTotal)
 
@@ -651,10 +649,10 @@ const Newinput = () => {
         inactiveDate: "",
         poolSize: "",
         poolShape: "",
-        owner: "",
-        ownerMobile: "",
-        ownerEmail: "",
-        ownerPassword: "",
+        // owner: "",
+        // ownerMobile: "",
+        // ownerEmail: "",
+        // ownerPassword: "",
         reference: "",
         referenceMobile: "",
         quotationAmount: "",
@@ -1001,10 +999,7 @@ const Newinput = () => {
                         disabled={showOwnerDetails}
                         className="border flex justify-between p-2 rounded w-full text-left bg-white shadow-md"
                       >
-                        {selectedOwner
-                          ? owners.find((owner) => owner.id === selectedOwner)
-                              ?.name || "Unknown Owner"
-                          : "-- Select recent client --"}
+                        {selectedOwner?.name || "-- Select recent client --"}
                         {isOpen ? (
                           <ChevronUp size={18} />
                         ) : (
@@ -1018,7 +1013,7 @@ const Newinput = () => {
                           {/* Deselect Option */}
                           <div
                             onClick={() => {
-                              setSelectedOwner(""); // Clear selection
+                              setSelectedOwner(null); // Clear selection
                               setIsOpen(false); // Close dropdown
                             }}
                             className="p-2 cursor-pointer hover:bg-gray-200"
@@ -1032,8 +1027,9 @@ const Newinput = () => {
                               <div
                                 key={owner.id}
                                 onClick={() => {
-                                  setSelectedOwner(owner.id); // Set selected owner
+                                  setSelectedOwner(owner); // Set full owner object
                                   setIsOpen(false); // Close dropdown
+                                  openEditModal(owner); // Open edit modal with selected owner
                                 }}
                                 className="p-2 cursor-pointer hover:bg-gray-200"
                               >
