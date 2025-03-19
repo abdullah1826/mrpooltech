@@ -12,7 +12,7 @@ const Widgets = ({ mylist }) => {
 
   //     const starCountRef = ref(db, '/userdata');
   //     onValue(starCountRef, async (snapshot) => {
-  //       const data = await snapshot.val();
+  //       const data = await snapshot.val();z
 
   //       MediaKeyStatusMap
   //       setmylist(Object.values(data))

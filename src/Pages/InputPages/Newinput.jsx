@@ -1,6 +1,20 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, push, ref, set, update, get } from "firebase/database";
+// import { onValue, push, ref, set, update, get } from "firebase/database";
+
+import {
+  getDatabase,
+  set,
+  ref,
+  get,
+  update,
+  push,
+  onValue,
+  remove,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
 import { db } from "../../Firbase";
 import { useState } from "react";
 import Select from "react-select";
@@ -537,13 +551,12 @@ const Newinput = () => {
       let ownerId; // Declare it outside so it is accessible
 
       if (selectedOwner) {
-        ownerId = selectedOwner; // Use the selected owner if available
-
+        ownerId = selectedOwner.id; // Use the selected owner if available
+        console.log(ownerId)
         const pushKey = push(ref(db, `Owners/${ownerId}/assignedSites`)).key;
         if (!pushKey) {
           throw new Error("Failed to generate pushKey.");
         }
-
         await update(ref(db, `Owners/${ownerId}/assignedSites/${pushKey}`), {
           id: pushKey,
           siteName: data.site || "N/A",
@@ -585,6 +598,7 @@ const Newinput = () => {
           itemDescription: items.itemDescription || "N/A",
         })),
         site: data.site || "N/A",
+        category: "newPool",
         area: data.area || "N/A",
         // owner: data.owner || "N/A",
         // ownerMobile: data.ownerMobile || "N/A",
@@ -675,10 +689,11 @@ const Newinput = () => {
   async function generateProjectId() {
     const currentYear = new Date().getFullYear();
     const projectRef = ref(db, "/NewProjects");
+    const projectQuery = query(projectRef, orderByChild("category"), equalTo("newPool"));
 
     // console.log(projectRef)
     try {
-      const snapshot = await get(projectRef);
+      const snapshot = await get(projectQuery);
 
       if (snapshot.exists()) {
         const projects = Object.values(snapshot.val()); // Get all existing project IDs
@@ -1009,6 +1024,7 @@ const Newinput = () => {
 
                       {/* Dropdown List */}
                       {isOpen && (
+
                         <div className="absolute left-0 mt-1 w-full border rounded bg-white shadow-lg max-h-40 overflow-y-auto z-10">
                           {/* Deselect Option */}
                           <div
@@ -1029,7 +1045,7 @@ const Newinput = () => {
                                 onClick={() => {
                                   setSelectedOwner(owner); // Set full owner object
                                   setIsOpen(false); // Close dropdown
-                                  openEditModal(owner); // Open edit modal with selected owner
+                                  // openEditModal(owner); // Open edit modal with selected owner
                                 }}
                                 className="p-2 cursor-pointer hover:bg-gray-200"
                               >
@@ -1042,6 +1058,7 @@ const Newinput = () => {
                             </p>
                           )}
                         </div>
+
                       )}
                     </div>
 

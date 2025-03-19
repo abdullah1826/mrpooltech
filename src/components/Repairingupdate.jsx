@@ -180,10 +180,10 @@ const Repairingupdate = () => {
       return;
     }
     if (data.site) {
-      const pushKeyRef = push(ref(db, "Repairing/"));
+      const pushKeyRef = push(ref(db, "NewProjects/"));
       const pushKey = pushKeyRef.key;
 
-      update(ref(db, `Repairing/${pushKey}`), {
+      update(ref(db, `NewProjects/${pushKey}`), {
         id: pushKey,
         projectId: projectId,
         products: products.map((product, index) => ({
@@ -211,6 +211,7 @@ const Repairingupdate = () => {
         owner: data.owner || "Nill",
         ownerMobile: data.ownerMobile || "Nill",
         reference: data.reference || "Nill",
+        selectedOwner: data.selectedOwner.id || "N/A",
         referenceMobile: data.referenceMobile || "Nill",
         poolSize: data.poolSize || "Nill",
         poolShape: data.poolShape || "Nill",
@@ -273,7 +274,7 @@ const Repairingupdate = () => {
       });
       toast.success("Record added successfully");
       setTimeout(() => {
-        navigate(`/repairing`);
+        navigate(`/NewProjects`);
       }, 1500);
       setData1({
         site: "",
@@ -384,10 +385,10 @@ const Repairingupdate = () => {
   const uid = params.userid;
   useEffect(() => {
     let getingdata = async () => {
-      const starCountRef = ref(db, `/Repairing/${uid}`);
+      const starCountRef = ref(db, `/NewProjects/${uid}`);
       onValue(starCountRef, async (snapshot) => {
         const data = await snapshot.val();
-        console.log(mydata.worker);
+        // console.log(mydata.worker);
 
         //  console.log(data)
         MediaKeyStatusMap;
@@ -414,7 +415,7 @@ const Repairingupdate = () => {
       return;
     }
     if (mydata.site && mydata.area) {
-      update(ref(db, `Repairing/${uid}`), mydata);
+      update(ref(db, `NewProjects/${uid}`), mydata);
       setData({
         site: "",
         status: true,
@@ -700,52 +701,49 @@ const Repairingupdate = () => {
         <Sidebar />
         <div className="relative flex flex-col  w-[100%]  pl-9">
           <div className="  flex flex-col justify-between items-center mt-10 w-[100%] ">
-          
+            {/* --------togglebuttons-------- */}
 
-                {/* --------togglebuttons-------- */}
+            <div className="flex justify-center  w-[50%] h-[45px] bg-gray-200  rounded-[33px] mb-[0px]">
+              <button
+                className={`px-2 py-2 w-[33%] font-semibold text-sm rounded-[35px] h-[45px] ${
+                  activeTab === "projectDetails"
+                    ? "bg-0b6e99 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+                onClick={() => setActiveTab("projectDetails")}
+              >
+                Project Details
+              </button>
 
-                  <div className="flex justify-center  w-[50%] h-[45px] bg-gray-200  rounded-[33px] mb-[0px]">
-                    <button
-                      className={`px-2 py-2 w-[33%] font-semibold text-sm rounded-[35px] h-[45px] ${
-                        activeTab === "projectDetails"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("projectDetails")}
-                    >
-                      Project Details
-                    </button>
+              <button
+                className={`px-2 py-2 w-[34%] text-sm font-semibold rounded-[35px]  h-[45px]  ${
+                  activeTab === "Billing"
+                    ? "bg-0b6e99 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+                onClick={() => setActiveTab("Billing")}
+              >
+                Billing{" "}
+              </button>
 
-                    <button
-                      className={`px-2 py-2 w-[34%] text-sm font-semibold rounded-[35px]  h-[45px]  ${
-                        activeTab === "Billing"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("Billing")}
-                    >
-                      Billing{" "}
-                    </button>
-
-                    <button
-                      className={`px-2 py-2 w-[33%] text-sm font-semibold rounded-[35px]  h-[45px]  ${
-                        activeTab === "costing"
-                          ? "bg-0b6e99 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      }`}
-                      onClick={() => setActiveTab("costing")}
-                    >
-                      Costing
-                    </button>
-                  </div>
-
+              <button
+                className={`px-2 py-2 w-[33%] text-sm font-semibold rounded-[35px]  h-[45px]  ${
+                  activeTab === "costing"
+                    ? "bg-0b6e99 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+                onClick={() => setActiveTab("costing")}
+              >
+                Costing
+              </button>
+            </div>
           </div>
 
           {/* Project Details Section */}
 
           {activeTab === "projectDetails" && (
             <div className=" ProjectDetails flex items-start justify-center flex-col gap-2  mt-[20px] ">
-            <div className="w-[90%] flex items-center justify-center">
+              <div className="w-[90%] flex items-center justify-center">
                 <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-gray-300 pb-2 mb-4 mt-4">
                   Project Details
                 </h1>
@@ -808,8 +806,6 @@ ${
                   ))}
                 </div>
               </div>
-
-              
 
               {/*------ sitedata ----- */}
 
@@ -1036,6 +1032,10 @@ ${
                                 onClick={() => {
                                   setSelectedOwner(owner.id); // Set selected owner
                                   setIsOpen(false); // Close dropdown
+                                  setData((prevData) => ({
+                                    ...prevData, // Keep existing data
+                                    ownerId: owner.id, // Update only the owner field
+                                  }));
                                 }}
                                 className="px-3 py-1 cursor-pointer hover:bg-gray-200"
                               >

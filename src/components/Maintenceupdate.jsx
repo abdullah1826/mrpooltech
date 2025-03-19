@@ -191,10 +191,10 @@ const Maintenceupdate = () => {
       return;
     }
     if (data.site) {
-      const pushKeyRef = push(ref(db, "Maintenance/"));
+      const pushKeyRef = push(ref(db, "NewProjects/"));
       const pushKey = pushKeyRef.key;
 
-      update(ref(db, `Maintenance/${pushKey}`), {
+      update(ref(db, `NewProjects/${pushKey}`), {
         id: pushKey,
         projectId: projectId,
         products: products.map((product, index) => ({
@@ -211,7 +211,8 @@ const Maintenceupdate = () => {
         owner: data.owner || "",
         workerType: data.worker?.type || data.workerType || "",
         worker: data?.worker || "",
-        ownerMobile: data.ownerMobile || "",
+        // ownerMobile: data.ownerMobile || "",
+        selectedOwner: data.selectedOwner.id || "N/A",
         status: data.status || "",
         activeDate: data.activeDate || "",
         inactiveDate: data.inactiveDate || "",
@@ -382,16 +383,18 @@ const Maintenceupdate = () => {
   const uid = params.userid;
   useEffect(() => {
     let getingdata = async () => {
-      const starCountRef = ref(db, `/Maintenance/${uid}`);
+      const starCountRef = ref(db, `/NewProjects/${uid}`);
       onValue(starCountRef, async (snapshot) => {
         const data = await snapshot.val();
         //  console.log(data)
         MediaKeyStatusMap;
+        // console.log(selectedOwner.id);
+
         // console.log(data);
         setData(data);
         setProducts(data?.products || []);
-        setWorkerType(data.workerType || "");
-        setWorker(data.worker || "");
+        setWorkerType(data?.workerType || "");
+        setWorker(data?.worker || "");
 
         // setfiltered(Object.values(data))
 
@@ -407,13 +410,14 @@ const Maintenceupdate = () => {
 
   const updateData = () => {
     // console.log(mydata);
+    // console.log(selectedOwner);
 
     if (!mydata.site || !mydata.area) {
       toast.warn("Site and area fields should not be empty.");
       return;
     }
     if (mydata.site && mydata.area) {
-      update(ref(db, `Maintenance/${uid}`), mydata);
+      update(ref(db, `NewProjects/${uid}`), mydata);
       setData({
         workerType: "",
         worker: "",
@@ -855,7 +859,7 @@ ${
                         onChange={(e) =>
                           setData({ ...mydata, site: e.target.value })
                         }
-                        value={mydata.site}
+                        value={mydata?.site}
                       />
                     </div>
                     <div className="flex flex-col">
@@ -867,7 +871,7 @@ ${
                         onChange={(e) => {
                           setData({ ...mydata, area: e.target.value });
                         }}
-                        value={mydata.area}
+                        value={mydata?.area}
                       />
                     </div>
 
@@ -880,7 +884,7 @@ ${
                         onChange={(e) =>
                           setData({ ...mydata, reference: e.target.value })
                         }
-                        value={mydata.reference}
+                        value={mydata?.reference}
                       />
                     </div>
                     <div className="flex flex-col">
@@ -897,7 +901,7 @@ ${
                             referenceMobile: e.target.value,
                           });
                         }}
-                        value={mydata.referenceMobile}
+                        value={mydata?.referenceMobile}
                       />
                     </div>
 
@@ -913,7 +917,7 @@ ${
                         onChange={(e) => {
                           setData({ ...mydata, poolSize: e.target.value });
                         }}
-                        value={mydata.poolSize}
+                        value={mydata?.poolSize}
                       />
                       <TbRulerMeasure
                         onClick={() => handleOpen()}
@@ -930,7 +934,7 @@ ${
                         onChange={(e) =>
                           setData({ ...mydata, poolSize: e.target.value })
                         }
-                        value={mydata.poolSize}
+                        value={mydata?.poolSize}
                       />
                       <TbRulerMeasure
                         onClick={handleOpen}
@@ -946,7 +950,7 @@ ${
                         onChange={(e) => {
                           setData({ ...mydata, visitNum: e.target.value });
                         }}
-                        value={mydata.visitNum}
+                        value={mydata?.visitNum}
                       >
                         <option value="" disabled>
                           0
@@ -965,7 +969,7 @@ ${
                         onChange={(e) =>
                           setData({ ...mydata, activeDate: e.target.value })
                         }
-                        value={mydata.activeDate}
+                        value={mydata?.activeDate}
                       />
                     </div>
 
@@ -979,7 +983,7 @@ ${
                         onChange={(e) =>
                           setData({ ...mydata, inactiveDate: e.target.value })
                         }
-                        value={mydata.inactiveDate}
+                        value={mydata?.inactiveDate}
                       />
                     </div>
 
@@ -994,7 +998,7 @@ ${
                         onChange={(e) => {
                           setData({ ...mydata, TotalAmount: e.target.value });
                         }}
-                        value={mydata.TotalAmount}
+                        value={mydata?.TotalAmount}
                       />
                     </div>
 
@@ -1009,7 +1013,7 @@ ${
                         onChange={(e) => {
                           setData({ ...mydata, inactiveDate: e.target.value });
                         }}
-                        value={mydata.inactiveDate}
+                        value={mydata?.inactiveDate}
                       />
                     </div>
                   </div>
@@ -1062,6 +1066,10 @@ ${
                                 onClick={() => {
                                   setSelectedOwner(owner.id); // Set selected owner
                                   setIsOpen(false); // Close dropdown
+                                  setData((prevData) => ({
+                                    ...prevData, // Keep existing data
+                                    ownerId: owner.id, // Update only the owner field
+                                  }));
                                 }}
                                 className="px-3 py-1 cursor-pointer hover:bg-gray-200"
                               >
@@ -1091,18 +1099,18 @@ ${
                       </label>
                       <select
                         onChange={handleVisitChange}
-                        value={mydata.visit || ""}
+                        value={mydata?.visit || ""}
                         className="w-full py-[9px] text-sm focus:outline-none shadow-md rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 p-2 transition duration-200 ease-in-out"
                       >
                         <option value="Yearly">Yearly</option>
                         <option value="Seasonally">Seasonally</option>
                         <option value="Other">Other</option>
                       </select>
-                      {mydata.visit === "Other" && (
+                      {mydata?.visit === "Other" && (
                         <input
                           type="text"
                           placeholder="Please specify"
-                          value={mydata.otherText || ""}
+                          value={mydata?.otherText || ""}
                           onChange={handleOtherTextChange}
                           className="mt-2 w-full py-[14px] text-sm border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-1 focus:ring-blue-500 transition duration-200 ease-in-out"
                         />

@@ -1,6 +1,21 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { set, onValue, push, ref, update, get } from "firebase/database";
+// import { set, onValue, push, ref, update, get } from "firebase/database";
+
+import {
+  getDatabase,
+  set,
+  ref,
+  get,
+  update,
+  push,
+  onValue,
+  remove,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
+
 import { db } from "../../Firbase";
 import { useState } from "react";
 import Select from "react-select";
@@ -337,7 +352,7 @@ const Newinput = () => {
         return;
       }
 
-      const pushKeyRef = push(ref(db, "Maintenance/"));
+      const pushKeyRef = push(ref(db, "NewProjects/"));
       const pushKey = pushKeyRef.key;
       const removeProduct = (index) => {
         setProducts((prevProducts) =>
@@ -345,7 +360,7 @@ const Newinput = () => {
         );
       };
 
-      update(ref(db, `Maintenance/${pushKey}`), {
+      update(ref(db, `NewProjects/${pushKey}`), {
         id: pushKey,
         projectId: projectId,
         ownerId: ownerId, // Store the created owner ID here
@@ -362,6 +377,7 @@ const Newinput = () => {
         worker: worker?.label || "Nill",
         workerType: worker?.type || "Nill",
         site: data.site || "",
+        category: "maintenance",
         area: data.area || "",
         // owner: data.owner || "",
         // ownerMobile: data.ownerMobile || "",
@@ -427,7 +443,7 @@ const Newinput = () => {
       });
       toast.success("Record added successfully");
       setTimeout(() => {
-        navigate(`/maintenance`);
+        navigate(`/Maintenance`);
       }, 1500);
       setData({
         worker: "",
@@ -510,10 +526,11 @@ const Newinput = () => {
 
   async function generateProjectId() {
     const currentYear = new Date().getFullYear();
-    const projectRef = ref(db, "/Maintenance");
+    const projectRef = ref(db, "/NewProjects");
+    const projectQuery = query(projectRef, orderByChild("category"), equalTo("maintenance"));
 
     try {
-      const snapshot = await get(projectRef);
+      const snapshot = await get(projectQuery);
 
       if (snapshot.exists()) {
         // console.log("Snapshot Data:", snapshot.val()); // Debugging
@@ -1080,9 +1097,9 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                               setSelectedOwner(""); // Clear selection
                               setIsOpen(false); // Close dropdown
                             }}
-                            className="p-2 cursor-pointer text-red-500 hover:bg-gray-200"
+                            className="p-2 cursor-pointer  hover:bg-gray-200"
                           >
-                            ❌ Deselect Owner
+                           -- Select recent Owner --
                           </div>
 
                           {/* List of Owners */}

@@ -20,9 +20,6 @@ import {
   push,
   onValue,
   remove,
-  query,
-  orderByChild,
-  equalTo,
 } from "firebase/database";
 import Sidebar from "./Sidebar";
 import { ModalContext } from "../context/Modalcontext";
@@ -183,38 +180,6 @@ const PermentWorker = () => {
   const auth = getAuth();
   const db = getDatabase();
 
-  const gettingowners = async (id) => {
-    console.log(id)
-    if (!id) {
-      console.error("Owner ID is required");
-      return;
-    }
-
-    const projectsRef = ref(db, "NewProjects");
-    const ownerQuery = query(projectsRef, orderByChild("ownerId"), equalTo(id));
-console.log(ownerQuery)
-    try {
-      const snapshot = await get(ownerQuery);
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-// console.log(data)
-        // Extract only projectId and site
-        const sites = Object.keys(data).map((key) => ({
-          projectId: data[key]?.projectId || "N/A",
-          site: data[key]?.site || "N/A",
-        }));
-
-        setAssignedProjects(sites); // Store in state
-        console.log("Filtered Projects:", sites);
-      } else {
-        setAssignedProjects([]); // Reset state if no projects found
-        console.log("No projects found for this owner");
-      }
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-    }
-  };
-
   // **Function to CREATE a new owner**
   const createOwner = async (ownerData) => {
     try {
@@ -262,7 +227,7 @@ console.log(ownerQuery)
         return;
       }
 
-      console.log("Updating existing owner with ID:", ownerData.clientId);
+      console.log("Updating existing owner with ID:", ownerData.clientId   );
 
       // Update owner details in Firebase Realtime Database
       await update(ref(db, `Owners/${ownerData.clientId}`), {
@@ -338,17 +303,12 @@ console.log(ownerQuery)
   const [isEditing, setIsEditing] = useState(false);
 
   const openEditModal = (owner) => {
-    console.log(owner);
+    console.log(owner)
     if (owner == null) {
       setEditData({ owner: "", ownerEmail: "", ownerMobile: "" }); // Set data for editing
       setIsEditing(false);
     } else {
-      setEditData({
-        owner: owner?.name,
-        ownerEmail: owner?.email,
-        ownerMobile: owner?.mobile,
-        clientId: owner.id,
-      }); // Empty fields for new client
+      setEditData({  owner: owner?.name, ownerEmail: owner?.email, ownerMobile: owner?.mobile , clientId:owner.id }); // Empty fields for new client
       setIsEditing(true);
     }
     setEditModalOpen(true); // ✅ Corrected this line
@@ -413,16 +373,29 @@ console.log(ownerQuery)
                       <td className="border p-2">
                         <button
                           className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-800"
-                          // onClick={() => openModal(owner)}
-                          // onClick={gettingowners}
-                          onClick={() => gettingowners(owner?.id)}
+                          onClick={() => openModal(owner)}
                         >
                           View Sites
                         </button>
                       </td>
                       <td className="border flex justify-evenly p-2">
+                        {/* Edit Button */}
+                        {/* <button
+                          onClick={() =>
+                            openEditModal({
+                              ownerId: selectedOwner,
+                              ...owners.find((o) => o.id === selectedOwner),
+                            })
+                          }
+                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                        >
+                          Edit
+                        </button> */}
+
                         <button
-                          onClick={() => openEditModal(owner)}
+                          onClick={() =>
+                            openEditModal(owner)
+                          }
                           className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                         >
                           Edit
@@ -573,7 +546,7 @@ console.log(ownerQuery)
                     <h2 className="text-xl font-semibold mb-4">
                       Assigned Sites for {selectedOwner.name}
                     </h2>
-                    {/* <ul className="">
+                    <ul className="">
                       {selectedOwner.assignedSites &&
                       Object.keys(selectedOwner.assignedSites).length > 0 ? (
                         Object.values(selectedOwner.assignedSites).map(
@@ -588,19 +561,6 @@ console.log(ownerQuery)
                         )
                       ) : (
                         <p className="text-gray-500">No Assigned Sites</p>
-                      )}
-                    </ul> */}
-
-                    <ul>
-                      {filteredProjects.length > 0 ? (
-                        filteredProjects.map((project, index) => (
-                          <li key={index}>
-                            <strong>Project ID:</strong> {project.projectId},{" "}
-                            <strong>Site:</strong> {project.site}
-                          </li>
-                        ))
-                      ) : (
-                        <p>No projects available.</p>
                       )}
                     </ul>
 

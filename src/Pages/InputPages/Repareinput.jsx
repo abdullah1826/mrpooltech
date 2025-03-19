@@ -1,6 +1,19 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, push, ref, update, get, set } from "firebase/database";
+// import { onValue, push, ref, update, get, set } from "firebase/database";
+import {
+  getDatabase,
+  set,
+  ref,
+  get,
+  update,
+  push,
+  onValue,
+  remove,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
 import { db } from "../../Firbase";
 import { useState } from "react";
 import Select from "react-select";
@@ -339,7 +352,7 @@ const Repareinput = () => {
         return;
       }
 
-      const pushKeyRef = push(ref(db, "Repairing/"));
+      const pushKeyRef = push(ref(db, "NewProjects/"));
       const pushKey = pushKeyRef.key;
       const removeProduct = (index) => {
         setProducts((prevProducts) =>
@@ -347,7 +360,7 @@ const Repareinput = () => {
         );
       };
 
-      update(ref(db, `Repairing/${pushKey}`), {
+      update(ref(db, `NewProjects/${pushKey}`), {
         id: pushKey,
         projectId: projectId,
         ownerId: ownerId,
@@ -374,6 +387,8 @@ const Repareinput = () => {
 
         site: data.site || "Nill",
         area: data.area || "Nill",
+        category: "repairing",
+
         // owner: data.owner || "Nill",
         // ownerMobile: data.ownerMobile || "Nill",
         // ownerPassword: data.ownerPassword || "",
@@ -481,10 +496,15 @@ const Repareinput = () => {
   };
   async function generateProjectId() {
     const currentYear = new Date().getFullYear();
-    const projectRef = ref(db, "/Repairing");
+    const projectRef = ref(db, "/NewProjects");
+    const projectQuery = query(
+      projectRef,
+      orderByChild("category"),
+      equalTo("repairing")
+    );
 
     try {
-      const snapshot = await get(projectRef);
+      const snapshot = await get(projectQuery);
 
       if (snapshot.exists()) {
         const projects = Object.values(snapshot.val());
@@ -1080,7 +1100,7 @@ ${isCheckboxDisabled(label) ? "opacity-50 cursor-not-allowed" : ""}`}
                             }}
                             className="p-2 cursor-pointe hover:bg-gray-200"
                           >
-                           -- Select recent Owner --
+                            -- Select recent Owner --
                           </div>
 
                           {/* List of Owners */}

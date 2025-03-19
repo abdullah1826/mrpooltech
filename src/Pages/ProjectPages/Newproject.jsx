@@ -1,6 +1,19 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, ref, get, remove, update } from "firebase/database";
+// import { onValue, ref, get, remove, update } from "firebase/database";
+import {
+  getDatabase,
+  set,
+  ref,
+  get,
+  update,
+  push,
+  onValue,
+  remove,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
 import { db } from "../../Firbase";
 import { useEffect, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
@@ -23,7 +36,7 @@ import * as XLSX from "xlsx";
 import { FaChevronDown } from "react-icons/fa";
 
 const Newproject = () => {
-  const [mylist, setmylist] = useState([]);
+  const [mylist, setMylist] = useState([]);
   const [search, setsearch] = useState("");
   // const [filtered, setfiltered] = useState([]);
   const navigate = useNavigate();
@@ -93,20 +106,34 @@ const Newproject = () => {
   }, []);
 
   const viewUserData = (row) => {
-    console.log(owners);
+    console.log("Owners:", Object.values(owners));
+    console.log("Row Data:", row);
+    console.log("Row Owner ID:", row?.ownerId);
+
+    if (!owners || Object.keys(owners).length === 0) {
+      console.error("Owners data is missing or empty!");
+      return;
+    }
 
     let selectedOwner = Object.values(owners).find(
-      (owner) => owner?.id == row?.ownerId
+      (owner) => String(owner?.id) === String(row?.ownerId)
     );
 
-    console.log(selectedOwner);
+    // console.log(owner?.id)
+    // console.log(row?.ownerId)
 
-    // Ensure the state is updated properly
+    if (!selectedOwner) {
+      console.warn("No matching owner found for ID:", row?.ownerId);
+      return;
+    }
+
+    console.log("Selected Owner:", selectedOwner);
+
     const updatedRow = { ...row, owner: selectedOwner };
 
-    console.log(updatedRow);
+    console.log("Updated Row:", updatedRow);
 
-    setSelectedUser(updatedRow); // Update state correctly
+    setSelectedUser(updatedRow);
     setModal1(true);
   };
 
@@ -132,7 +159,7 @@ const Newproject = () => {
 
   let updateLinks = () => {
     if (mylist?.length === 1) {
-      setmylist([]);
+      setMylist([]);
       setFiltered([]);
     }
   };
@@ -272,65 +299,49 @@ const Newproject = () => {
 
   // ------------------------geting data from firebase---------------------
 
-  useEffect(() => {
-    let getingdata = async () => {
-      const starCountRef = ref(db, "/NewProjects");
-      onValue(starCountRef, async (snapshot) => {
-        const data = await snapshot.val();
-        //  console.log(data)
-        MediaKeyStatusMap;
-        setmylist(Object.values(data));
-        setFiltered(Object.values(data));
-        // console.log(selectedUser.reason)
-        // updateStarCount(postElement, data);
-      });
-    };
-
-    getingdata();
-  }, []);
-
   // useEffect(() => {
-  //   const getingdata = () => {
+  //   let getingdata = async () => {
   //     const starCountRef = ref(db, "/NewProjects");
-
-  //     onValue(starCountRef, (snapshot) => {
-  //       const data = snapshot.val();
-
-  //       if (data) {
-  //         // Convert object to array and include project ID
-  //         const projectArray = Object.entries(data).map(([key, value]) => ({
-  //           id: key, // Include project ID
-  //           ...value,
-  //         }));
-
-  //         setmylist(projectArray);
-  //         setfiltered(projectArray);
-  //       } else {
-  //         setmylist([]);
-  //         setfiltered([]);
-  //       }
+  //     onValue(starCountRef, async (snapshot) => {
+  //       const data = await snapshot.val();
+  //       //  console.log(data)
+  //       MediaKeyStatusMap;
+  //       setmylist(Object.values(data));
+  //       setFiltered(Object.values(data));
+  //       // console.log(selectedUser.reason)
+  //       // updateStarCount(postElement, data);
   //     });
   //   };
 
   //   getingdata();
   // }, []);
 
-  //----------------------Filtering the userdata (search functionality)--------------------
+ 
+  useEffect(() => {
+    const getFilteredData = async () => {
+      const projectRef = ref(db, "/NewProjects");
+      const projectQuery = query(projectRef, orderByChild("category"), equalTo("newPool"));
+  
+      onValue(projectQuery, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const filteredData = Object.values(data); // Convert to array
+  
+          setMylist(filteredData);
+          setFiltered(filteredData);
+        } else {
+          console.log("No projects found with category 'newPool'");
+          setMylist([]);
+          setFiltered([]);
+        }
+      });
+    };
+  
+    getFilteredData();
+  }, []);
+  
 
-  // useEffect(() => {
-  //   const result = mylist.filter((user) => {
-  //     return (
-  //       user?.owner.toLowerCase().match(search.toLowerCase()) ||
-  //       user?.area.toLowerCase().match(search.toLowerCase()) ||
-  //       user?.site.toLowerCase().match(search.toLowerCase()) ||
-  //       user?.projectId.toLowerCase().match(search.toLowerCase())
-  //     );
-  //   });
-
-  //   setfiltered(result);
-  // }, [search]);
-
-  // console.log("list", mylist);
+  
 
   useEffect(() => {
     let result = mylist.filter((user) =>
@@ -699,8 +710,6 @@ const Newproject = () => {
     XLSX.writeFile(workbook, fileName);
   };
 
-
-
   let sr = 0;
 
   const columns = [
@@ -712,7 +721,7 @@ const Newproject = () => {
     },
     {
       name: "Project Id",
-      width: "11%",
+      width: "14%",
       selector: (row) => {
         return row.projectId;
       },

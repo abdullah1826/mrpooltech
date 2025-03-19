@@ -1,6 +1,17 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
-import { onValue, ref, get, remove, update } from "firebase/database";
+// import { onValue, ref, get, remove, update } from "firebase/database";
+import {
+  onValue,
+  ref,
+  remove,
+  get,
+  query,
+  orderByChild,
+  equalTo,
+  update,
+} from "firebase/database";
+
 import { db } from "../../Firbase";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -18,7 +29,7 @@ import * as XLSX from "xlsx";
 import StatusModal from "../../components/StatusModal";
 
 const Repare = () => {
-  const [mylist, setmylist] = useState([]);
+  const [mylist, setMyList] = useState([]);
   const [search, setsearch] = useState("");
   // const [filtered, setfiltered] = useState([]);
   const navigate = useNavigate();
@@ -97,7 +108,7 @@ const Repare = () => {
   // console.log(mylist);
   let updateLinks = () => {
     if (mylist?.length === 1) {
-      setmylist([]);
+      setMyList([]);
       setFiltered([]);
     }
   };
@@ -115,7 +126,7 @@ const Repare = () => {
       // console.log("Deleting record with ID:", delid);
 
       // ✅ Get the projectId from the Maintenance record
-      const maintenanceSnapshot = await get(ref(db, `Repairing/${delid}`));
+      const maintenanceSnapshot = await get(ref(db, `NewProjects/${delid}`));
       if (!maintenanceSnapshot.exists()) {
         toast.error("Maintenance record not found!");
         return;
@@ -210,7 +221,7 @@ const Repare = () => {
       }
 
       // ✅ Delete the Maintenance Record
-      await remove(ref(db, `Repairing/${delid}`));
+      await remove(ref(db, `NewProjects/${delid}`));
       console.log(`Deleted Maintenance record with ID: ${delid}`);
 
       // ✅ Reset state and show success message
@@ -238,20 +249,44 @@ const Repare = () => {
   // }
   // ------------------------geting data from firebase---------------------
 
+  // useEffect(() => {
+  //   let getingdata = async () => {
+  //     const starCountRef = ref(db, "/Repairing");
+  //     onValue(starCountRef, async (snapshot) => {
+  //       const data = await snapshot.val();
+  //       //  console.log(data)
+  //       MediaKeyStatusMap;
+  //       setmylist(Object.values(data));
+  //       setFiltered(Object.values(data));
+  //       // updateStarCount(postElement, data);
+  //     });
+  //   };
+
+  //   getingdata();
+  // }, []);
+
   useEffect(() => {
-    let getingdata = async () => {
-      const starCountRef = ref(db, "/Repairing");
-      onValue(starCountRef, async (snapshot) => {
-        const data = await snapshot.val();
-        //  console.log(data)
-        MediaKeyStatusMap;
-        setmylist(Object.values(data));
-        setFiltered(Object.values(data));
-        // updateStarCount(postElement, data);
+    const getFilteredData = async () => {
+      const projectRef = ref(db, "/NewProjects");
+      // Order by "status" and filter where status is "pending"
+      const projectQuery = query( projectRef, orderByChild("category"), equalTo("repairing") );
+
+      onValue(projectQuery, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const filteredData = Object.values(data); // Convert object to an array
+
+          setMyList(filteredData);
+          setFiltered(filteredData);
+        } else {
+          console.log("No repairing records found with status 'pending'");
+          setMyList([]);
+          setFiltered([]);
+        }
       });
     };
 
-    getingdata();
+    getFilteredData();
   }, []);
 
   //----------------------Filtering the userdata (search functionality)--------------------
@@ -298,10 +333,10 @@ const Repare = () => {
     // let togllearay = toggle.slice()
     // let index = togllearay.indexOf(id)
     if (status === true) {
-      update(ref(db, `/Repairing/${id}`), { status: false });
+      update(ref(db, `/NewProjects/${id}`), { status: false });
       setStatusModalOpen(true);
     } else {
-      update(ref(db, `/Repairing/${id}`), { status: true });
+      update(ref(db, `/NewProjects/${id}`), { status: true });
     }
   };
   const Editdata = (id) => {
@@ -661,7 +696,7 @@ const Repare = () => {
               open={statusModalOpen}
               onClose={handleModalClose}
               id={selectedProjectId}
-              path="Repairing"
+              path="NewProjects"
 
               // projectId={id}
             />
@@ -974,7 +1009,7 @@ const Repare = () => {
 
                   <button
                     onClick={() =>
-                      navigate(`/Invoice2/${selectedUser?.id}/repairing`)
+                      navigate(`/Invoice2/${selectedUser?.id}/NewProjects`)
                     }
                     className=" mb-[40px] mr-[40px] w-[100px] h-[40px] text-sm px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
                   >

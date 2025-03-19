@@ -41,6 +41,8 @@ const Updateinput = () => {
   const [products, setProducts] = useState([]);
   const [showOwnerDetails, setShowOwnerDetails] = useState(false);
   const [owners, setOwners] = useState([]);
+  const [selectedWorkers, setSelectedWorkers] = useState([]);
+
   const [selectedOwner, setSelectedOwner] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -333,43 +335,42 @@ const Updateinput = () => {
       const starCountRef = ref(db, `/NewProjects/${uid}`);
       onValue(starCountRef, async (snapshot) => {
         const data = await snapshot.val();
-
+        console.log(selectedOwner);
         MediaKeyStatusMap;
         console.log(data);
         setData({
-          projectId: data.projectId || "",
+          projectId: data.projectId || "N/A",
           items: data.items || [],
           products: data.products || [],
-          site: data.site,
-          area: data.area || "",
-          owner: data.owner || "",
-          ownerId: data.ownerId || "",
-          ownerMobile: data.ownerMobile || "",
-          reference: data.reference || "",
-          referenceMobile: data.referenceMobile || "",
-          poolSize: data.poolSize || "",
-          ownerEmail: data.ownerEmail || "",
-          ownerPassword: data.ownerPassword || "",
-          poolShape: data.poolShape || "",
-          activeDate: data.activeDate || "",
-          inactiveDate: data.inactiveDate || "",
-          status: data.status || "",
-          worker: data?.worker || "",
-          workerType: data.workerType || "", // Proper fallback
-          quotationAmount: data.quotationAmount || "",
-          AcceptedAmount: data.AcceptedAmount || "",
-          AdvanceAmount: data.AdvanceAmount || "",
-          OtherAmount: data.OtherAmount || "",
-          BalanceAmount: data.BalanceAmount || "",
+          site: data.site  || "N/A",
+          area: data.area || "N/A",
+          // owner: data.owner || "",
+          ownerId: data.ownerId || "N/A",
+          // ownerMobile: data.ownerMobile || "",
+          reference: data.reference || "N/A",
+          referenceMobile: data.referenceMobile || "N/A",
+          poolSize: data.poolSize || "N/A",
+          // ownerEmail: data.ownerEmail || "",
+          // ownerPassword: data.ownerPassword || "",
+          selectedOwner: data.selectedOwner.id || "N/A",
+          poolShape: data.poolShape || "N/A",
+          activeDate: data.activeDate || "N/A",
+          inactiveDate: data.inactiveDate || "N/A",
+          status: data.status || "N/A",
+          worker: data?.worker || "N/A",
+          workerType: data.workerType || "N/A", // Proper fallback
+          quotationAmount: data.quotationAmount || "N/A",
+          AcceptedAmount: data.AcceptedAmount || "N/A",
+          AdvanceAmount: data.AdvanceAmount || "N/A",
+          OtherAmount: data.OtherAmount || "N/A",
+          BalanceAmount: data.BalanceAmount || "N/A",
         });
-        setQuotationTotal(data.quotationAmount || "");
-        setWorkerType(data.workerType || "");
-        setWorker(data.worker || "");
-
+        setQuotationTotal(data.quotationAmount || "N/A");
+        setWorkerType(data.workerType || "N/A");
+        setWorker(data.worker || "N/A");
         setProducts(data.products || []);
         setItems(data.items || []);
         // setfiltered(Object.values(data))
-
         // updateStarCount(postElement, data);
       });
     };
@@ -412,7 +413,6 @@ const Updateinput = () => {
     setIsOpen(false); // Close dropdown after selection
   };
 
-  
   const createOrUpdateOwner = async (data) => {
     try {
       const auth = getAuth();
@@ -453,7 +453,6 @@ const Updateinput = () => {
     }
   };
 
-
   const updateData = async () => {
     if (!data.site || !data.area) {
       toast.warn("Site and area fields should not be empty.");
@@ -475,11 +474,11 @@ const Updateinput = () => {
         await update(ref(db, `Owners/${ownerId}/assignedSites/${pushKey}`), {
           id: pushKey,
           siteName: data.site || "N/A",
-          // projectId: projectId,
+          projectId: data.projectId || "",
           siteUid: pushKey,
         });
       } else {
-        ownerId = await createOrUpdateOwner(data); // Create a new owner if none is selected
+        ownerId = await createOrUpdateOwner(data, projectId); // Create a new owner if none is selected
       }
 
       update(ref(db, `NewProjects/${uid}`), data)
@@ -817,6 +816,10 @@ const Updateinput = () => {
                                 onClick={() => {
                                   setSelectedOwner(owner.id); // Set selected owner
                                   setIsOpen(false); // Close dropdown
+                                  setData((prevData) => ({
+                                    ...prevData, // Keep existing data
+                                    ownerId: owner.id, // Update only the owner field
+                                  }));
                                 }}
                                 className="px-3 py-1 cursor-pointer hover:bg-gray-200"
                               >
