@@ -65,42 +65,6 @@ const Newproject = () => {
         console.error("Error fetching data:", error);
       }
     };
-    //     // Fetch all projects
-    //     const projectsSnapshot = await get(ref(db, "NewProjects"));
-    //     const projectsData = projectsSnapshot.exists()
-    //       ? projectsSnapshot.val()
-    //       : {};
-
-    //     // Convert projectsData to an array and match ownerId with owner details
-    //     const projectsArray = Object.keys(projectsData).map((key) => {
-    //       const project = projectsData[key];
-    //       const owner = ownersData[project.ownerId] || {}; // Get owner details
-
-    //       return {
-    //         id: key, // Project ID
-    //         ...project, // Spread project details
-    //         ownerName: owner.name || "Unknown Owner",
-    //         ownerMobile: owner.mobile || "N/A",
-    //         ownerEmail: owner.email || "N/A",
-    //       };
-    //     });
-
-    //     console.log("Projects with Owner Details:", projectsArray);
-
-    //     // Save the updated projects with owner details back to Firebase
-    //     for (const project of projectsArray) {
-    //       await update(ref(db, `NewProjects/${project.id}`), {
-    //         ownerName: project.ownerName,
-    //         ownerMobile: project.ownerMobile,
-    //         ownerEmail: project.ownerEmail,
-    //       });
-    //     }
-
-    //     setProjects(projectsArray); // Set projects state as an array
-    //   } catch (error) {
-    //     console.error("Error fetching data:", error);
-    //   }
-    // };
 
     fetchProjectsWithOwners();
   }, []);
@@ -329,6 +293,9 @@ const Newproject = () => {
   
           setMylist(filteredData);
           setFiltered(filteredData);
+
+
+
         } else {
           console.log("No projects found with category 'newPool'");
           setMylist([]);
@@ -340,7 +307,13 @@ const Newproject = () => {
     getFilteredData();
   }, []);
   
-
+  function getOwnerName(ownerId) {
+    let selectedOwner = Object.values(owners).find(
+      (owner) => String(owner?.id) === String(ownerId)
+    );
+  
+    return selectedOwner ? selectedOwner.name : "Unknown Owner"; // Return owner name or default value
+  }
   
 
   useEffect(() => {
@@ -740,7 +713,7 @@ const Newproject = () => {
     {
       name: "Client",
       selector: (row) => {
-        return row?.owner?.name;
+        return getOwnerName(row?.ownerId);
       },
       sortable: true,
       width: "14%",

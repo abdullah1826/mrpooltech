@@ -47,6 +47,7 @@ const PermentWorker = () => {
   const [deleteOwnerId, setDeleteOwnerId] = useState(null); // Store owner ID for deletion
   const [showModal, setShowModal] = useState(false); // Control modal visibility
   const [data, setData] = useState([]);
+  const [assignedSites, setAssignedSites] = useState([]);
 
   useEffect(() => {
     fetchOwners();
@@ -184,7 +185,7 @@ const PermentWorker = () => {
   const db = getDatabase();
 
   const gettingowners = async (id) => {
-    console.log(id)
+    console.log(id);
     if (!id) {
       console.error("Owner ID is required");
       return;
@@ -192,26 +193,26 @@ const PermentWorker = () => {
 
     const projectsRef = ref(db, "NewProjects");
     const ownerQuery = query(projectsRef, orderByChild("ownerId"), equalTo(id));
-console.log(ownerQuery)
+    // console.log(ownerQuery);
     try {
       const snapshot = await get(ownerQuery);
       if (snapshot.exists()) {
         const data = snapshot.val();
-// console.log(data)
+        // console.log(data)
         // Extract only projectId and site
         const sites = Object.keys(data).map((key) => ({
           projectId: data[key]?.projectId || "N/A",
           site: data[key]?.site || "N/A",
         }));
 
-        setAssignedProjects(sites); // Store in state
-        console.log("Filtered Projects:", sites);
+        setAssignedSites(sites); // Store in state
+        console.log("Filtered sites:", sites);
       } else {
-        setAssignedProjects([]); // Reset state if no projects found
-        console.log("No projects found for this owner");
+        setAssignedSites([]); // Reset state if no projects found
+        console.log("No sites found for this owner");
       }
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      console.error("Error fetching sites:", error);
     }
   };
 
@@ -413,9 +414,10 @@ console.log(ownerQuery)
                       <td className="border p-2">
                         <button
                           className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-800"
-                          // onClick={() => openModal(owner)}
-                          // onClick={gettingowners}
-                          onClick={() => gettingowners(owner?.id)}
+                          onClick={() => {
+                            openModal(owner);
+                            gettingowners(owner?.id);
+                          }}
                         >
                           View Sites
                         </button>
@@ -573,36 +575,36 @@ console.log(ownerQuery)
                     <h2 className="text-xl font-semibold mb-4">
                       Assigned Sites for {selectedOwner.name}
                     </h2>
-                    {/* <ul className="">
-                      {selectedOwner.assignedSites &&
-                      Object.keys(selectedOwner.assignedSites).length > 0 ? (
-                        Object.values(selectedOwner.assignedSites).map(
-                          (site, index) => (
-                            <li key={site.id} className="mb-2">
-                              <span className="font-small text-sm">
-                                {index + 1}. {site.siteName} {site.siteName}
-                              </span>{" "}
-                              (Project ID: {site.projectId})
-                            </li>
-                          )
-                        )
-                      ) : (
-                        <p className="text-gray-500">No Assigned Sites</p>
-                      )}
-                    </ul> */}
 
-                    <ul>
-                      {filteredProjects.length > 0 ? (
-                        filteredProjects.map((project, index) => (
-                          <li key={index}>
-                            <strong>Project ID:</strong> {project.projectId},{" "}
-                            <strong>Site:</strong> {project.site}
+                    <div className="mt-4 border border-gray-300 rounded-lg p-4 bg-white shadow-md max-h-60 overflow-y-auto">
+                      <ul className="space-y-2">
+                        {assignedSites.length > 0 ? (
+                          assignedSites.map((site, index) => (
+                            <li
+                              key={index}
+                              className="p-3 border-b last:border-none flex flex-col sm:flex-row sm:justify-between bg-gray-100 rounded-md"
+                            >
+                              <span className="text-gray-700">
+                                <strong className="text-green-600">
+                                  Site:
+                                </strong>{" "}
+                                {site.site}
+                              </span>
+                              <span className="text-gray-700">
+                                <strong className="text-blue-600">
+                                  Project ID:
+                                </strong>{" "}
+                                {site.projectId}
+                              </span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-gray-500 text-center py-2">
+                            No assigned sites found
                           </li>
-                        ))
-                      ) : (
-                        <p>No projects available.</p>
-                      )}
-                    </ul>
+                        )}
+                      </ul>
+                    </div>
 
                     <div className="w-full flex justify-end">
                       <button

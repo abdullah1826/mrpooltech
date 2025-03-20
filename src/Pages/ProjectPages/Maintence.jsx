@@ -42,7 +42,6 @@ const Maintence = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   // console.log(selectedUser?.selectedCheckboxes);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
-
   const [modal1, setModal1] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [filtered, setFiltered] = useState(mylist);
@@ -340,7 +339,13 @@ const Maintence = () => {
 
 
 
-
+  function getOwnerName(ownerId) {
+    let selectedOwner = Object.values(owners).find(
+      (owner) => String(owner?.id) === String(ownerId)
+    );
+  
+    return selectedOwner ? selectedOwner.name : "Unknown Owner"; // Return owner name or default value
+  }
   
   //----------------------Filtering the userdata (search functionality)--------------------
 
@@ -854,7 +859,7 @@ const Maintence = () => {
     {
       name: "Client",
       selector: (row) => {
-        return row.owner;
+        return getOwnerName(row?.ownerId);
       },
       sortable: true,
       width: "14%",
@@ -1653,12 +1658,12 @@ const Maintence = () => {
                     </h2>
                   </div>
 
-                  <div className="flex items-center w-[46%]">
+                  {/* <div className="flex items-center w-[46%]">
                     <p className="font-[450] text-[14px] mr-2 flex items-center">
                       Site:
                     </p>
                     <span className="text-[13px]">{selectedUser.site}</span>
-                  </div>
+                  </div> */}
 
                   <div className="flex items-center w-[46%]">
                     <p className="font-[450] text-[14px] mr-2 flex items-center">

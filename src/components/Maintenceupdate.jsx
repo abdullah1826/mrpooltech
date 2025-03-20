@@ -81,41 +81,78 @@ const Maintenceupdate = () => {
     setModalOpen(false);
   };
 
+  useEffect(() => {
+    const fetchOwners = async () => {
+      try {
+        // const db = getDatabase();
+        const ownersRef = ref(db, "Owners");
+        const snapshot = await get(ownersRef);
+
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const ownerList = Object.keys(data).map((key) => ({
+            id: key,
+            name: data[key].name || "Unknown",
+          }));
+          setOwners(ownerList);
+        } else {
+          setOwners([]);
+        }
+      } catch (err) {
+        setError("Failed to fetch owners.");
+        console.error("Error fetching owners:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOwners();
+  }, []);
 
   
-    useEffect(() => {
-      const fetchOwners = async () => {
-        try {
-          // const db = getDatabase();
-          const ownersRef = ref(db, "Owners");
-          const snapshot = await get(ownersRef);
-  
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            const ownerList = Object.keys(data).map((key) => ({
-              id: key,
-              name: data[key].name || "Unknown",
-            }));
-            setOwners(ownerList);
-          } else {
-            setOwners([]);
-          }
-        } catch (err) {
-          setError("Failed to fetch owners.");
-          console.error("Error fetching owners:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchOwners();
-    }, []);
+    const params = useParams();
+    const uid = params.userid;
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSelect = (ownerId) => {
-    setSelectedOwner(ownerId);
-    setIsOpen(false); // Close dropdown after selection
+  useEffect(() => {
+    const fetchProjectOwner = async () => {
+      try {
+        const projectRef = ref(db, `/NewProjects/${uid}`);
+        const snapshot = await get(projectRef);
+
+        if (snapshot.exists()) {
+          const projectData = snapshot.val();
+          const ownerId = projectData?.ownerId;
+
+          // Match ownerId with owners list
+          const matchedOwner = owners.find((owner) => owner.id === ownerId);
+          if (matchedOwner) {
+            setSelectedOwner(matchedOwner);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching project owner:", err);
+      }
+    };
+
+    if (owners.length > 0 && uid) {
+      fetchProjectOwner();
+    }
+  }, [db, uid, owners]);
+
+  // Function to Update Selected Owner in Firebase
+
+  const handleOwnerSelect = async (owner) => {
+    try {
+      const projectRef = ref(db, `/NewProjects/${uid}`);
+      await update(projectRef, { ownerId: owner.id }); // Use update instead of set
+
+      setSelectedOwner(owner); // Update UI
+      setIsOpen(false); // Close dropdown
+    } catch (error) {
+      console.error("Error updating owner:", error);
+    }
   };
 
   // ------------------------geting data from firebase---------------------
@@ -379,8 +416,7 @@ const Maintenceupdate = () => {
     otherText: "",
   });
 
-  const params = useParams();
-  const uid = params.userid;
+
   useEffect(() => {
     let getingdata = async () => {
       const starCountRef = ref(db, `/NewProjects/${uid}`);
@@ -1034,9 +1070,8 @@ ${
                         className="border flex justify-between p-2 rounded w-full text-left bg-white shadow-md"
                       >
                         {selectedOwner
-                          ? owners.find((owner) => owner.id === selectedOwner)
-                              ?.name || "Unknown Owner"
-                          : "-- Select recent Owner --"}
+                          ? selectedOwner.name || "Unknown Owner"
+                          : "-- Select Owner --"}
                         {isOpen ? (
                           <ChevronUp size={18} />
                         ) : (
@@ -1050,12 +1085,12 @@ ${
                           {/* Deselect Option */}
                           <div
                             onClick={() => {
-                              setSelectedOwner(""); // Clear selection
+                              setSelectedOwner(null); // Clear selection
                               setIsOpen(false); // Close dropdown
                             }}
-                            className="p-2 cursor-pointer text-white-500 hover:bg-gray-200"
+                            className="p-2 cursor-pointer text-gray-600 hover:bg-gray-200"
                           >
-                            -- Select recent Owner --
+                            -- Select Owner --
                           </div>
 
                           {/* List of Owners */}
@@ -1063,23 +1098,14 @@ ${
                             owners.map((owner) => (
                               <div
                                 key={owner.id}
-                                onClick={() => {
-                                  setSelectedOwner(owner.id); // Set selected owner
-                                  setIsOpen(false); // Close dropdown
-                                  setData((prevData) => ({
-                                    ...prevData, // Keep existing data
-                                    ownerId: owner.id, // Update only the owner field
-                                  }));
-                                }}
+                                onClick={() => handleOwnerSelect(owner)} // Update owner on click
                                 className="px-3 py-1 cursor-pointer hover:bg-gray-200"
                               >
                                 {owner.name}
                               </div>
                             ))
                           ) : (
-                            <p className="p-2 text-gray-500">
-                              No Clients found
-                            </p>
+                            <p className="p-2 text-gray-500">No Owners Found</p>
                           )}
                         </div>
                       )}

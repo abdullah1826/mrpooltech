@@ -344,10 +344,32 @@ export default function Invoice() {
   //   setDiscountPercentage(value ? parseFloat(value) : 0);
   // };
 
-  const handleAddProduct = () => {
-    setProducts([
-      ...products,
+  // const handleAddProduct = () => {
+  //   setProducts([
+  //     ...products,
 
+  //     {
+  //       productName: "",
+  //       price: "",
+  //       unit: "",
+  //       quantity: "",
+  //       taxPercentage: "",
+  //       discountPercentage: "",
+  //       totalBill: "",
+  //       taxAmount: "",
+  //       discountAmount: "",
+  //       finalTotal: "",
+  //       taxValues: "",
+  //       otherTaxName: "",
+  //       // selectedTaxes: "",
+  //     },
+  //   ]);
+  // };
+
+
+  const handleAddProduct = () => {
+    setProducts((prevProducts) => [
+      ...(Array.isArray(prevProducts) ? prevProducts : []), // Ensure it's an array
       {
         productName: "",
         price: "",
@@ -361,10 +383,10 @@ export default function Invoice() {
         finalTotal: "",
         taxValues: "",
         otherTaxName: "",
-        // selectedTaxes: "",
       },
     ]);
   };
+  
 
   const handleDeleteProduct = (index) => {
     const updatedProducts = [...products];
@@ -567,6 +589,7 @@ export default function Invoice() {
 
     setProducts(data?.products);
   };
+  // console.log(products);
 
   // const [totalBill, setTotalBill] = useState(0);
   // const [taxPercentage, setTaxPercentage] = useState(0);
