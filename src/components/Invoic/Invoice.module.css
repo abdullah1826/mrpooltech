@@ -127,7 +127,7 @@ textarea[type="text"] {
   padding: 10px;
   border: 1px solid skyblue;
   border-radius: 5px;
-
+  flex-wrap: wrap;
   border-radius: 10px;
   outline: none;
   font-family: Arial, sans-serif;

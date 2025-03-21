@@ -201,7 +201,7 @@ export const AddvisterWorker = () => {
               htmlFor="img"
               className="w-[0px] h-[0px] absolute top-[95px] left-[86px]"
             >
-              <div className=" border rounded-full w-[20px] h-[20px] flex justify-center items-center text-sm font-[1500] text-white bg-blue-400">
+              <div className=" border rounded-full w-[20px] h-[20px] flex justify-center items-center text-sm font-[1500] text-white bg-blue-400 cursor-pointer">
                 +
               </div>
               <input

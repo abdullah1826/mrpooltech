@@ -250,9 +250,14 @@ const PermentWorker = () => {
       // Refresh owners list
       fetchOwners();
     } catch (error) {
-      console.error("Error in createOwner:", error.message);
-      toast.error("Failed to create owner.");
+      console.error("Error in Create Client:", error.message);
+
+      if (error.code === "auth/weak-password") {
+        toast.error("Password should be at least 6 characters.");
+      } else {
+      toast.error("Failed to create owner due to invalid  credentials..");
     }
+  }
   };
 
   // **Function to UPDATE an existing owner**

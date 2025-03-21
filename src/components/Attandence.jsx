@@ -25,8 +25,9 @@ import { Height } from "@mui/icons-material";
 const Attandence = () => {
   let [mylist, setmylist] = useState([]);
   const [search, setsearch] = useState("");
+  // const [filtered, setFiltered] = useState(mylist);
 
-  const [filtered, setfiltered] = useState([]);
+  const [filtered, setfiltered] = useState(mylist);
   const [selectedDate, setSelectedDate] = useState("");
   const [filterType, setFilterType] = useState("date"); // Default to Date
   const [filterValue, setFilterValue] = useState("");
@@ -45,7 +46,12 @@ const Attandence = () => {
   const columns = [
     { name: "Worker name", selector: "name", sortable: true, width: "140px" },
     { name: "Site", selector: "site", sortable: true },
-    { name: "Project Id", selector: "projectId", sortable: true  , width: "150px"},
+    {
+      name: "Project Id",
+      selector: "projectId",
+      sortable: true,
+      width: "150px",
+    },
 
     { name: "Date", selector: "date", sortable: true, width: "150px" },
     { name: "Checkin", selector: "timein", sortable: true },
@@ -88,7 +94,7 @@ const Attandence = () => {
 
   const siteList = filtered.map((item) => item.site);
 
-//   console.log(siteList);
+  //   console.log(siteList);
 
   const projectIdList = filtered.map((item) => item.projectId);
 
@@ -110,6 +116,13 @@ const Attandence = () => {
 
     getingdata();
   }, []);
+
+  // let fetchData = () => {
+  //   setSelectedDate("");
+  //   setsearch("");
+  //   setFilterValue("");
+
+  // };
 
   //   let fetchData = () => {
   //     setSelectedDate("");
@@ -136,6 +149,30 @@ const Attandence = () => {
 
     setfiltered(result);
   }, [search, mylist]);
+
+
+  useEffect(() => {
+    if (!search) {
+      setfiltered(mylist);
+      return;
+    }
+
+    // Convert search query to lowercase
+    const searchQuery = search.toLowerCase();
+
+    // Filter data based on any field that contains the search query
+    const result = mylist?.filter((item) =>
+      Object.values(item).some(
+        (value) =>
+          value &&
+          typeof value === "string" &&
+          value.toLowerCase().includes(searchQuery)
+      )
+    );
+
+    setfiltered(result);
+  }, [search, mylist]);
+
 
   function formatDateToLong(dateString) {
     if (!dateString) return ""; // Handle empty values
@@ -195,6 +232,8 @@ const Attandence = () => {
     console.log(mylist);
     // setFilterType("");
     // setFilterValue("");
+    setSelectedDate("");
+    setFilterValue("");
     setsearch("");
     setfiltered(mylist);
   };
@@ -374,16 +413,24 @@ const Attandence = () => {
                             </div> */}
               <div className=" w-[100%] flex items-start mt-5 justify-between p-2">
                 <div className="h-[70px]">
-                  <h2 className="text-[17px]">Search</h2>{" "}
+                  <h2 className="text-[17px]">Search</h2>
                   <input
                     type="search"
                     placeholder="Search here"
                     className="h-[25px] w-[250px] border-b-[1px] p-1 outline-none placeholder:text-sm"
                     value={search}
-                    onChange={(e) => {
-                      setsearch(e.target.value);
-                    }}
-                  />{" "}
+                    onChange={(e) => setsearch(e.target.value)}
+                  />
+
+                  {/* Display Filtered Results */}
+                  {/* <ul>
+                    {filtered.map((user, index) => (
+                      <li key={index}>
+                        {user.name} - {user.date} - {user.site}
+                      </li>
+                    ))}
+                  </ul> */}
+                  
                 </div>
 
                 <div className=" flex justify-around items-center z-10 left-[310px] top-[0px] w-[40%] p-2 bg-white shadow-md rounded-lg border">
@@ -496,17 +543,22 @@ const Attandence = () => {
               </div>
 
               <DataTable
-                columns={filteredColumns}
-                data={filtered}
+                columns={columns}
+                data={filtered} // Use filtered data
                 style={{ width: "1200px" }}
                 wrapperStyle={{ backgroundColor: "#DAECF3" }}
                 pagination
                 fixedHeader
                 subHeader
-                // subHeaderComponent={
-
-                // }
-                // subHeaderAlign="left"
+                subHeaderComponent={
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    className="p-2 border rounded-md w-64"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                }
               />
             </div>
             <br />
@@ -692,7 +744,6 @@ const Attandence = () => {
           </Button>
         </Box>
       </Modal>
-
     </>
   );
 };

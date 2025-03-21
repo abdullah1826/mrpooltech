@@ -366,7 +366,6 @@ export default function Invoice() {
   //   ]);
   // };
 
-
   const handleAddProduct = () => {
     setProducts((prevProducts) => [
       ...(Array.isArray(prevProducts) ? prevProducts : []), // Ensure it's an array
@@ -386,7 +385,6 @@ export default function Invoice() {
       },
     ]);
   };
-  
 
   const handleDeleteProduct = (index) => {
     const updatedProducts = [...products];
@@ -949,13 +947,7 @@ export default function Invoice() {
                   fullWidth
                 />
               </div>
-              <div
-                style={{
-                  width: "85%",
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
+              <div className="w-full flex justify-center">
                 <TextField
                   label="Note"
                   id="note"
@@ -964,11 +956,18 @@ export default function Invoice() {
                   name="note"
                   value={editedOurInfo.note || ""}
                   onChange={handleModalInputChange}
-                  // fullWidth
-                  className="w-[100%]"
+                  className="w-[70%]"
                   multiline
+                  fullWidth
+                  inputProps={{
+                    style: {
+                      width: "95%",
+                      wordWrap: "break-word",
+                      overflowWrap: "break-word",
+                    },
+                  }}
                 />
-              </div>{" "}
+              </div>
             </div>
             {/* Save and Cancel buttons */}
             <div style={{ display: "flex", justifyContent: "center" }}>

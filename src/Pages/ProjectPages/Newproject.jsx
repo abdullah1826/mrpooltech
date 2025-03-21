@@ -53,6 +53,7 @@ const Newproject = () => {
   const [owners, setOwners] = useState({});
   const [selectedOwnerId, setSelectedOwnerId] = useState(""); // Selected owner ID
   // const [selectedOwner, setSelectedOwner] = useState(null); // Stores selected owner details
+  const [selectedRows, setSelectedRows] = useState([]);
 
   useEffect(() => {
     const fetchProjectsWithOwners = async () => {
@@ -280,22 +281,22 @@ const Newproject = () => {
   //   getingdata();
   // }, []);
 
- 
   useEffect(() => {
     const getFilteredData = async () => {
       const projectRef = ref(db, "/NewProjects");
-      const projectQuery = query(projectRef, orderByChild("category"), equalTo("newPool"));
-  
+      const projectQuery = query(
+        projectRef,
+        orderByChild("category"),
+        equalTo("newPool")
+      );
+
       onValue(projectQuery, (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
           const filteredData = Object.values(data); // Convert to array
-  
+
           setMylist(filteredData);
           setFiltered(filteredData);
-
-
-
         } else {
           console.log("No projects found with category 'newPool'");
           setMylist([]);
@@ -303,34 +304,33 @@ const Newproject = () => {
         }
       });
     };
-  
+
     getFilteredData();
   }, []);
-  
+
   function getOwnerName(ownerId) {
     let selectedOwner = Object.values(owners).find(
       (owner) => String(owner?.id) === String(ownerId)
     );
-  
+
     return selectedOwner ? selectedOwner.name : "Unknown Owner"; // Return owner name or default value
   }
-  
 
-  useEffect(() => {
-    let result = mylist.filter((user) =>
-      ["owner", "area", "site", "projectId"].some((key) =>
-        user[key]?.toLowerCase().includes(search.toLowerCase())
-      )
-    );
+  // useEffect(() => {
+  //   let result = mylist.filter((user) =>
+  //     ["owner", "area", "site", "projectId"].some((key) =>
+  //       user[key]?.toLowerCase().includes(search.toLowerCase())
+  //     )
+  //   );
 
-    if (status === "active") {
-      result = result.filter((user) => user.status === true);
-    } else if (status === "inactive") {
-      result = result.filter((user) => user.status === false);
-    }
+  //   if (status === "active") {
+  //     result = result.filter((user) => user.status === true);
+  //   } else if (status === "inactive") {
+  //     result = result.filter((user) => user.status === false);
+  //   }
 
-    setFiltered(result);
-  }, [search, status, mylist]);
+  //   setFiltered(result);
+  // }, [search, status, mylist]);
 
   let [toggle, settoggle] = useState([]);
 
@@ -522,18 +522,86 @@ const Newproject = () => {
 
   const [selectedStatuses, setSelectedStatuses] = useState(["active"]); // Default to Active
 
+  // const handleStatusChange = (status) => {
+  //   setSelectedStatuses(
+  //     (prev) =>
+  //       prev.includes(status)
+  //         ? prev.filter((s) => s !== status) // Remove if already selected
+  //         : [...prev, status] // Add if not selected
+  //   );
+  // };
+
   const handleStatusChange = (status) => {
-    setSelectedStatuses(
-      (prev) =>
-        prev.includes(status)
-          ? prev.filter((s) => s !== status) // Remove if already selected
-          : [...prev, status] // Add if not selected
-    );
+    setSelectedStatuses((prev) => {
+      if (status === "selected") {
+        return prev.includes("selected")
+          ? prev.filter((s) => s !== "selected")
+          : [...prev, "selected"];
+      }
+      return prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status];
+    });
   };
 
-  const exportToCSV = (selectedYear, selectedOptions, status) => {
-    // console.log("Selected Options:", selectedOptions); // Debug log
+  const downloadSelectedSites = () => {
+    if (selectedRows.length === 0) {
+      alert("No sites selected!");
+      return;
+    }
 
+    const selectedData = sites.filter((site) => selectedRows.includes(site.id));
+    const jsonData = JSON.stringify(selectedData, null, 2);
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const link = document.createElement("a");
+
+    link.href = URL.createObjectURL(blob);
+    link.download = "selected_sites.json";
+    link.click();
+  };
+  // 1. Filtering using useEffect:
+  useEffect(() => {
+    let result = mylist.filter((user) =>
+      ["owner", "area", "site", "projectId"].some((key) =>
+        user[key]?.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+
+    if (status === "active") {
+      result = result.filter((user) => user.status === true);
+    } else if (status === "inactive") {
+      result = result.filter((user) => user.status === false);
+    } else if (status === "selected") {
+      result = result.filter((user) => selectedRows.includes(user.id));
+    }
+    // For "all", no additional filtering is applied
+
+    setFiltered(result);
+  }, [search, status, mylist, selectedRows]);
+
+  // 2. Computed filteredSites:
+  const filteredSites = mylist.filter((user) => {
+    // Check if the user matches the search query across key fields
+    const searchMatch = ["owner", "area", "site", "projectId"].some((key) =>
+      user[key]?.toLowerCase().includes(search.toLowerCase())
+    );
+    if (!searchMatch) return false;
+
+    // Apply status filters based on the value of `status`
+    if (status === "active") {
+      return user.status === true;
+    } else if (status === "inactive") {
+      return user.status === false;
+    } else if (status === "selected") {
+      // Only include users whose id is present in selectedRows
+      return selectedRows.includes(user.id);
+    }
+    // If status is "all" or not specified, include all matching users
+    return true;
+  });
+
+  // 3. Updated exportToCSV function:
+  const exportToCSV = (selectedYear, selectedOptions, status) => {
     if (!mylist || mylist.length === 0) {
       alert("No data to export");
       return;
@@ -542,30 +610,31 @@ const Newproject = () => {
     let csvHeaders = [];
     let csvData = [];
 
-    // ✅ Filter mylist based on the selected status (true = active, false = inactive)
-    let filteredList = mylist.filter((user) =>
-      status === "active" ? user.status === true : user.status === false
-    );
-
-    // console.log(`Filtered ${status} List:`, filteredList);
+    // Filter mylist based on the chosen status
+    let filteredList;
+    if (status === "active") {
+      filteredList = mylist.filter((user) => user.status === true);
+    } else if (status === "inactive") {
+      filteredList = mylist.filter((user) => user.status === false);
+    } else if (status === "selected") {
+      filteredList = mylist.filter((user) => selectedRows.includes(user.id));
+    } else {
+      // For "all" or any other case, use the entire list
+      filteredList = mylist;
+    }
 
     if (filteredList.length === 0) {
       alert(`No ${status} sites found to export.`);
       return;
     }
 
-    // ✅ Ensure correct evaluation of selectedOptions
-    let includeProject = selectedOptions.includes("Project Details");
-    let includeQuotation = selectedOptions.includes("Quotation");
-    let includeProducts = selectedOptions.includes("Products");
-    let includeCosting = selectedOptions.includes("Costing");
+    // Evaluate selectedOptions for dynamic header inclusion
+    const includeProject = selectedOptions.includes("Project Details");
+    const includeQuotation = selectedOptions.includes("Quotation");
+    const includeProducts = selectedOptions.includes("Products");
+    const includeCosting = selectedOptions.includes("Costing");
 
-    // console.log("Include Project:", includeProject);
-    // console.log("Include Quotation:", includeQuotation);
-    // console.log("Include Costing:", includeCosting);
-    // console.log("Include Products:", includeProducts);
-
-    // ✅ Add headers dynamically
+    // Dynamically add headers based on selected options
     if (includeProject) {
       csvHeaders.push(
         "Project Id",
@@ -600,7 +669,7 @@ const Newproject = () => {
       csvHeaders.push("Costing Items");
     }
 
-    // ✅ Prepare data rows for the filtered list
+    // Prepare CSV rows for each record in filteredList
     filteredList.forEach((record) => {
       let row = [];
 
@@ -619,7 +688,8 @@ const Newproject = () => {
           record.poolSize || "N/A",
           record.activeDate || "N/A",
           record.inactiveDate || "N/A",
-          status.charAt(0).toUpperCase() + status.slice(1) // Converts "active" → "Active"
+          // Capitalize the first letter of status:
+          status.charAt(0).toUpperCase() + status.slice(1)
         );
       }
 
@@ -672,20 +742,73 @@ const Newproject = () => {
       csvData.push(row);
     });
 
-    // ✅ Create worksheet and workbook
+    // Create a worksheet and workbook using XLSX
     const worksheet = XLSX.utils.aoa_to_sheet([csvHeaders, ...csvData]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Projects");
 
-    // ✅ Save file with status included
+    // Generate file name with current date and chosen status
     const currentDate = new Date().toISOString().split("T")[0];
     const fileName = `NewPool_${selectedYear}_${status}_${currentDate}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 
+  const handleSelect = (id) => {
+    setSelectedRows(
+      (prevSelected) =>
+        prevSelected.includes(id)
+          ? prevSelected.filter((rowId) => rowId !== id) // Deselect
+          : [...prevSelected, id] // Select
+    );
+  };
+
   let sr = 0;
 
   const columns = [
+    // {
+    //   name: "Select",
+    //   cell: (row) => (
+    //     <input
+    //       type="checkbox"
+    //       checked={selectedRows.includes(row.id)}
+    //       onChange={() => handleSelect(row.id)}
+    //     />
+    //   ),
+    //   width: "80px",
+    // },
+
+    {
+      name: (
+        // Header checkbox for selecting/deselecting all rows
+        <input
+          type="checkbox"
+          // Check if all visible rows (filtered) are selected
+          className="h-[25px]"
+          checked={
+            filtered.length > 0 && selectedRows.length === filtered.length
+          }
+          onChange={(e) => {
+            if (e.target.checked) {
+              // Select all IDs from the filtered list
+              setSelectedRows(filtered.map((row) => row.id));
+            } else {
+              // Deselect all
+              setSelectedRows([]);
+            }
+          }}
+        />
+      ),
+      cell: (row) => (
+        <input
+          type="checkbox"
+          className="h-[25px]"
+          checked={selectedRows.includes(row.id)}
+          onChange={() => handleSelect(row.id)}
+        />
+      ),
+      width: "80px",
+    },
+
     {
       name: "Sr",
       selector: (_, index) => index + 1,
@@ -855,14 +978,17 @@ const Newproject = () => {
                 id="status-filter"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="p-1 border rounded-lg bg-gray-50 text-gray-700 shadow-sm  outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-400 transition-all duration-200"
+                className="p-1 border rounded-lg bg-gray-50 text-gray-700 shadow-sm outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-400 transition-all duration-200"
               >
                 <option value="all">All</option>
-                <option value="active" className=" text-green-500">
+                <option value="active" className="text-green-500">
                   Active
                 </option>
                 <option value="inactive" className="text-red-500">
                   Inactive
+                </option>
+                <option value="selected" className="text-blue-500">
+                  Selected Sites
                 </option>
               </select>
             </div>
@@ -929,6 +1055,18 @@ const Newproject = () => {
                       />
                       <span className="text-gray-700">Inactive Sites</span>
                     </label>
+
+                    <label className="flex items-center space-x-2 py-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="status"
+                        value="selected"
+                        checked={selectedStatuses.includes("selected")}
+                        onChange={() => handleStatusChange("selected")}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-400"
+                      />
+                      <span className="text-gray-700">Selected Sites</span>
+                    </label>
                   </div>
                   {/* Checkboxes for Details */}
                   <div className="mt-3">
@@ -954,25 +1092,54 @@ const Newproject = () => {
                   {/* Export Button */}
                   <button
                     onClick={() => {
-                      if (!selectedStatus) {
+                      // Ensure at least one filter is selected
+                      if (selectedStatuses.length === 0) {
                         alert(
-                          "Please select Active or Inactive status before exporting."
+                          "Please select Active, Inactive, or Selected Sites before exporting."
                         );
                         return;
                       }
-                      // console.log(
-                      //   `Exporting for ${selectedStatus} sites with options:`,
-                      //   selectedOptions
-                      // );
+
+                      // Compute exportData based on the selectedStatuses.
+                      // A user is included if they match any selected status.
+                      const exportData = mylist.filter((user) => {
+                        let match = false;
+                        if (
+                          selectedStatuses.includes("active") &&
+                          user.status === true
+                        )
+                          match = true;
+                        if (
+                          selectedStatuses.includes("inactive") &&
+                          user.status === false
+                        )
+                          match = true;
+                        if (
+                          selectedStatuses.includes("selected") &&
+                          selectedRows.includes(user.id)
+                        )
+                          match = true;
+                        return match;
+                      });
+
+                      if (exportData.length === 0) {
+                        alert("No sites found to export!");
+                        return;
+                      }
+
+                      // Create a status label for the file name based on the selections.
+                      const exportStatus = selectedStatuses.join("_");
+
                       exportToCSV(
                         selectedYear,
                         selectedOptions,
-                        selectedStatus
+                        exportStatus,
+                        exportData
                       );
                     }}
-                    className="w-full mt-3 py-2 text-white bg-[#35A1CC] hover:bg-[#0b6e99] font-semibold rounded-xl transition duration-150 ease-in-out"
+                    className="w-full mt-3 py-2 text-white bg-[#35A1CC] hover:bg-[#0b6e99] font-semibold rounded-xl transition duration-150 ease-in-out flex items-center justify-center"
                   >
-                    <FaDownload className="inline mr-2" />
+                    <FaDownload className="mr-2" />
                     Download for {selectedYear}
                   </button>
                 </div>
@@ -994,19 +1161,28 @@ const Newproject = () => {
               wrapperStyle={{ backgroundColor: "#DAECF3" }}
               pagination
               fixedHeader
+              // selectableRows
+              selectableRowsHighlight
+              // onSelectedRowsChange={(selected) =>
+              //   setSelectedRows(selected.selectedRows)
+              // }
               subHeader
               subHeaderComponent={
-                <div className=" h-[70px]">
-                  <h2 className="text-[17px]">Search</h2>{" "}
+                <div className="w-[100%] flex justify-between h-[70px] items-center gap-4">
+                  {/* <h2 className="text-[17px]">Search</h2> */}
                   <input
                     type="search"
                     placeholder="Search here"
-                    className=" h-[25px] w-[310px] border-b-[1px]   p-1 outline-none placeholder:text-sm"
+                    className="h-[25px] w-[310px] border-b-[1px] p-1 outline-none placeholder:text-sm"
                     value={search}
-                    onChange={(e) => {
-                      setsearch(e.target.value);
-                    }}
-                  />{" "}
+                    onChange={(e) => setsearch(e.target.value)}
+                  />
+
+                  {selectedRows.length > 0 && (
+                    <p className="text-white  bg-blue-400 p-2 rounded-md">
+                   Selected : {selectedRows.length}
+                    </p>
+                  )}
                 </div>
               }
               subHeaderAlign="left"

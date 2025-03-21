@@ -31,7 +31,10 @@ const SingleOtherworker = () => {
     }, [])
 
     const Editdata = (id) => {
-        navigate(`/otherWorkers/${id}`)
+        // navigate(`/otherWorkers/${id}`)
+
+        navigate(`/UpdateotherWorker/${id}`)
+
     }
 
     console.log(mydata)

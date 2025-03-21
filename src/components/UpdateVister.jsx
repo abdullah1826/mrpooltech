@@ -213,7 +213,7 @@ const UpdateVister = () => {
           </div>
           <div className="w-[70%] mx-auto mt-10 p-8 rounded-lg ">
             <h2 className="text-2xl font-semibold text-gray-700 mb-6">
-            Permanent Employee 
+          Visiter  Employee 
             </h2>
 
             <div className="grid grid-cols-2 gap-3">
